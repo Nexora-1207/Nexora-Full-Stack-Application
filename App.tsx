@@ -11,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 // SCREENS
 import AuthScreen from './src/screens/AuthScreen';
 import SectorSelectionScreen from './src/screens/SectorSelectionScreen';
-import EngineeringPathScreen from './src/screens/EngineeringPathScreen';
+import EngineeringPathScreen from './src/sectors/engineering_sector/EngineeringPathScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import CollegeScreen from './src/screens/CollegeScreen';
 import AIScreen from './src/screens/AIScreen';
