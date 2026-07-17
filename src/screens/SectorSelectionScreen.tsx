@@ -152,6 +152,8 @@ const SectorSelectionScreen = ({ navigation }: any) => {
   const handleSelect = (name: string) => {
     if (name === 'ENGINEERING') {
       navigation.navigate('EngineeringPath');
+    } else if (name === 'MERCHANT NAVY') {
+      navigation.navigate('MerchantNavyPath');
     } else {
       navigation.replace('Home');
     }

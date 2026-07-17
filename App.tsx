@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AuthScreen from './src/screens/AuthScreen';
 import SectorSelectionScreen from './src/screens/SectorSelectionScreen';
 import EngineeringPathScreen from './src/sectors/engineering_sector/EngineeringPathScreen';
+import MerchantNavyPathScreen from './src/sectors/merchant_navy_sector/MerchantNavyPathScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import CollegeScreen from './src/screens/CollegeScreen';
 import AIScreen from './src/screens/AIScreen';
@@ -202,6 +203,7 @@ export default function App() {
           <Stack.Group>
             <Stack.Screen name="Selection" component={SectorSelectionScreen} />
             <Stack.Screen name="EngineeringPath" component={EngineeringPathScreen} />
+            <Stack.Screen name="MerchantNavyPath" component={MerchantNavyPathScreen} />
             <Stack.Screen name="Home" component={TabNavigator} />
           </Stack.Group>
         )}
