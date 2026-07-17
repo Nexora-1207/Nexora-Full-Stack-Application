@@ -102,8 +102,41 @@ const AnimatedIcon = ({ name, color, focused, size, isDark }: any) => {
 // PENTAGON-BAR HUB
 function TabNavigator() {
   const isDark = useColorScheme() === 'dark';
-  const themeStyles = getStyles(isDark);
-  const themeCyan = isDark ? neonCyan : darkCyan;
+  const [sector, setSector] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase
+          .from('profiles')
+          .select('sector')
+          .eq('id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (data && data.sector) {
+              setSector(data.sector);
+            }
+          });
+      }
+    });
+  }, []);
+
+  // Determine active colors based on sector
+  let activeColor = isDark ? neonCyan : darkCyan;
+  let aiColors: [string, string] = isDark ? ['#0070FF', '#00C2FF'] : ['#008B8B', '#00CED1'];
+  let aiGlow = isDark ? '#0070FF' : '#008B8B';
+
+  if (sector === 'ENGINEERING') {
+    activeColor = '#FF4D00';
+    aiColors = isDark ? ['#FF4D00', '#FFAA00'] : ['#D35400', '#FF8A00'];
+    aiGlow = '#FF4D00';
+  } else if (sector === 'MERCHANT NAVY') {
+    activeColor = isDark ? '#00F0FF' : '#0077FF';
+    aiColors = isDark ? ['#0077FF', '#00F0FF'] : ['#0077FF', '#00CED1'];
+    aiGlow = '#0077FF';
+  }
+
+  const themeStyles = getStyles(isDark, aiGlow);
   
   return (
     <Tab.Navigator
@@ -121,7 +154,7 @@ function TabNavigator() {
           paddingBottom: Platform.OS === 'ios' ? 5 : 0,
           paddingTop: 5,
         },
-        tabBarActiveTintColor: themeCyan,
+        tabBarActiveTintColor: activeColor,
         tabBarInactiveTintColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.4)',
         tabBarShowLabel: false,
       })}
@@ -143,7 +176,7 @@ function TabNavigator() {
           tabBarIcon: ({ color, focused }) => (
             <Animated.View style={[themeStyles.aiNodeContainer, { transform: [{ scale: focused ? 1.15 : 1 }] }]}>
                 <LinearGradient
-                  colors={isDark ? ['#0070FF', '#00C2FF'] : ['#008B8B', '#00CED1']}
+                  colors={aiColors}
                   style={themeStyles.aiNodeInner}
                 >
                   <Ionicons name="flash" size={26} color="#FFF" />
@@ -212,7 +245,7 @@ export default function App() {
   );
 }
 
-const getStyles = (isDark: boolean) => StyleSheet.create({
+const getStyles = (isDark: boolean, aiGlow: string) => StyleSheet.create({
   aiNodeContainer: {
     width: 66,
     height: 66,
@@ -237,7 +270,7 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: isDark ? '#0070FF' : '#008B8B',
+    backgroundColor: aiGlow,
     opacity: isDark ? 0.15 : 0.2,
     zIndex: -1,
   }

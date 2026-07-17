@@ -7,6 +7,8 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { supabase } from '../../lib/supabase';
+
 const { width, height } = Dimensions.get('window');
 const neonCyan = '#1dd4e1ff';
 const darkCyan = '#008B8B';
@@ -132,6 +134,17 @@ const EngineeringPathScreen = ({ navigation }: any) => {
             Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true })
         ]).start(() => {
             if (nextKey === 'success') {
+                supabase.auth.getUser().then(({ data: { user } }) => {
+                    if (user) {
+                        supabase.from('profiles').upsert({ 
+                            id: user.id, 
+                            sector: 'ENGINEERING', 
+                            updated_at: new Date() 
+                        }).then(({ error }) => {
+                            if (error) console.log('Error saving sector:', error.message);
+                        });
+                    }
+                });
                 setTimeout(() => navigation.replace('Home'), 2000);
             }
         });

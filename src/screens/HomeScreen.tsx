@@ -1,15 +1,44 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, 
   ScrollView, Animated, Dimensions,
-  Platform, useColorScheme
+  Platform, useColorScheme, ActivityIndicator 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 
 const { width } = Dimensions.get('window');
-const neonCyan = '#00F0FF';
-const darkCyan = '#008B8B';
+
+// SECTOR-SPECIFIC THEMES
+const SECTOR_THEMES: any = {
+  default: {
+    primary: '#00F0FF',
+    secondary: '#008B8B',
+    accent: '#AF52DE',
+    glowColor: 'rgba(0, 240, 255, 0.4)',
+    hudBg: '#0A0A1F',
+    label: 'STUDENT HUB',
+    icon: 'planet-outline'
+  },
+  'ENGINEERING': {
+    primary: '#FF4D00',
+    secondary: '#D35400',
+    accent: '#888888',
+    glowColor: 'rgba(255, 77, 0, 0.4)',
+    hudBg: '#1A0A02',
+    label: 'ENGINEERING HUB',
+    icon: 'construct-outline'
+  },
+  'MERCHANT NAVY': {
+    primary: '#00F0FF',
+    secondary: '#0077FF',
+    accent: '#00FF88',
+    glowColor: 'rgba(0, 240, 255, 0.4)',
+    hudBg: '#020C1B',
+    label: 'MARITIME HUB',
+    icon: 'boat-outline'
+  }
+};
 
 // SUB-COMPONENTS
 const FeatureCard = ({ title, sub, color, icon, styles, isDark }: any) => (
@@ -22,7 +51,7 @@ const FeatureCard = ({ title, sub, color, icon, styles, isDark }: any) => (
   </TouchableOpacity>
 );
 
-const ModuleBox = ({ title, icon, color, desc, styles, isDark }: any) => (
+const ModuleBox = ({ title, icon, color, desc, styles }: any) => (
   <TouchableOpacity style={styles.moduleBox}>
     <View style={styles.moduleRow}>
         <Ionicons name={icon} size={22} color={color} />
@@ -35,13 +64,14 @@ const ModuleBox = ({ title, icon, color, desc, styles, isDark }: any) => (
 
 const HomeScreen = ({ navigation }: any) => {
   const isDark = useColorScheme() === 'dark';
-  const styles = getStyles(isDark);
-  const themeCyan = isDark ? neonCyan : darkCyan;
+  const [profile, setProfile] = useState<any>({ fullName: 'Nexora Student', sector: 'default' });
+  const [loading, setLoading] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    fetchProfile();
     Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }).start();
     Animated.loop(
       Animated.sequence([
@@ -51,24 +81,59 @@ const HomeScreen = ({ navigation }: any) => {
     ).start();
   }, []);
 
+  const fetchProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name, sector')
+          .eq('id', user.id)
+          .single();
+        if (data) {
+          setProfile({
+            fullName: data.full_name || 'Nexora Student',
+            sector: data.sector || 'default'
+          });
+        }
+      }
+    } catch (err) {
+      console.log('Error loading profile:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const activeTheme = SECTOR_THEMES[profile.sector] || SECTOR_THEMES.default;
+  const primaryColor = activeTheme.primary;
+  const styles = getStyles(isDark, activeTheme);
+
   const hudGlow = pulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: isDark ? ['rgba(0, 240, 255, 0.05)', 'rgba(0, 240, 255, 0.4)'] : ['rgba(0, 139, 139, 0.1)', 'rgba(0, 139, 139, 0.4)']
+    outputRange: isDark ? ['rgba(0,0,0,0)', activeTheme.glowColor] : ['rgba(0,0,0,0.02)', activeTheme.glowColor]
   });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#00F0FF" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
           <Text style={styles.brandText}>NEXORA</Text>
-          <Text style={styles.welcomeMsg}>Welcome to Hub, Nexora Student!</Text>
+          <Text style={styles.welcomeMsg}>Welcome to {activeTheme.label}, {profile.fullName}!</Text>
         </View>
         <TouchableOpacity style={styles.profileBtn} onPress={handleLogout}>
-          <Ionicons name="exit-outline" size={24} color={themeCyan} />
+          <Ionicons name="exit-outline" size={24} color={primaryColor} />
         </TouchableOpacity>
       </View>
 
@@ -97,17 +162,17 @@ const HomeScreen = ({ navigation }: any) => {
         <Text style={styles.sectionHeader}>Featured Applications</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
             <FeatureCard title="Global STEM 2026" sub="Open for Juniors" color="#FF008A" icon="star" styles={styles} isDark={isDark} />
-            <FeatureCard title="Google Career Pro" sub="New Opportunity" color={themeCyan} icon="logo-google" styles={styles} isDark={isDark} />
-            <FeatureCard title="Nexora Resume Bot" sub="Analyze Instantly" color="#AF52DE" icon="flash" styles={styles} isDark={isDark} />
+            <FeatureCard title="Google Career Pro" sub="New Opportunity" color={primaryColor} icon="logo-google" styles={styles} isDark={isDark} />
+            <FeatureCard title="Nexora Resume Bot" sub="Analyze Instantly" color={activeTheme.accent} icon="flash" styles={styles} isDark={isDark} />
             <FeatureCard title="Internship Match" sub="12 New Matches" color="#FFD700" icon="briefcase" styles={styles} isDark={isDark} />
         </ScrollView>
 
         <Text style={styles.sectionHeader}>Your Student Hub</Text>
         <View style={styles.grid}>
-          <ModuleBox title="Scholarships" icon="trophy" color="#FFD700" desc="34 Active Fundings" styles={styles} isDark={isDark} />
-          <ModuleBox title="Resume Lab" icon="document-text" color={themeCyan} desc="Build with Nexora AI" styles={styles} isDark={isDark} />
-          <ModuleBox title="Community" icon="people" color="#AF52DE" desc="Join the live chat" styles={styles} isDark={isDark} />
-          <ModuleBox title="Career Quiz" icon="help-buoy" color="#FF8A00" desc="Discover your path" styles={styles} isDark={isDark} />
+          <ModuleBox title="Scholarships" icon="trophy" color="#FFD700" desc="34 Active Fundings" styles={styles} />
+          <ModuleBox title="Resume Lab" icon="document-text" color={primaryColor} desc="Build with Nexora AI" styles={styles} />
+          <ModuleBox title="Community" icon="people" color={activeTheme.accent} desc="Join the live chat" styles={styles} />
+          <ModuleBox title="Career Quiz" icon="help-buoy" color="#FF8A00" desc="Discover your path" styles={styles} />
         </View>
 
         <Text style={styles.sectionHeader}>Student Events</Text>
@@ -127,26 +192,26 @@ const HomeScreen = ({ navigation }: any) => {
   );
 };
 
-const getStyles = (isDark: boolean) => StyleSheet.create({
+const getStyles = (isDark: boolean, theme: any) => StyleSheet.create({
   container: { flex: 1, backgroundColor: isDark ? '#020205' : '#F4F6F9' },
   header: { 
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 25, paddingTop: 60, paddingBottom: 25
+    paddingHorizontal: 25, paddingTop: Platform.OS === 'ios' ? 70 : 60, paddingBottom: 25
   },
-  brandText: { fontSize: 28, fontWeight: '900', color: isDark ? '#FFF' : '#111', letterSpacing: 5, textShadowColor: isDark ? neonCyan : darkCyan, textShadowRadius: 10 },
+  brandText: { fontSize: 28, fontWeight: '900', color: isDark ? '#FFF' : '#111', letterSpacing: 5, textShadowColor: theme.primary, textShadowRadius: 10 },
   welcomeMsg: { fontSize: 13, color: isDark ? '#666' : '#888', fontWeight: 'bold', marginTop: 4 },
-  profileBtn: { width: 50, height: 50, borderRadius: 18, backgroundColor: isDark ? 'rgba(0, 240, 255, 0.05)' : 'rgba(0, 139, 139, 0.05)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: isDark ? 'rgba(0, 240, 255, 0.15)' : 'rgba(0, 139, 139, 0.2)' },
+  profileBtn: { width: 50, height: 50, borderRadius: 18, backgroundColor: isDark ? theme.primary + '11' : theme.secondary + '11', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: isDark ? theme.primary + '33' : theme.secondary + '44' },
   scrollArea: { paddingHorizontal: 20, paddingBottom: 150 },
-  hudCard: { padding: 25, backgroundColor: isDark ? '#0A0A1F' : '#FFF', borderRadius: 30, borderWidth: 1, marginTop: 10, shadowRadius: 20, elevation: isDark ? 0 : 5 },
+  hudCard: { padding: 25, backgroundColor: isDark ? theme.hudBg : '#FFF', borderRadius: 30, borderWidth: 1, borderColor: isDark ? theme.primary + '11' : '#EEE', marginTop: 10, shadowRadius: 20, elevation: isDark ? 0 : 5 },
   hudRow: { flexDirection: 'row', alignItems: 'center' },
-  hudCircle: { width: 80, height: 80, borderRadius: 40, borderWidth: 3.5, borderColor: isDark ? neonCyan : darkCyan, justifyContent: 'center', alignItems: 'center', shadowColor: isDark ? neonCyan : darkCyan, shadowOpacity: 0.5, shadowRadius: 15 },
+  hudCircle: { width: 80, height: 80, borderRadius: 40, borderWidth: 3.5, borderColor: theme.primary, justifyContent: 'center', alignItems: 'center', shadowColor: theme.primary, shadowOpacity: 0.5, shadowRadius: 15 },
   hudPerc: { color: isDark ? '#FFF' : '#111', fontSize: 20, fontWeight: '900' },
-  hudLabel: { color: isDark ? neonCyan : darkCyan, fontSize: 8, fontWeight: '900', marginTop: 2 },
+  hudLabel: { color: theme.primary, fontSize: 8, fontWeight: '900', marginTop: 2 },
   hudInfo: { marginLeft: 25, flex: 1 },
   hudTitle: { color: isDark ? '#FFF' : '#111', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
   hudSub: { color: isDark ? '#888' : '#555', fontSize: 12, marginTop: 4, fontWeight: 'bold' },
   miniBar: { height: 7, backgroundColor: isDark ? '#000' : '#E0E0E0', borderRadius: 4, marginTop: 15, overflow: 'hidden', borderWidth: 1, borderColor: isDark ? '#111' : '#D0D0D0' },
-  miniFill: { height: '100%', backgroundColor: isDark ? neonCyan : darkCyan },
+  miniFill: { height: '100%', backgroundColor: theme.primary },
   hudTip: { color: isDark ? '#444' : '#888', fontSize: 10, marginTop: 10, fontStyle: 'italic' },
   sectionHeader: { fontSize: 18, fontWeight: '900', color: isDark ? '#FFF' : '#111', marginTop: 40, marginBottom: 20, marginLeft: 5, letterSpacing: 1 },
   horizontalScroll: { paddingBottom: 15 },
@@ -162,7 +227,7 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   moduleDesc: { color: isDark ? '#555' : '#777', fontSize: 12, lineHeight: 18 },
   eventRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#0D0D1D' : '#FFF', padding: 20, borderRadius: 25, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.05)', shadowColor: '#000', shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 10, elevation: 2 },
   dateBox: { width: 55, alignItems: 'center', borderRightWidth: 1, borderRightColor: isDark ? '#222' : '#EEE', marginRight: 18 },
-  dateNum: { color: isDark ? neonCyan : darkCyan, fontSize: 20, fontWeight: '900' },
+  dateNum: { color: theme.primary, fontSize: 20, fontWeight: '900' },
   dateMon: { color: isDark ? '#FFF' : '#111', fontSize: 11, fontWeight: 'bold', marginTop: 2 },
   eventInfo: { flex: 1 },
   eventTitle: { color: isDark ? '#FFF' : '#111', fontSize: 15, fontWeight: '800' },

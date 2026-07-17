@@ -7,6 +7,8 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { supabase } from '../../lib/supabase';
+
 const { width, height } = Dimensions.get('window');
 const cardWidth = width * 0.75; 
 
@@ -171,6 +173,17 @@ const MerchantNavyPathScreen = ({ navigation }: any) => {
             Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true })
         ]).start(() => {
             if (nextKey === 'success') {
+                supabase.auth.getUser().then(({ data: { user } }) => {
+                    if (user) {
+                        supabase.from('profiles').upsert({ 
+                            id: user.id, 
+                            sector: 'MERCHANT NAVY', 
+                            updated_at: new Date() 
+                        }).then(({ error }) => {
+                            if (error) console.log('Error saving sector:', error.message);
+                        });
+                    }
+                });
                 setTimeout(() => navigation.replace('Home'), 2000);
             }
         });
