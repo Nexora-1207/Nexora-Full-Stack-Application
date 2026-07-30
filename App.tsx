@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform, useColorScheme, Animated } from 'react-native';
 import { supabase } from './src/lib/supabase';
 import { NavigationContainer } from '@react-navigation/native';
@@ -7,16 +7,29 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Session } from '@supabase/supabase-js';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ThemeProvider } from './src/theme/ThemeContext';
+import { DarkTheme, DefaultTheme } from '@react-navigation/native';
+import { StatusBar } from 'react-native';
 
 // SCREENS
 import AuthScreen from './src/screens/AuthScreen';
 import SectorSelectionScreen from './src/screens/SectorSelectionScreen';
-import EngineeringPathScreen from './src/screens/EngineeringPathScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import CollegeScreen from './src/screens/CollegeScreen';
 import AIScreen from './src/screens/AIScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import EngineeringPathScreen from './src/screens/EngineeringPathScreen';
+import SkilledTradesPathScreen from './src/screens/SkilledTradesPathScreen';
+import ComputersPathScreen from './src/screens/ComputersPathScreen';
+import MedicalSupportPathScreen from './src/screens/MedicalSupportPathScreen';
+import MerchantNavyPathScreen from './src/screens/MerchantNavyPathScreen';
+import HospitalityPathScreen from './src/screens/HospitalityPathScreen';
+import FashionDesignPathScreen from './src/screens/FashionDesignPathScreen';
+import MediaPathScreen from './src/screens/MediaPathScreen';
+import AgriculturePathScreen from './src/screens/AgriculturePathScreen';
+
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -167,7 +180,7 @@ function TabNavigator() {
 }
 
 export default function App() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any>({ user: {} });
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
@@ -191,22 +204,36 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const isDark = useColorScheme() === 'dark';
+
   if (isInitializing) return null;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!session ? (
-          <Stack.Screen name="Auth" component={AuthScreen} />
-        ) : (
-          <Stack.Group>
-            <Stack.Screen name="Selection" component={SectorSelectionScreen} />
-            <Stack.Screen name="EngineeringPath" component={EngineeringPathScreen} />
-            <Stack.Screen name="Home" component={TabNavigator} />
-          </Stack.Group>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ThemeProvider>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {!session ? (
+            <Stack.Screen name="Auth" component={AuthScreen} />
+          ) : (
+            <Stack.Group>
+              <Stack.Screen name="Selection" component={SectorSelectionScreen} />
+              <Stack.Screen name="EngineeringPath" component={EngineeringPathScreen} />
+              <Stack.Screen name="Home" component={TabNavigator} />
+              <Stack.Screen name="SkilledTradesPath" component={SkilledTradesPathScreen} />
+              <Stack.Screen name="ComputersPath" component={ComputersPathScreen} />
+              <Stack.Screen name="MedicalSupportPath" component={MedicalSupportPathScreen} />
+              <Stack.Screen name="MerchantNavyPath" component={MerchantNavyPathScreen} />
+              <Stack.Screen name="HospitalityPath" component={HospitalityPathScreen} />
+              <Stack.Screen name="FashionDesignPath" component={FashionDesignPathScreen} />
+              <Stack.Screen name="MediaPath" component={MediaPathScreen} />
+              <Stack.Screen name="AgriculturePath" component={AgriculturePathScreen} />
+            
+            </Stack.Group>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
 

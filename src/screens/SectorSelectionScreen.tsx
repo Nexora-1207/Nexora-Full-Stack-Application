@@ -4,6 +4,7 @@ import {
   FlatList, Animated, Dimensions, StatusBar,
   Platform, useColorScheme
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -149,11 +150,44 @@ const SectorSelectionScreen = ({ navigation }: any) => {
     }, 120);
   };
 
-  const handleSelect = (name: string) => {
-    if (name === 'ENGINEERING') {
-      navigation.navigate('EngineeringPath');
-    } else {
-      navigation.replace('Home');
+  const handleSelect = async (name: string) => {
+    try {
+      await AsyncStorage.setItem('activeSector', name);
+    } catch (_) {}
+
+    switch (name) {
+      case 'ENGINEERING':
+        navigation.navigate('EngineeringPath');
+        break;
+      case 'SKILLED TRADES':
+        navigation.navigate('SkilledTradesPath');
+        break;
+      case 'COMPUTERS':
+        navigation.navigate('ComputersPath');
+        break;
+      case 'MEDICAL SUPPORT':
+        navigation.navigate('MedicalSupportPath');
+        break;
+      case 'MERCHANT NAVY':
+        navigation.navigate('MerchantNavyPath');
+        break;
+      case 'HOSPITALITY':
+        navigation.navigate('HospitalityPath');
+        break;
+      case 'FASHION & DESIGN':
+        navigation.navigate('FashionDesignPath');
+        break;
+      case 'MEDIA':
+        navigation.navigate('MediaPath');
+        break;
+      case 'AGRICULTURE':
+        navigation.navigate('AgriculturePath');
+        break;
+      case 'RETAIL & LOGISTICS':
+        navigation.navigate('RetailLogisticsPath');
+        break;
+      default:
+        navigation.replace('Home');
     }
   };
 

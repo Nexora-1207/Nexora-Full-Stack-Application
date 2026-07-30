@@ -9,115 +9,84 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
-const neonCyan = '#1dd4e1ff';
-const darkCyan = '#008B8B';
+const navyBlue = '#0077FF';
+const seafoamGreen = '#38EF7D';
 const cardWidth = width * 0.75; 
 
-// DATASET: DEEP MISSION INTELLIGENCE
+// DATASET: MERCHANT NAVY ENTRY INTELLIGENCE
 const CAREER_TREE: any = {
   root: {
-    question: "FOUNDATION",
-    subtitle: "Select your entry point",
+    question: "DEPARTMENTS",
+    subtitle: "Select your desired maritime role",
     options: [
-      { id: 'inter', label: "INTERMEDIATE", sub: "10+2 Academic Path", next: 'inter_streams', brief: "The traditional academic route leading to diverse professional degrees including Engineering, Medicine, and Law." },
-      { id: 'diploma', label: "DIPLOMA", sub: "Technical Mastery", next: 'diploma_sector', brief: "A 3-year technical course allowing direct entry into the 2nd year of Engineering or the workforce." },
-      { id: 'iti', label: "ITI", sub: "Vocational Skills", next: 'iti_sector', brief: "Hands-on vocational training designed for immediate industrial employment in specialized trades." }
+      { id: 'deck', label: "DECK DEPARTMENT", sub: "Navigation & Cargo Ops", next: 'deck_check', brief: "Responsible for steering, vessel safety, cargo handling, and communication. Leads to Ship Captain." },
+      { id: 'engine', label: "ENGINE DEPARTMENT", sub: "Propulsion & Systems", next: 'engine_check', brief: "Responsible for operating and maintaining main engines, boilers, generators, and refrigeration. Leads to Chief Engineer." },
+      { id: 'catering', label: "CATERING & SALOON", sub: "Hospitality & Stewarding", next: 'catering_check', brief: "Manages accommodation, culinary preparation, sanitation, and catering. Leads to Chief Cook." }
     ]
   },
-  // INTERMEDIATE STREAMS
-  inter_streams: {
-    question: "STREAM HUB",
-    subtitle: "Define your core domain",
-    options: [
-      { id: 'science', label: "SCIENCE STREAM", sub: "Technical & Medical", next: 'science_path', brief: "The foundation for Engineering, Science, and medical disciplines. High research and tech potential." },
-      { id: 'commerce', label: "COMMERCE STREAM", sub: "Business & Finance", next: 'commerce_note', brief: "Focuses on Trade, Business, and Finance. The gateway to massive career opportunities in management." },
-      { id: 'arts', label: "ARTS & HUMANITIES", sub: "Creative & Social", next: 'arts_note', brief: "Explore Human Society, Literature, and Social Sciences. Ideal for Law and Civil Services." }
-    ]
-  },
-  // COMMERCE NOTE SLIDE
-  commerce_note: {
+  deck_check: {
     type: 'info',
-    question: "COMMERCE INTEL",
-    text: "Commerce is the heartbeat of the Global Economy. By choosing this path, you enter a world of Business, Audit, and International Finance.\n\nWHY COMMERCE?\nIt leads to elite professions like Chartered Accountancy (CA), Banking, and Investment Management. It is ideal if you want to understand how wealth and corporations are managed.\n\nCAREER PATHS:\n- Finance Manager\n- Auditors & CA\n- Data Analysts\n- Business Strategists",
-    next: 'commerce_path'
+    question: "DECK FITNESS CHECK",
+    text: "Joining the Deck department requires the highest levels of visual acuity and physical stamina:\n\nPHYSICAL STANDARDS:\n- Vision: 6/6 in each eye without glasses (unaided). No color blindness allowed.\n- Height & Weight: Healthy BMI, physically fit with normal hearing.\n- Medical: Must secure a fitness certificate from a DG Shipping approved doctor.\n\nAre you ready to proceed?",
+    next: 'course_selection'
   },
-  // ARTS NOTE SLIDE
-  arts_note: {
+  engine_check: {
     type: 'info',
-    question: "ARTS & HUMANITY",
-    text: "Arts and Humanities allow you to explore human society, expression, and governance. This is the bedrock of critical thinking and social progress.\n\nWHY ARTS?\nIdeal for students aiming for the Judiciary, Public Policy, Journalism, or the Civil Services (IAS/IPS). It offers deep insight into human history and creative industries.\n\nCAREER PATHS:\n- Legal Consultant (Law)\n- Diplomat & Civil Servant\n- Journalist & Media Host\n- Archaeologists & Historians",
-    next: 'arts_path'
+    question: "ENGINE FITNESS CHECK",
+    text: "Engineers operate deep inside the ship, managing massive power networks and thermal plants:\n\nPHYSICAL STANDARDS:\n- Vision: Up to 6/12 in each eye (glasses allowed). No color blindness allowed.\n- Medical: Approved fitness certificate from a DG Shipping doctor.\n- Physical: Resilience to high temperatures and noise levels in engine compartments.\n\nAre you ready to proceed?",
+    next: 'course_selection'
   },
-  science_path: {
-    question: "SCIENCE CORE",
-    subtitle: "Select your academic minor",
+  catering_check: {
+    type: 'info',
+    question: "CATERING FITNESS CHECK",
+    text: "The Saloon crew ensures the health, hospitality, and daily comfort of all seafarers onboard:\n\nPHYSICAL STANDARDS:\n- Vision: Normal functional vision (glasses/aided allowed).\n- Medical: Standard DG Shipping medical certification.\n- Personal Hygiene: High standards of hygiene, culinary grooming, and physical fitness.\n\nAre you ready to proceed?",
+    next: 'course_selection'
+  },
+  course_selection: {
+    question: "POST-10th COURSE",
+    subtitle: "Select your maritime training program",
     options: [
-      { id: 'mpc', label: "MPC", sub: "Math, Physics, Chemistry", next: 'success', brief: "The mandatory path for Engineering and Architecture." },
-      { id: 'mbipc', label: "MBiPC", sub: "General Science Hub", next: 'success', brief: "Combines Math and Biology, opening both Engineering and Medical doors." }
+      { id: 'gp_rating', label: "GP RATING", sub: "General Purpose (6 Months)", next: 'gp_awareness', brief: "Direct deck & engine rating pre-sea training. Fast entry into shipping. Age 17.5 - 25 years. 40%+ marks in 10th." },
+      { id: 'saloon_rating', label: "SALOON RATING", sub: "Catering & Cookery (6 Months)", next: 'saloon_awareness', brief: "Pre-sea training in maritime food production & hospitality. Age 17.5 - 25 years. 40%+ marks in 10th." },
+      { id: 'dme', label: "TECHNICAL DIPLOMA", sub: "Polytechnic + 2-Yr DME", next: 'dme_awareness', brief: "3-year Diploma in Mechanical/Electrical, then 2-year DME. Pathway to join directly as Junior Marine Engineer." },
+      { id: 'hsc_science', label: "10+2 SCIENCE (PCM)", sub: "Academic Route to Officer", next: 'hsc_awareness', brief: "Complete 11th & 12th with 60%+ in PCM. Qualify for IMU-CET, DNS (1 Yr) or B.Sc Nautical Science (3 Yrs)." }
     ]
   },
-  commerce_path: {
-    question: "COMMERCE CORE",
-    subtitle: "Select your business minor",
-    options: [
-      { id: 'cec', label: "CEC", sub: "Civics, Econ, Commerce", next: 'success', brief: "The classic business and commerce foundation." },
-      { id: 'mec', label: "MEC", sub: "Math, Econ, Commerce", next: 'success', brief: "Integrates Math, making you eligible for high-end Finance degrees." },
-      { id: 'hec_com', label: "HEC", sub: "History, Econ, Commerce", next: 'success', brief: "Combines social history with business economics." }
-    ]
+  gp_awareness: {
+    type: 'info',
+    question: "GP RATING PATHWAY",
+    text: "COURSES AFTER 10th:\nGP Rating is the most direct entry to the merchant navy after Class 10.\n\nTRAINING INVOLVES:\nBasic seamanship, rope work, vessel maintenance, watchkeeping, engine diagnostics, welding, and safety drills (STCW).\n\nCAREER GROWTH:\n- Start as: Trainee Ordinary Seaman / Wiper (₹25k - ₹35k/mo stipend).\n- Next: Able Seaman -> Bosun -> Officer (by clearing MMD exams).\n\nCHALLENGES:\n- Heavy physical labor at sea.\n- Away from family for 6 to 9 months consecutively.",
+    next: 'success'
   },
-  arts_path: {
-    question: "ARTS CORE",
-    subtitle: "Select your creative minor",
-    options: [
-      { id: 'hec_arts', label: "HEC", sub: "History, Econ, Civics", next: 'success', brief: "Ideal for aspiring Civil Servants and Historians." },
-      { id: 'arts_pure', label: "ARTS", sub: "Pure Humanities", next: 'success', brief: "Focus on social sciences and cultural studies." }
-    ]
+  saloon_awareness: {
+    type: 'info',
+    question: "SALOON PATHWAY",
+    text: "COURSES AFTER 10th:\nSaloon Rating specializes in catering and hospitality on ships.\n\nTRAINING INVOLVES:\nMaritime culinary sciences, dietetics, housekeeping, hygiene, safety, and survival procedures.\n\nCAREER GROWTH:\n- Start as: Trainee Cook / Assistant Steward (₹18k - ₹30k/mo stipend).\n- Next: Chief Cook (₹1.5L - ₹3L/mo tax-free) -> Catering Officer.\n\nCHALLENGES:\n- Preparing food for diverse, multicultural crews during heavy weather.\n- 6-9 months contracts at sea.",
+    next: 'success'
   },
-  // DIPLOMA SECTOR
-  diploma_sector: {
-    question: "DIPLOMA BRANCH",
-    subtitle: "Select your technical mission",
-    options: [
-      { id: 'civil_eng', label: "CIVIL ENGINEERING", sub: "Structural Design", next: 'success', brief: "Master the art of infrastructure, from bridges to skyscrapers." },
-      { id: 'mech_eng', label: "MECHANICAL ENGINEERING", sub: "Industrial Systems", next: 'success', brief: "The study of machines, thermodynamics, and manufacturing." },
-      { id: 'elec_eng', label: "ELECTRICAL ENGINEERING", sub: "Energy Power Grids", next: 'success', brief: "Focus on power generation, distribution, and smart grids." },
-      { id: 'ece_eng', label: "ECE ENGINEERING", sub: "Communication Hub", next: 'success', brief: "Electronics and Communication systems that power the world." },
-      { id: 'comp_eng', label: "COMPUTER ENGINEERING", sub: "Software Hub", next: 'success', brief: "Master hardware-software integration and AI foundations." }
-    ]
+  dme_awareness: {
+    type: 'info',
+    question: "DIPLOMA PATHWAY",
+    text: "COURSES AFTER 10th:\nIf you want to become a Marine Engineer but finished 10th, do a 3-year Mechanical/Electrical Diploma first, then a 2-year Diploma in Marine Engineering (DME).\n\nTRAINING INVOLVES:\nAuxiliary engines, boilers, fluid dynamics, high-voltage grids, and electrical automations.\n\nCAREER GROWTH:\n- Start as: Junior Marine Engineer (₹60k - ₹1.2L/mo).\n- Next: 4th Engineer -> 3rd Engineer -> 2nd Engineer -> Chief Engineer (up to ₹8L - ₹12L/mo).\n\nCHALLENGES:\n- Requires 5 years of education before joining.\n- Engine room heat and technical breakdowns.",
+    next: 'success'
   },
-  // ITI SECTOR
-  iti_sector: {
-    question: "ITI TRADE",
-    subtitle: "Select your vocational mission",
-    options: [
-      { id: 'elec_iti', label: "ELECTRICIAN", sub: "Power Installation", next: 'success', brief: "Focus on domestic and industrial power wiring, maintenance, and grounding systems. High demand in construction and industries." },
-      { id: 'fitter_iti', label: "FITTER", sub: "Industrial Assembly", next: 'success', brief: "Specialized in precision fitting of machine parts and assembly of engineering components. Bedrock of manufacturing." },
-      { id: 'turner_iti', label: "TURNER", sub: "Lathe Machining", next: 'success', brief: "Master the art of lathe machining, metal turning, and creating precision cylindrical parts for engines and machines." },
-      { id: 'mach_iti', label: "MACHINIST", sub: "Precision Tooling", next: 'success', brief: "Operate and set up various machine tools to produce high-precision metal parts with near-zero tolerance." },
-      { id: 'elec_mech_iti', label: "ELECTRONICS MECHANIC", sub: "Circuit Mastery", next: 'success', brief: "Expertise in repairing, maintaining, and assembling electronic circuits, appliances, and industrial controllers." },
-      { id: 'copa_iti', label: "COPA", sub: "Computer Ops & Programming", next: 'success', brief: "Computer Operator and Programming Assistant. Gateway to basic software management, data entry, and networking." }
-    ]
+  hsc_awareness: {
+    type: 'info',
+    question: "10+2 PCM PATHWAY",
+    text: "COURSES AFTER 10th:\nTo become a Deck Officer, complete Class 11 & 12 in Science (PCM) with 60%+, then clear the national IMU-CET exam.\n\nTRAINING INVOLVES:\nB.Sc Nautical Science (3 years) or B.Tech Marine Engineering (4 years) or DNS (1 year).\n\nCAREER GROWTH:\n- Start as: Deck Cadet / Trainee Engineer.\n- Next: 3rd Mate -> 2nd Mate -> Chief Officer -> Captain (up to ₹8L - ₹15L/mo).\n\nCHALLENGES:\n- High academic standards and study pressure.\n- Cost of education is higher.",
+    next: 'success'
   },
   success: {
-    question: "MISSION STATUS",
-    subtitle: "Pathway Synchronized.",
+    question: "ROADMAP STAGED",
+    subtitle: "Merchant Navy Pathway Synchronized.",
     options: []
   }
 };
 
-const EngineeringPathScreen = ({ navigation }: any) => {
+const MerchantNavyPathScreen = ({ navigation }: any) => {
   const isDark = useColorScheme() === 'dark';
   const styles = getStyles(isDark);
-  const themeCyan = isDark ? neonCyan : darkCyan;
-
-  useEffect(() => {
-    const saveSector = async () => {
-      try {
-        await AsyncStorage.setItem('activeSector', 'ENGINEERING');
-      } catch (_) {}
-    };
-    saveSector();
-  }, []);
+  const themeBlue = isDark ? navyBlue : '#0055CC';
 
   const [currentNodeKey, setCurrentNodeKey] = useState('root');
   const [history, setHistory] = useState<string[]>([]);
@@ -132,7 +101,7 @@ const EngineeringPathScreen = ({ navigation }: any) => {
     Animated.parallel([
         Animated.timing(slideAnim, { toValue: -width, duration: 300, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 0, duration: 250, useNativeDriver: true })
-    ]).start(() => {
+    ]).start(async () => {
         setHistory([...history, currentNodeKey]);
         setHoveredId(null);
         setCurrentNodeKey(nextKey);
@@ -140,8 +109,11 @@ const EngineeringPathScreen = ({ navigation }: any) => {
         Animated.parallel([
             Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
             Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true })
-        ]).start(() => {
+        ]).start(async () => {
             if (nextKey === 'success') {
+                try {
+                  await AsyncStorage.setItem('activeSector', 'MERCHANT NAVY');
+                } catch (_) {}
                 setTimeout(() => navigation.replace('Home'), 2000);
             }
         });
@@ -172,16 +144,16 @@ const EngineeringPathScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <LinearGradient colors={isDark ? ['#020205', '#080815'] : ['#F4F6F9', '#E6E9F0']} style={styles.background} />
+      <LinearGradient colors={isDark ? ['#020A1A', '#01030B'] : ['#EBF4FA', '#D9E8F3']} style={styles.background} />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={goBack} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={24} color={themeCyan} />
+            <Ionicons name="chevron-back" size={24} color={themeBlue} />
         </TouchableOpacity>
         <View style={styles.progressTrack}>
-            <Animated.View style={[styles.progressPulse, { width: `${(history.length + 1) * 15}%` }]} />
+            <Animated.View style={[styles.progressPulse, { width: `${(history.length + 1) * 20}%` }]} />
         </View>
-        <Text style={styles.headerTag}>CAREER INTELLIGENCE</Text>
+        <Text style={styles.headerTag}>MARITIME SCHOLAR</Text>
       </View>
 
       <View style={styles.centerStage}>
@@ -227,14 +199,14 @@ const EngineeringPathScreen = ({ navigation }: any) => {
                         >
                             <LinearGradient 
                                 colors={isHovered ? 
-                                    (isDark ? ['rgba(0, 240, 255, 0.15)', 'rgba(0, 240, 255, 0.05)'] : ['rgba(0, 139, 139, 0.1)', 'transparent']) : 
+                                    (isDark ? ['rgba(0, 119, 255, 0.15)', 'rgba(0, 119, 255, 0.05)'] : ['rgba(0, 85, 204, 0.1)', 'transparent']) : 
                                     (isDark ? ['rgba(255, 255, 255, 0.02)', 'transparent'] : ['rgba(0, 0, 0, 0.02)', 'transparent'])
                                 } 
                                 style={styles.optionGrad}
                             />
                             <View style={styles.optionHeader}>
-                                <Text style={[styles.optionLabel, isHovered && {color: themeCyan}]}>{option.label}</Text>
-                                <Ionicons name="cube-outline" size={18} color={isHovered ? themeCyan : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.3)')} />
+                                <Text style={[styles.optionLabel, isHovered && {color: themeBlue}]}>{option.label}</Text>
+                                <Ionicons name="compass-outline" size={18} color={isHovered ? themeBlue : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.3)')} />
                             </View>
                             <Text style={styles.optionSub}>{option.sub}</Text>
                             
@@ -251,8 +223,8 @@ const EngineeringPathScreen = ({ navigation }: any) => {
 
                 {currentNodeKey === 'success' && (
                   <View style={styles.successPulse}>
-                      <MaterialCommunityIcons name="check-decagram" size={60} color={themeCyan} />
-                      <Text style={styles.successTxt}>MAPPER FINALIZED</Text>
+                      <MaterialCommunityIcons name={"shield-anchor" as any} size={60} color={themeBlue} />
+                      <Text style={styles.successTxt}>MAPPER STAGED</Text>
                   </View>
                 )}
             </View>
@@ -263,7 +235,7 @@ const EngineeringPathScreen = ({ navigation }: any) => {
 };
 
 const getStyles = (isDark: boolean) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: isDark ? '#020205' : '#F4F6F9' },
+  container: { flex: 1, backgroundColor: isDark ? '#020A1A' : '#EBF4FA' },
   background: { ...StyleSheet.absoluteFillObject },
 
   header: {
@@ -276,16 +248,16 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   },
   backBtn: { width: 45, height: 45, borderRadius: 15, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', shadowColor: '#000', shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 5, elevation: 2 },
   progressTrack: { flex: 1, height: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.1)', marginHorizontal: 20, borderRadius: 2, overflow: 'hidden' },
-  progressPulse: { height: '100%', backgroundColor: isDark ? neonCyan : darkCyan, shadowColor: isDark ? neonCyan : darkCyan, shadowRadius: 10, shadowOpacity: 1 },
+  progressPulse: { height: '100%', backgroundColor: isDark ? seafoamGreen : navyBlue, shadowColor: isDark ? seafoamGreen : navyBlue, shadowRadius: 10, shadowOpacity: 1 },
   headerTag: { color: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.3)', fontSize: 9, fontWeight: '900', letterSpacing: 2 },
 
   centerStage: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   floatingCard: {
     width: cardWidth,
-    backgroundColor: isDark ? 'rgba(10, 10, 20, 0.98)' : '#FFF',
+    backgroundColor: isDark ? 'rgba(5, 12, 30, 0.98)' : '#FFF',
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.05)',
+    borderColor: isDark ? 'rgba(0, 119, 255, 0.15)' : 'rgba(0,0,0,0.05)',
     padding: 25,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 15 },
@@ -309,8 +281,8 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
     backgroundColor: isDark ? 'transparent' : '#FDFDFD'
   },
   optionBoxHovered: {
-    borderColor: isDark ? 'rgba(0, 240, 255, 0.4)' : 'rgba(0, 139, 139, 0.3)',
-    shadowColor: isDark ? neonCyan : darkCyan,
+    borderColor: isDark ? 'rgba(0, 119, 255, 0.4)' : 'rgba(0, 85, 204, 0.3)',
+    shadowColor: isDark ? seafoamGreen : navyBlue,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: isDark ? 0.4 : 0.1,
     shadowRadius: 10,
@@ -322,16 +294,16 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   optionLabel: { color: isDark ? 'rgba(255,255,255,0.7)' : '#333', fontSize: 13, fontWeight: '800', letterSpacing: 1 },
   optionSub: { color: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.3)', fontSize: 9, fontWeight: 'bold' },
 
-  briefingView: { marginTop: 15, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(0,240,255,0.1)' : 'rgba(0,0,0,0.05)', paddingTop: 10 },
+  briefingView: { marginTop: 15, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(0,119,255,0.1)' : 'rgba(0,0,0,0.05)', paddingTop: 10 },
   briefTxt: { color: isDark ? 'rgba(255,255,255,0.5)' : '#555', fontSize: 10, lineHeight: 15, fontWeight: '500' },
 
   infoScroll: { maxHeight: 350 },
   infoTxt: { color: isDark ? 'rgba(255,255,255,0.6)' : '#444', fontSize: 11, lineHeight: 18, fontWeight: '600', letterSpacing: 0.5 },
-  proceedBtn: { marginTop: 25, backgroundColor: isDark ? neonCyan : darkCyan, padding: 15, borderRadius: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', shadowColor: isDark ? neonCyan : darkCyan, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  proceedBtn: { marginTop: 25, backgroundColor: isDark ? seafoamGreen : navyBlue, padding: 15, borderRadius: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', shadowColor: isDark ? seafoamGreen : navyBlue, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   proceedTxt: { color: isDark ? '#000' : '#FFF', fontSize: 11, fontWeight: '900', letterSpacing: 2, marginRight: 10 },
 
   successPulse: { alignItems: 'center', marginTop: 20 },
-  successTxt: { color: isDark ? neonCyan : darkCyan, fontSize: 10, fontWeight: '900', letterSpacing: 4, marginTop: 12 }
+  successTxt: { color: isDark ? seafoamGreen : navyBlue, fontSize: 10, fontWeight: '900', letterSpacing: 4, marginTop: 12 }
 });
 
-export default EngineeringPathScreen;
+export default MerchantNavyPathScreen;
