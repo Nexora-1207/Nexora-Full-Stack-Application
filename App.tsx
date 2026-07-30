@@ -23,7 +23,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 // Career Sector Roadmaps
 import EngineeringPathScreen from './src/sectors/engineering_sector/EngineeringPathScreen';
 import MerchantNavyPathScreen from './src/sectors/merchant_navy_sector/MerchantNavyPathScreen';
-import SkilledTradesPathScreen from './src/screens/SkilledTradesPathScreen';
+import SkilledTradesPathScreen from './src/sectors/skilled_trades_sector/SkilledTradesPathScreen';
 import ComputersPathScreen from './src/screens/ComputersPathScreen';
 import MedicalSupportPathScreen from './src/screens/MedicalSupportPathScreen';
 import HospitalityPathScreen from './src/screens/HospitalityPathScreen';
@@ -153,6 +153,10 @@ function TabNavigator() {
     activeColor = isDark ? '#00F0FF' : '#0077FF';
     aiColors = isDark ? ['#0077FF', '#00F0FF'] : ['#0077FF', '#00CED1'];
     aiGlow = '#0077FF';
+  } else if (sector === 'SKILLED TRADES') {
+    activeColor = '#FFAA00';
+    aiColors = isDark ? ['#FFAA00', '#FF7700'] : ['#D35400', '#FF8A00'];
+    aiGlow = '#FFAA00';
   }
 
   const themeStyles = getStyles(isDark, aiGlow);
