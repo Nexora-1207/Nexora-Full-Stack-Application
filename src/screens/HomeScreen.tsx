@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, 
   ScrollView, Animated, Dimensions,
-  Platform, useColorScheme
+  Platform, useColorScheme, ActivityIndicator 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -53,27 +53,46 @@ const ModuleBox = ({ title, icon, color, desc, isDark }: any) => (
 const HomeScreen = ({ navigation }: any) => {
   const isDark = useColorScheme() === 'dark';
   const isFocused = useIsFocused();
+  const [profile, setProfile] = useState<any>({ fullName: 'Nexora Student', sector: 'default' });
   const [activeSector, setActiveSector] = useState('ENGINEERING');
+  const [loading, setLoading] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
-  // Retrieve selected sector from storage on mount & focus
-  useEffect(() => {
-    if (isFocused) {
-      const loadSector = async () => {
-        try {
+  // Fetch profile from supabase on mount
+  const fetchProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name, sector')
+          .eq('id', user.id)
+          .single();
+        if (data) {
+          const fetchedSector = data.sector || 'ENGINEERING';
+          setProfile({
+            fullName: data.full_name || 'Nexora Student',
+            sector: fetchedSector
+          });
+          // Synchronize local activeSector if none exists
           const stored = await AsyncStorage.getItem('activeSector');
-          if (stored && SECTOR_THEMES[stored]) {
-            setActiveSector(stored);
+          if (!stored) {
+            await AsyncStorage.setItem('activeSector', fetchedSector);
+            setActiveSector(fetchedSector);
           }
-        } catch (_) {}
-      };
-      loadSector();
+        }
+      }
+    } catch (err) {
+      console.log('Error loading profile:', err);
+    } finally {
+      setLoading(false);
     }
-  }, [isFocused]);
+  };
 
   useEffect(() => {
+    fetchProfile();
     Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
     Animated.loop(
       Animated.sequence([
@@ -83,9 +102,25 @@ const HomeScreen = ({ navigation }: any) => {
     ).start();
   }, []);
 
+  // Retrieve selected sector from storage on mount & focus
+  useEffect(() => {
+    if (isFocused) {
+      const loadSector = async () => {
+        try {
+          const stored = await AsyncStorage.getItem('activeSector');
+          if (stored && SECTOR_THEMES[stored]) {
+            setActiveSector(stored);
+          } else if (profile.sector && SECTOR_THEMES[profile.sector]) {
+            setActiveSector(profile.sector);
+          }
+        } catch (_) {}
+      };
+      loadSector();
+    }
+  }, [isFocused, profile.sector]);
+
   const currentTheme = SECTOR_THEMES[activeSector] || SECTOR_THEMES.ENGINEERING;
   const primaryColor = currentTheme.primary;
-  const secondaryColor = currentTheme.secondary;
 
   const hudGlow = pulseAnim.interpolate({
     inputRange: [0, 1],
@@ -100,6 +135,14 @@ const HomeScreen = ({ navigation }: any) => {
 
   const textTheme = { color: isDark ? '#FFF' : '#0F172A' };
   const subTextTheme = { color: isDark ? 'rgba(255,255,255,0.5)' : '#475569' };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? '#020205' : '#F4F6F9' }]}>
+        <ActivityIndicator size="large" color={isDark ? '#00F0FF' : '#008B8B'} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -116,7 +159,7 @@ const HomeScreen = ({ navigation }: any) => {
             textShadowColor: primaryColor,
             textShadowRadius: isDark ? 12 : 4 
           }]}>NEXORA</Text>
-          <Text style={[styles.welcomeMsg, subTextTheme]}>{currentTheme.welcomeSub}</Text>
+          <Text style={[styles.welcomeMsg, subTextTheme]}>Welcome, {profile.fullName}!</Text>
         </View>
         <TouchableOpacity 
           style={[styles.profileBtn, { 
@@ -232,7 +275,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { 
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 25, paddingTop: 60, paddingBottom: 25
+    paddingHorizontal: 25, paddingTop: Platform.OS === 'ios' ? 70 : 60, paddingBottom: 25
   },
   brandText: { fontSize: 28, fontWeight: '900', letterSpacing: 5 },
   welcomeMsg: { fontSize: 13, fontWeight: 'bold', marginTop: 4 },
