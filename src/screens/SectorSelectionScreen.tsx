@@ -186,6 +186,18 @@ const SectorSelectionScreen = ({ navigation }: any) => {
       case 'RETAIL & LOGISTICS':
         navigation.navigate('RetailLogisticsPath');
         break;
+      case 'BEAUTY & WELLNESS':
+        navigation.navigate('BeautyWellnessPath');
+        break;
+      case 'AUTOMOBILE':
+        navigation.navigate('AutomobilePath');
+        break;
+      case 'CONSTRUCTION':
+        navigation.navigate('ConstructionPath');
+        break;
+      case 'ELECTRICAL':
+        navigation.navigate('ElectricalPath');
+        break;
       default:
         navigation.replace('Home');
     }
