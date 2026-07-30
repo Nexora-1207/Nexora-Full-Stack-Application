@@ -9,7 +9,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { CareerSwitcher } from '../components/CareerSwitcher';
 import { SECTOR_THEMES } from '../theme/sectorThemes';
 
@@ -160,7 +159,6 @@ const HomeScreen = ({ navigation }: any) => {
           <Text style={[styles.welcomeMsg, subTextTheme]}>Welcome, {profile.fullName}!</Text>
         </View>
         <View style={styles.headerActions}>
-          <ThemeToggle />
           <TouchableOpacity 
             style={styles.iconBtn} 
             onPress={handleLogout}
