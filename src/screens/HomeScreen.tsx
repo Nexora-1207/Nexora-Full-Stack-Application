@@ -150,8 +150,6 @@ const HomeScreen = ({ navigation }: any) => {
         colors={isDark ? currentTheme.gradientDark : currentTheme.gradientLight} 
         style={StyleSheet.absoluteFillObject} 
       />
-      <ThemeToggle />
-      
       <View style={styles.header}>
         <View>
           <Text style={[styles.brandText, { 
@@ -161,15 +159,16 @@ const HomeScreen = ({ navigation }: any) => {
           }]}>NEXORA</Text>
           <Text style={[styles.welcomeMsg, subTextTheme]}>Welcome, {profile.fullName}!</Text>
         </View>
-        <TouchableOpacity 
-          style={[styles.profileBtn, { 
-            borderColor: isDark ? `${primaryColor}40` : `${primaryColor}60`,
-            backgroundColor: isDark ? `${primaryColor}0d` : '#FFF'
-          }]} 
-          onPress={handleLogout}
-        >
-          <Ionicons name="exit-outline" size={24} color={primaryColor} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <ThemeToggle />
+          <TouchableOpacity 
+            style={styles.iconBtn} 
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="exit-outline" size={24} color={primaryColor} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Animated.ScrollView 
@@ -279,7 +278,23 @@ const styles = StyleSheet.create({
   },
   brandText: { fontSize: 28, fontWeight: '900', letterSpacing: 5 },
   welcomeMsg: { fontSize: 13, fontWeight: 'bold', marginTop: 4 },
-  profileBtn: { width: 50, height: 50, borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBtn: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      web: {
+        outlineWidth: 0,
+        outlineColor: 'transparent',
+        outlineStyle: 'none',
+      } as any,
+    }),
+  },
   scrollArea: { paddingHorizontal: 20, paddingBottom: 150 },
   hudCard: { padding: 25, borderRadius: 30, borderWidth: 1, marginTop: 10, shadowRadius: 15, shadowOffset: { width: 0, height: 4 } },
   hudRow: { flexDirection: 'row', alignItems: 'center' },

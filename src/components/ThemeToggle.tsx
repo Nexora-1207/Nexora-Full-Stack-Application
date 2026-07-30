@@ -1,31 +1,41 @@
 // src/components/ThemeToggle.tsx
 import React, { useContext } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '../theme/ThemeContext';
 
 /**
- * Simple toggle button displayed in the top‑right corner of the Home screen.
- * It switches between the light and dark themes defined in ThemeContext.
+ * Clean inline toggle button. Switches between light and dark themes.
  */
 export const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const isDark = theme === 'dark';
-  const iconName = isDark ? 'sunny' : 'moon';
-  const iconColor = isDark ? '#FFD700' : '#FFF';
+  const iconName = isDark ? 'sunny-outline' : 'moon-outline';
+  const iconColor = isDark ? '#FFAA00' : '#475569'; // Standard theme gold for dark, slate gray for light
 
   return (
-    <TouchableOpacity onPress={toggleTheme} style={styles.toggle} accessibilityLabel="Toggle theme">
-      <Ionicons name={iconName} size={28} color={iconColor} />
+    <TouchableOpacity 
+      onPress={toggleTheme} 
+      style={styles.toggle} 
+      accessibilityLabel="Toggle theme"
+      activeOpacity={0.7}
+    >
+      <Ionicons name={iconName} size={24} color={iconColor} />
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   toggle: {
-    position: 'absolute',
-    top: 45,
-    right: 20,
-    zIndex: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
+    ...Platform.select({
+      web: {
+        outlineWidth: 0,
+        outlineColor: 'transparent',
+        outlineStyle: 'none',
+      } as any,
+    }),
   },
 });
