@@ -10,7 +10,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true, // FIXED: Now it will correctly pick up the login token from Google and Password Reset URLs
-    flowType: 'implicit',      // Ensures the token fragment is read correctly
+    detectSessionInUrl: true, // Picks up login tokens from Google and Password Reset URLs
+    flowType: 'pkce',          // PKCE is more reliable than implicit: returns a ?code= param instead of fragment tokens
   },
 });

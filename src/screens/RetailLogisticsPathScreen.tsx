@@ -1,276 +1,230 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Dimensions, StatusBar,
-  useColorScheme, SafeAreaView, Animated
+  Animated, Dimensions, Platform,
+  StatusBar, ScrollView, useColorScheme
 } from 'react-native';
-import TopNavBar from '../components/TopNavBar';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../lib/supabase';
 
 const { width } = Dimensions.get('window');
-const BLUE_DARK  = '#3300FF';
-const BLUE_LIGHT = '#2200CC';
+const ACCENT_DARK  = '#3300FF';
+const ACCENT_LIGHT = '#2200CC';
+const cardWidth = width * 0.75;
 
-// ─── DATA (placeholder for Retail & Logistics) ─────────────────────────────────────
-
-const WHY_OPTIONS = [
-  { id: 'people',  text: 'I enjoy interacting with customers' },
-  { id: 'logistics', text: 'I like coordinating supply chains' },
-  { id: 'growth',   text: 'I want a fast‑growing career' },
-];
-
-const WHAT_CARDS = [
-  { icon: 'truck-outline',            label: 'Transportation' },
-  { icon: 'warehouse-outline',        label: 'Warehouse' },
-  { icon: 'cash-multiple',            label: 'Retail Sales' },
-  { icon: 'scale-outline',            label: 'Inventory' },
-];
-
-const CHECKLIST_Q = [
-  'Do you enjoy problem‑solving logistics?',
-  'Do you like working with people?',
-  'Are you comfortable with fast‑paced environments?',
-];
-
-const PERSONALITY = [
-  { skill: 'Organization', icon: 'format-list-bulleted', why: 'Keep supply chains running smoothly.' },
-  { skill: 'Communication', icon: 'chat-outline', why: 'Coordinate with vendors and customers.' },
-  { skill: 'Analytical', icon: 'chart-box-outline', why: 'Optimize routes and inventory.' },
-];
-
-const CHECKPOINTS = [
-  { id: 1, label: 'Complete Class 10', icon: 'school-outline', detail: 'Finish high school with a focus on maths and commerce.' },
-  { id: 2, label: 'Choose Class 11 & 12', icon: 'book-outline', detail: 'Science, Commerce or Arts – all streams accepted.', sub: ['Science', 'Commerce', 'Arts'] },
-  { id: 3, label: 'Skill Development', icon: 'sparkles-outline', detail: 'Learn Excel, logistics software, and customer service.' },
-];
-
-const SKILLS = [
-  { icon: 'truck-fast', skill: 'Supply Chain Management' },
-  { icon: 'cash',      skill: 'Retail Operations' },
-  { icon: 'account-star-outline', skill: 'Leadership' },
-];
-
-const CAREERS = [
-  { role: 'Logistics Manager',        icon: 'truck',          what: 'Oversees transportation, warehousing and distribution.', skills: 'Planning, Coordination' },
-  { role: 'Retail Store Manager',    icon: 'storefront',    what: 'Manages daily retail operations and staff.', skills: 'Customer Service, Sales' },
-  { role: 'Supply Chain Analyst',    icon: 'chart-line',    what: 'Analyzes data to improve efficiency.', skills: 'Analytics, Excel' },
-];
-
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
+const CAREER_TREE: any = {
+  root: {
+    question: 'SECTOR HUB',
+    subtitle: 'Choose your commerce domain',
+    options: [
+      { id: 'retail', label: 'RETAIL & SALES', sub: 'Store & Sales Operations', next: 'retail_path', brief: 'Work in consumer goods, supermarkets, and brand stores managing sales, inventory, and customer experience.' },
+      { id: 'logistics', label: 'LOGISTICS & SUPPLY CHAIN', sub: 'Warehousing & Distribution', next: 'logistics_path', brief: 'Manage goods movement, warehouse operations, fleet coordination, and supply chain optimization.' },
+      { id: 'ecommerce', label: 'E-COMMERCE & DIGITAL RETAIL', sub: 'Online Business Operations', next: 'ecommerce_note', brief: 'Operate digital storefronts, manage product listings, fulfillment, and last-mile delivery for online platforms.' },
+    ]
+  },
+  retail_path: {
+    question: 'RETAIL PATH',
+    subtitle: 'Select your retail program',
+    options: [
+      { id: 'diploma_retail', label: 'DIPLOMA IN RETAIL MANAGEMENT', sub: 'Store Operations (1-2 Yrs)', next: 'success', brief: 'Covers visual merchandising, POS systems, inventory planning, and customer relationship management.' },
+      { id: 'iti_salesmanship', label: 'ITI SALESMANSHIP TRADE', sub: 'Sales Vocational (1 Yr)', next: 'success', brief: 'Practical training in consumer behavior, product demonstration, and direct selling techniques.' },
+      { id: 'cert_retail', label: 'NSDC RETAIL CERTIFICATE', sub: 'Short-term (3-6 Mo)', next: 'success', brief: 'Government-certified program covering retail associate skills, billing, and customer service.' },
+    ]
+  },
+  logistics_path: {
+    question: 'LOGISTICS PATH',
+    subtitle: 'Select your logistics program',
+    options: [
+      { id: 'diploma_logistics', label: 'DIPLOMA IN LOGISTICS MGMT', sub: 'Supply Chain (2-3 Yrs)', next: 'success', brief: 'Study freight forwarding, warehouse layout, customs procedures, and fleet route optimization.' },
+      { id: 'diploma_scm', label: 'DIPLOMA IN SUPPLY CHAIN MGMT', sub: 'Procurement & Distribution (2 Yrs)', next: 'success', brief: 'Master procurement, vendor management, demand forecasting, and ERP systems like SAP.' },
+      { id: 'transport_cert', label: 'TRANSPORT OPERATOR CERT.', sub: 'Fleet & Dispatch (3-6 Mo)', next: 'success', brief: 'Short-term certification for fleet coordinators, load planners, and transport dispatchers.' },
+    ]
+  },
+  ecommerce_note: {
+    type: 'info',
+    question: 'E-COMMERCE PATHWAYS',
+    text: 'E-COMMERCE & DIGITAL RETAIL:\nThe fastest-growing commercial sector in India.\n\nKEY ROLES:\n- Marketplace Operations Executive (Amazon/Flipkart/Meesho)\n- Catalog & Listing Specialist\n- Last-Mile Delivery Coordinator\n- D2C Brand Fulfillment Manager\n- Inventory Analytics Associate\n\nPROGRAMS:\n- Certificate in E-Commerce Management (6 Mo)\n- Digital Commerce & Supply Chain (1 Yr)\n- Amazon / Flipkart Seller University (Online)\n- NSDC / ASCI Retail Programs\n\nSALARY:\n- Entry Level: ₹2.0 – 4.0 LPA\n- Operations Manager: ₹5.0 – 10.0 LPA\n- Category Head (Senior): ₹12.0 – 20.0 LPA',
+    next: 'success'
+  },
+  success: {
+    question: 'MISSION STATUS',
+    subtitle: 'Pathway Synchronized.',
+    options: []
+  }
+};
 
 const RetailLogisticsPathScreen = ({ navigation }: any) => {
   const isDark = useColorScheme() === 'dark';
-  const C = isDark ? BLUE_DARK : BLUE_LIGHT;
+  const styles = getStyles(isDark);
+  const themeAccent = isDark ? ACCENT_DARK : ACCENT_LIGHT;
 
   useEffect(() => {
     const saveSector = async () => {
-      try {
-        await AsyncStorage.setItem('activeSector', 'RETAIL & LOGISTICS');
-      } catch (_) {}
+      try { await AsyncStorage.setItem('activeSector', 'RETAIL & LOGISTICS'); } catch (_) {}
     };
     saveSector();
   }, []);
 
-  const scrollRef = useRef<ScrollView>(null);
-  const [whySelected, setWhySelected] = useState<string[]>([]);
-  const [checkAnswers, setCheckAnswers] = useState<{ [k: number]: boolean | null }>({});
-  const [expandedCP, setExpandedCP] = useState<number | null>(null);
-  const [scrollPct, setScrollPct] = useState(0);
+  const [currentNodeKey, setCurrentNodeKey] = useState('root');
+  const [history, setHistory] = useState<string[]>([]);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const answered = Object.keys(checkAnswers).length;
-  const yesCount = Object.values(checkAnswers).filter(v => v === true).length;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim  = useRef(new Animated.Value(1)).current;
 
-  const handleScroll = (e: any) => {
-    const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
-    const total = contentSize.height - layoutMeasurement.height;
-    if (total > 0) setScrollPct(Math.min(Math.max(contentOffset.y / total, 0), 1));
+  const node = CAREER_TREE[currentNodeKey];
+
+  const handleOptionSelect = (nextKey: string) => {
+    Animated.parallel([
+      Animated.timing(slideAnim, { toValue: -width, duration: 300, useNativeDriver: true }),
+      Animated.timing(fadeAnim,  { toValue: 0,      duration: 250, useNativeDriver: true }),
+    ]).start(() => {
+      setHistory([...history, currentNodeKey]);
+      setHoveredId(null);
+      setCurrentNodeKey(nextKey);
+      slideAnim.setValue(width);
+      Animated.parallel([
+        Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+        Animated.timing(fadeAnim,  { toValue: 1, duration: 300, useNativeDriver: true }),
+      ]).start(() => {
+        if (nextKey === 'success') {
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              supabase.from('profiles').upsert({ id: user.id, sector: 'RETAIL & LOGISTICS', updated_at: new Date() })
+                .then(({ error }) => { if (error) console.log('Error saving sector:', error.message); });
+            }
+          });
+          setTimeout(() => navigation.replace('Home'), 2000);
+        }
+      });
+    });
   };
 
-  const restart = () => {
-    setWhySelected([]);
-    setCheckAnswers({});
-    setExpandedCP(null);
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  const goBack = () => {
+    if (history.length > 0) {
+      Animated.parallel([
+        Animated.timing(slideAnim, { toValue: width,  duration: 300, useNativeDriver: true }),
+        Animated.timing(fadeAnim,  { toValue: 0,      duration: 250, useNativeDriver: true }),
+      ]).start(() => {
+        const newHistory = [...history];
+        const prevKey = newHistory.pop();
+        setHistory(newHistory);
+        setCurrentNodeKey(prevKey!);
+        slideAnim.setValue(-width);
+        Animated.parallel([
+          Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+          Animated.timing(fadeAnim,  { toValue: 1, duration: 300, useNativeDriver: true }),
+        ]).start();
+      });
+    } else {
+      navigation.goBack();
+    }
   };
-
-  const bg = isDark ? '#020209' : '#F5F8FC';
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bg }] }>
+    <View style={styles.container}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <LinearGradient colors={isDark ? ['#020205', '#0D0D1D'] : ['#F4F6F9', '#E6E9F0']} style={styles.background} />
-      <TopNavBar title="Retail & Logistics" />
-      {/* Placeholder UI – reuse components from Hospitality with new data */}
-      <ScrollView
-        ref={scrollRef}
-        showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Hero Section */}
-        <View style={styles.hero}>
-          <Text style={styles.heroTitle}>Retail & Logistics Career Path</Text>
-          <Text style={styles.heroSubtitle}>Explore opportunities from store floor to supply chain leadership.</Text>
+      <LinearGradient colors={isDark ? ['#020205', '#080815'] : ['#F4F6F9', '#E6E9F0']} style={styles.background} />
+
+      <View style={styles.header}>
+        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={24} color={themeAccent} />
+        </TouchableOpacity>
+        <View style={styles.progressTrack}>
+          <Animated.View style={[styles.progressPulse, { width: `${(history.length + 1) * 20}%`, backgroundColor: themeAccent }]} />
         </View>
-        {/* Why Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Why Retail & Logistics?</Text>
-          <View style={styles.optionsContainer}>
-            {WHY_OPTIONS.map(opt => (
-              <TouchableOpacity
-                key={opt.id}
-                style={[styles.optionButton, whySelected.includes(opt.id) && { backgroundColor: C }]}
-                onPress={() => setWhySelected(prev => prev.includes(opt.id) ? prev.filter(i => i !== opt.id) : [...prev, opt.id])}
-              >
-                <Text style={styles.optionText}>{opt.text}</Text>
-              </TouchableOpacity>
-            ))}
+        <Text style={styles.headerTag}>RETAIL & LOGISTICS</Text>
+      </View>
+
+      <View style={styles.centerStage}>
+        <Animated.View style={[styles.floatingCard, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+          <View style={styles.cardHeader}>
+            <Text style={[styles.nodeTitle, { color: themeAccent }]}>{node.question}</Text>
+            {node.subtitle && <Text style={styles.nodeSubtitle}>{node.subtitle}</Text>}
           </View>
-        </View>
-        {/* What You Can Do */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What can you do?</Text>
-          <View style={styles.cardsContainer}>
-            {WHAT_CARDS.map(card => (
-              <View key={card.label} style={styles.card}>
-                <MaterialCommunityIcons name={card.icon as any} size={32} color={C} />
-                <Text style={styles.cardLabel}>{card.label}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        {/* Checklist */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Self‑Check</Text>
-          {CHECKLIST_Q.map((q, idx) => (
-            <View key={idx} style={styles.checkItem}>
-              <Text style={styles.checkQuestion}>{q}</Text>
-              <View style={styles.checkButtons}>
-                <TouchableOpacity onPress={() => setCheckAnswers({ ...checkAnswers, [idx]: true })} style={styles.checkBtnYes}>
-                  <Text style={styles.checkBtnText}>Yes</Text>
+
+          <View style={styles.optionsArea}>
+            {node.type === 'info' ? (
+              <ScrollView style={styles.infoScroll} showsVerticalScrollIndicator={false}>
+                <Text style={styles.infoTxt}>{node.text}</Text>
+                <TouchableOpacity style={[styles.proceedBtn, { backgroundColor: themeAccent }]} onPress={() => handleOptionSelect(node.next)}>
+                  <Text style={styles.proceedTxt}>PROCEED</Text>
+                  <Ionicons name="arrow-forward" size={18} color={'#FFF'} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setCheckAnswers({ ...checkAnswers, [idx]: false })} style={styles.checkBtnNo}>
-                  <Text style={styles.checkBtnText}>No</Text>
-                </TouchableOpacity>
+              </ScrollView>
+            ) : (
+              node.options.map((option: any) => {
+                const isHovered = hoveredId === option.id;
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[styles.optionBox, isHovered && { borderColor: themeAccent + '66' }]}
+                    onPress={() => handleOptionSelect(option.next)}
+                    onMouseEnter={() => setHoveredId(option.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient
+                      colors={isHovered ? [themeAccent + '33', 'transparent'] : ['rgba(255,255,255,0.02)', 'transparent']}
+                      style={styles.optionGrad}
+                    />
+                    <View style={styles.optionHeader}>
+                      <Text style={[styles.optionLabel, isHovered && { color: themeAccent }]}>{option.label}</Text>
+                      <Ionicons name="cube-outline" size={18} color={isHovered ? themeAccent : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.3)')} />
+                    </View>
+                    <Text style={styles.optionSub}>{option.sub}</Text>
+                    {isHovered && (
+                      <View style={styles.briefingView}>
+                        <Text style={styles.briefTxt}>{option.brief}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })
+            )}
+
+            {currentNodeKey === 'success' && (
+              <View style={styles.successPulse}>
+                <MaterialCommunityIcons name="check-decagram" size={60} color={themeAccent} />
+                <Text style={[styles.successTxt, { color: themeAccent }]}>MAPPER FINALIZED</Text>
               </View>
-            </View>
-          ))}
-        </View>
-        {/* Personality */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Personality Fit</Text>
-          <View style={styles.personalityContainer}>
-            {PERSONALITY.map(p => (
-              <View key={p.skill} style={styles.personalityItem}>
-                <Ionicons name={p.icon as any} size={28} color={C} />
-                <Text style={styles.personalitySkill}>{p.skill}</Text>
-                <Text style={styles.personalityWhy}>{p.why}</Text>
-              </View>
-            ))}
+            )}
           </View>
-        </View>
-        {/* Checkpoints */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Roadmap</Text>
-          {CHECKPOINTS.map(cp => (
-            <View key={cp.id} style={styles.checkpointItem}>
-              <TouchableOpacity onPress={() => setExpandedCP(expandedCP === cp.id ? null : cp.id)}>
-                <View style={styles.checkpointHeader}>
-                  <MaterialCommunityIcons name={cp.icon as any} size={24} color={C} />
-                  <Text style={styles.checkpointLabel}>{cp.label}</Text>
-                </View>
-                {expandedCP === cp.id && (
-                  <Text style={styles.checkpointDetail}>{cp.detail}</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-        {/* Skills */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Key Skills</Text>
-          <View style={styles.skillsContainer}>
-            {SKILLS.map(s => (
-              <View key={s.skill} style={styles.skillItem}>
-                <MaterialCommunityIcons name={s.icon as any} size={28} color={C} />
-                <Text style={styles.skillText}>{s.skill}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        {/* Careers */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Career Options</Text>
-          {CAREERS.map(c => (
-            <View key={c.role} style={styles.careerItem}>
-              <MaterialCommunityIcons name={c.icon as any} size={28} color={C} />
-              <View style={styles.careerInfo}>
-                <Text style={styles.careerRole}>{c.role}</Text>
-                <Text style={styles.careerWhat}>{c.what}</Text>
-                <Text style={styles.careerSkills}>Key: {c.skills}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-        {/* CTA */}
-        <View style={styles.ctaContainer}>
-          <TouchableOpacity style={[styles.ctaButton, { backgroundColor: C }]} onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.ctaText}>Start Your Journey</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.restartBtn} onPress={restart}>
-            <Text style={styles.restartText}>Restart</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </Animated.View>
+      </View>
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const getStyles = (isDark: boolean) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: isDark ? '#020205' : '#F4F6F9' },
   background: { ...StyleSheet.absoluteFillObject },
-  scrollContent: { padding: 16, paddingBottom: 100 },
-  hero: { marginTop: 60, marginBottom: 30 },
-  heroTitle: { fontSize: 28, fontWeight: '700', color: '#fff' },
-  heroSubtitle: { fontSize: 16, color: '#ddd', marginTop: 8 },
-  section: { marginVertical: 20 },
-  sectionTitle: { fontSize: 22, fontWeight: '600', marginBottom: 12, color: '#fff' },
-  optionsContainer: { flexDirection: 'row', flexWrap: 'wrap' },
-  optionButton: { padding: 10, borderRadius: 8, backgroundColor: '#333', margin: 4 },
-  optionText: { color: '#fff' },
-  cardsContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  card: { width: (width - 64) / 2, backgroundColor: '#222', borderRadius: 12, padding: 12, marginBottom: 12, alignItems: 'center' },
-  cardLabel: { marginTop: 8, color: '#fff' },
-  checkItem: { marginBottom: 12 },
-  checkQuestion: { color: '#fff', marginBottom: 4 },
-  checkButtons: { flexDirection: 'row' },
-  checkBtnYes: { backgroundColor: '#006400', padding: 8, borderRadius: 4, marginRight: 8 },
-  checkBtnNo: { backgroundColor: '#8B0000', padding: 8, borderRadius: 4 },
-  checkBtnText: { color: '#fff' },
-  personalityContainer: { flexDirection: 'row', flexWrap: 'wrap' },
-  personalityItem: { width: (width - 64) / 2, marginBottom: 12 },
-  personalitySkill: { color: '#fff', marginTop: 4 },
-  personalityWhy: { color: '#ccc', fontSize: 12 },
-  checkpointItem: { marginBottom: 8 },
-  checkpointHeader: { flexDirection: 'row', alignItems: 'center' },
-  checkpointLabel: { marginLeft: 8, color: '#fff' },
-  checkpointDetail: { color: '#ddd', marginLeft: 32, marginTop: 4 },
-  skillsContainer: { flexDirection: 'row', flexWrap: 'wrap' },
-  skillItem: { width: (width - 64) / 3, alignItems: 'center', marginBottom: 12 },
-  skillText: { color: '#fff', marginTop: 4 },
-  careerItem: { flexDirection: 'row', marginBottom: 12 },
-  careerInfo: { marginLeft: 8 },
-  careerRole: { color: '#fff', fontWeight: '600' },
-  careerWhat: { color: '#ccc' },
-  careerSkills: { color: '#aaa', fontSize: 12 },
-  ctaContainer: { alignItems: 'center', marginTop: 30 },
-  ctaButton: { paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
-  ctaText: { color: '#fff', fontWeight: '600' },
-  restartBtn: { marginTop: 12 },
-  restartText: { color: '#aaa' },
+  header: { height: 120, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 25, paddingTop: Platform.OS === 'ios' ? 50 : 30, justifyContent: 'space-between' },
+  backBtn: { width: 45, height: 45, borderRadius: 15, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', shadowColor: '#000', shadowOpacity: isDark ? 0 : 0.05, shadowRadius: 5, elevation: 2 },
+  progressTrack: { flex: 1, height: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.1)', marginHorizontal: 20, borderRadius: 2, overflow: 'hidden' },
+  progressPulse: { height: '100%' },
+  headerTag: { color: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.3)', fontSize: 9, fontWeight: '900', letterSpacing: 2 },
+  centerStage: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  floatingCard: { width: cardWidth, backgroundColor: isDark ? 'rgba(10,10,20,0.98)' : '#FFF', borderRadius: 25, borderWidth: 1, borderColor: isDark ? 'rgba(51,0,255,0.15)' : 'rgba(0,0,0,0.05)', padding: 25, shadowColor: '#000', shadowOffset: { width: 0, height: 15 }, shadowOpacity: isDark ? 0.9 : 0.1, shadowRadius: 30, elevation: isDark ? 20 : 10 },
+  cardHeader: { marginBottom: 25, alignItems: 'center' },
+  nodeTitle: { fontSize: 20, fontWeight: '900', letterSpacing: 4, marginBottom: 5 },
+  nodeSubtitle: { color: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.4)', fontSize: 10, fontWeight: '700', letterSpacing: 1.5 },
+  optionsArea: { width: '100%' },
+  optionBox: { width: '100%', borderRadius: 15, padding: 15, marginBottom: 10, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)', overflow: 'hidden' as any, backgroundColor: isDark ? 'transparent' : '#FDFDFD' },
+  optionGrad: { ...StyleSheet.absoluteFillObject },
+  optionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
+  optionLabel: { color: isDark ? 'rgba(255,255,255,0.7)' : '#333', fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  optionSub: { color: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.3)', fontSize: 9, fontWeight: 'bold' },
+  briefingView: { marginTop: 15, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(51,0,255,0.15)' : 'rgba(0,0,0,0.05)', paddingTop: 10 },
+  briefTxt: { color: isDark ? 'rgba(255,255,255,0.5)' : '#555', fontSize: 10, lineHeight: 15, fontWeight: '500' },
+  infoScroll: { maxHeight: 350 },
+  infoTxt: { color: isDark ? 'rgba(255,255,255,0.6)' : '#444', fontSize: 11, lineHeight: 18, fontWeight: '600', letterSpacing: 0.5 },
+  proceedBtn: { marginTop: 25, padding: 15, borderRadius: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+  proceedTxt: { color: '#FFF', fontSize: 11, fontWeight: '900', letterSpacing: 2, marginRight: 10 },
+  successPulse: { alignItems: 'center', marginTop: 20 },
+  successTxt: { fontSize: 10, fontWeight: '900', letterSpacing: 4, marginTop: 12 },
 });
 
 export default RetailLogisticsPathScreen;

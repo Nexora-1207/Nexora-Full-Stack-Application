@@ -73,57 +73,81 @@ const AuthScreen = ({ navigation }: any) => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: { 
-                redirectTo: redirectUri,
-                skipBrowserRedirect: true,
-                queryParams: {
-                    prompt: 'select_account' // Forces the Google account picker
-                }
-            },
-        });
-        if (error) throw error;
-
-        if (data?.url) {
-            const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
-            if (result.type === 'success' && result.url) {
-                // Robust parsing of the redirect URL without relying on URLSearchParams
-                const queryString = result.url.split('#')[1] || result.url.split('?')[1] || '';
-                
-                let access_token = null;
-                let refresh_token = null;
-                let code = null;
-
-                queryString.split('&').forEach(pair => {
-                    const [key, value] = pair.split('=');
-                    if (key === 'access_token') access_token = value;
-                    if (key === 'refresh_token') refresh_token = value;
-                    if (key === 'code') code = value;
-                });
-                
-                if (code) {
-                    const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
-                    if (sessionError) throw sessionError;
-                } else if (access_token) {
-                    // Sometimes refresh_token is missing, we should still try to set the session
-                    const { error: sessionError } = await supabase.auth.setSession({ 
-                        access_token, 
-                        refresh_token: refresh_token || ''
-                    });
-                    if (sessionError) throw sessionError;
-                } else {
-                    throw new Error('No access token or code found in the redirect URL. ' + result.url);
-                }
-            } else if (result.type !== 'cancel') {
-                throw new Error(`Browser returned: ${result.type}`);
-            }
-            setLoading(false);
+        if (Platform.OS === 'web') {
+            // WEB: Use standard redirect flow. Supabase's detectSessionInUrl 
+            // will automatically pick up the ?code= param on page reload and 
+            // exchange it for a session via PKCE.
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { 
+                    redirectTo: redirectUri,
+                    queryParams: {
+                        prompt: 'select_account'
+                    }
+                },
+            });
+            if (error) throw error;
+            // On web, Supabase handles the redirect automatically.
+            // The page will navigate away — no further code runs here.
         } else {
-            setLoading(false);
+            // NATIVE (Expo Go / React Native): Use popup-based auth
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { 
+                    redirectTo: redirectUri,
+                    skipBrowserRedirect: true,
+                    queryParams: {
+                        prompt: 'select_account'
+                    }
+                },
+            });
+            if (error) throw error;
+
+            if (data?.url) {
+                const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
+                if (result.type === 'success' && result.url) {
+                    const url = result.url;
+                    
+                    // Extract params from both query string (?code=...) and fragment (#access_token=...)
+                    const queryPart = url.split('?')[1]?.split('#')[0] || '';
+                    const fragmentPart = url.split('#')[1] || '';
+                    const allParams = queryPart + '&' + fragmentPart;
+
+                    let access_token: string | null = null;
+                    let refresh_token: string | null = null;
+                    let code: string | null = null;
+
+                    allParams.split('&').forEach(pair => {
+                        const [key, ...rest] = pair.split('=');
+                        const value = rest.join('='); // Handle values that might contain '='
+                        if (key === 'access_token') access_token = decodeURIComponent(value);
+                        if (key === 'refresh_token') refresh_token = decodeURIComponent(value);
+                        if (key === 'code') code = decodeURIComponent(value);
+                    });
+                    
+                    // PKCE flow: exchange the authorization code for a session
+                    if (code) {
+                        const { error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
+                        if (sessionError) throw sessionError;
+                    } 
+                    // Fallback for implicit flow tokens
+                    else if (access_token) {
+                        const { error: sessionError } = await supabase.auth.setSession({ 
+                            access_token, 
+                            refresh_token: refresh_token || ''
+                        });
+                        if (sessionError) throw sessionError;
+                    } else {
+                        throw new Error('No authorization code or access token found in the redirect URL.');
+                    }
+                } else if (result.type !== 'cancel') {
+                    throw new Error(`Browser returned: ${result.type}`);
+                }
+            }
         }
     } catch (err: any) {
-        Alert.alert('Google Fault', err.message);
+        Alert.alert('Google Sign-In Error', err.message);
+    } finally {
         setLoading(false);
     }
   };

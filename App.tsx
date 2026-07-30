@@ -220,7 +220,7 @@ function TabNavigator() {
 }
 
 export default function App() {
-  const [session, setSession] = useState<any>({ user: {} });
+  const [session, setSession] = useState<any>(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
