@@ -20,12 +20,30 @@ const THEMES: any = {
 
 const TRADES_TREE: any = {
   root: {
-    question: "VOCATIONAL PATH",
-    subtitle: "Select your vocational trade division",
+    question: "FOUNDATION",
+    subtitle: "Select your entry qualification",
+    themeKey: 'default',
+    options: [
+      { id: 'class10_pass', label: "CLASS 10 PASS", sub: "2-Year Specialized Trades", next: 'class10_trades', brief: "Standard entry for advanced tech trades: Electrician, Fitter, and RAC Technicians.", colorTheme: 'electrical' },
+      { id: 'class8_pass', label: "CLASS 8 / SUPPORT", sub: "1-Year Practical Trades", next: 'class8_trades', brief: "Fast-track entry for essential manual trades: Welder, Wireman, and General Fitters.", colorTheme: 'mechanical' }
+    ]
+  },
+  class10_trades: {
+    question: "CLASS 10 TRADES",
+    subtitle: "Select your core tech domain",
     themeKey: 'default',
     options: [
       { id: 'electrical_climate', label: "ELECTRICAL & CLIMATE", sub: "Wiring & Power Systems", next: 'electrical_climate_sub', brief: "Focuses on electrical engineering, wiring circuits, motors, and cooling systems.", colorTheme: 'electrical' },
-      { id: 'mechanical_fab', label: "MECHANICAL & FABRICATION", sub: "Machinery & Structurals", next: 'mechanical_fab_sub', brief: "Focuses on assembling mechanical parts, operating precision machinery, and welding.", colorTheme: 'mechanical' }
+      { id: 'mechanical_fitter', label: "ITI FITTER & TURNER", sub: "Machinery & Lathes", next: 'fitter_awareness', brief: "Train to assemble, machine, repair, and maintain industrial engines, gears, and automated machinery.", colorTheme: 'mechanical' }
+    ]
+  },
+  class8_trades: {
+    question: "CLASS 8 TRADES",
+    subtitle: "Select your manual craft domain",
+    themeKey: 'default',
+    options: [
+      { id: 'iti_welder', label: "ITI WELDER & FABRICATOR", sub: "Welding & Metallurgy", next: 'welder_awareness', brief: "Train in gas, arc, TIG, and MIG welding to construct and repair structural machinery and piping.", colorTheme: 'mechanical' },
+      { id: 'iti_wireman', label: "ITI WIREMAN", sub: "Basic Electrical Layouts", next: 'wireman_awareness', brief: "Focuses on residential electrical wiring, home repairs, lighting setups, and electrical maintenance.", colorTheme: 'electrical' }
     ]
   },
   electrical_climate_sub: {
@@ -35,15 +53,6 @@ const TRADES_TREE: any = {
     options: [
       { id: 'iti_electrician', label: "ITI ELECTRICIAN", sub: "Power & Systems Grid", next: 'electrician_awareness', brief: "Train to install, inspect, repair, and maintain residential and heavy industrial electrical grids.", colorTheme: 'electrical' },
       { id: 'iti_rac', label: "ITI RAC TECHNICIAN", sub: "Refrigeration & Cooling", next: 'rac_awareness', brief: "Train to repair and install commercial/residential AC loops, refrigerators, and cooling components.", colorTheme: 'electrical' }
-    ]
-  },
-  mechanical_fab_sub: {
-    question: "MECHANICAL DIVISION",
-    subtitle: "Select your specialized trade",
-    themeKey: 'mechanical',
-    options: [
-      { id: 'iti_fitter', label: "ITI FITTER & TURNER", sub: "Assembling & Lathe Work", next: 'fitter_awareness', brief: "Train to assemble, machine, repair, and maintain industrial engines, gears, and automated machinery.", colorTheme: 'mechanical' },
-      { id: 'iti_welder', label: "ITI WELDER & FABRICATOR", sub: "Welding & Metallurgy", next: 'welder_awareness', brief: "Train in gas, arc, TIG, and MIG welding to construct and repair structural machinery and piping.", colorTheme: 'mechanical' }
     ]
   },
   // AWARENESS BRIEFINGS
@@ -73,6 +82,13 @@ const TRADES_TREE: any = {
     themeKey: 'mechanical',
     question: "ITI WELDER BRIEF",
     text: "ITI WELDER: METALLURGICAL FABRICATION\n\nWelders join metal parts together using intense heat, pressure, and metal bonding techniques.\n\nRESPONSIBILITIES:\n- Performing gas welding, Shielded Metal Arc Welding (SMAW), TIG, and MIG welding.\n- Reading structural drawings and blueprints to cut and shape steel sections.\n- Testing welds for strength and structural integrity.\n- Mooring ship components and piping structures.\n\nCAREER OPPORTUNITIES:\nShipbuilding Yards ➡️ Infrastructure/Bridge Construction ➡️ Automobile Assembly Plants ➡️ Boiler/Pipeline Welder.",
+    next: 'success'
+  },
+  wireman_awareness: {
+    type: 'info',
+    themeKey: 'electrical',
+    question: "ITI WIREMAN BRIEF",
+    text: "ITI WIREMAN: RESIDENTIAL WIRING & INSTALLATIONS\n\nWiremen specialize in electrical installations and wiring layouts inside houses and commercial buildings.\n\nRESPONSIBILITIES:\n- Laying down wiring channels, conduits, and junction boxes.\n- Fitting domestic electrical fixtures, fans, switches, and meters.\n- Troubleshooting short circuits, home safety checks, and grounding systems.\n- Performing basic panel repairs.\n\nCAREER OPPORTUNITIES:\nBuilding Maintenance ➡️ Construction Contractors ➡️ Independent Service Provider ➡️ Repair Service Shop.",
     next: 'success'
   },
   success: {
