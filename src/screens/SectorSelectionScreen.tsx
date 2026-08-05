@@ -67,21 +67,25 @@ const SectorCard = ({ item, onSelect, styles, isDark }: { item: any, onSelect: (
         onPressIn={() => toggleExpand(true)}
         onPressOut={() => toggleExpand(false)}
         {...(Platform.OS === 'web' ? {
+          onMouseEnter: () => toggleExpand(true),
+          onMouseLeave: () => toggleExpand(false),
           onPointerEnter: () => toggleExpand(true),
           onPointerLeave: () => toggleExpand(false)
         } : {})}
         onPress={onSelect}
         style={{ zIndex: expanded ? 50 : 1 }}
       >
-        <Animated.View style={[
-          styles.glowHalo,
-          {
-            opacity: glowOpacity,
-            backgroundColor: item.color,
-            shadowColor: item.color,
-            transform: [{ scale: 1.5 }]
-          }
-        ]} />
+        <Animated.View
+          style={[
+            styles.glowHalo,
+            {
+              opacity: glowOpacity,
+              backgroundColor: item.color,
+              shadowColor: item.color,
+              transform: [{ scale: 1.5 }]
+            }
+          ]}
+        />
 
         <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
           <LinearGradient
@@ -250,11 +254,11 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   introPrompt: { color: isDark ? '#222' : '#888', fontSize: 10, fontWeight: '900', letterSpacing: 4, marginTop: 60 },
 
   contentWrapper: { flex: 1 },
-  header: { marginTop: Platform.OS === 'ios' ? 70 : 50, alignItems: 'center', marginBottom: 50 },
+  header: { marginTop: Platform.OS === 'ios' ? 70 : 50, alignItems: 'center', marginBottom: 10 },
   title: { fontSize: 34, fontWeight: '900', color: isDark ? '#FFF' : '#111', letterSpacing: 8, textShadowColor: isDark ? neonCyan : darkCyan, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 20 },
   subtitle: { fontSize: 13, color: isDark ? '#444' : '#888', fontWeight: 'bold', letterSpacing: 2, marginTop: 10 },
 
-  listContent: { paddingHorizontal: 0, paddingBottom: 150 },
+  listContent: { paddingHorizontal: 0, paddingBottom: 150, paddingTop: 40 },
   columnWrapper: { justifyContent: 'space-evenly', marginBottom: 65 },
 
   cardWrapper: {

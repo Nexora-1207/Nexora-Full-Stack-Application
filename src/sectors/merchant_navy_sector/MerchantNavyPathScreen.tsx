@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { supabase } from '../../lib/supabase';
 
@@ -143,6 +144,23 @@ const MARITIME_TREE: any = {
 const MerchantNavyPathScreen = ({ navigation }: any) => {
   const isDark = useColorScheme() === 'dark';
   const styles = getStyles(isDark);
+
+  useEffect(() => {
+    const saveSector = async () => {
+      try {
+        await AsyncStorage.setItem('activeSector', 'MERCHANT NAVY');
+      } catch (_) {}
+    };
+    saveSector();
+
+    // Initial entry animation for the card
+    slideAnim.setValue(width);
+    fadeAnim.setValue(0);
+    Animated.parallel([
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true })
+    ]).start();
+  }, []);
 
   const [currentNodeKey, setCurrentNodeKey] = useState('root');
   const [history, setHistory] = useState<string[]>([]);

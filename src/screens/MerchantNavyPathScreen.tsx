@@ -88,6 +88,16 @@ const MerchantNavyPathScreen = ({ navigation }: any) => {
   const styles = getStyles(isDark);
   const themeBlue = isDark ? navyBlue : '#0055CC';
 
+  useEffect(() => {
+    // Initial entry animation for the card
+    slideAnim.setValue(width);
+    fadeAnim.setValue(0);
+    Animated.parallel([
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true })
+    ]).start();
+  }, []);
+
   const [currentNodeKey, setCurrentNodeKey] = useState('root');
   const [history, setHistory] = useState<string[]>([]);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
