@@ -17,7 +17,7 @@ import SectorSelectionScreen from './src/screens/SectorSelectionScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import CollegeScreen from './src/screens/CollegeScreen';
 import AIScreen from './src/screens/AIScreen';
-import NotificationScreen from './src/screens/NotificationScreen';
+import VaultScreen from './src/screens/VaultScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 
 // Career Sector Roadmaps
@@ -210,9 +210,9 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen 
-        name="Notifications" 
-        component={NotificationScreen} 
-        options={{ tabBarIcon: ({ color, focused }) => <AnimatedIcon name={focused ? "notifications" : "notifications-outline"} size={24} color={color} focused={focused} isDark={isDark} /> }}
+        name="Vault" 
+        component={VaultScreen} 
+        options={{ tabBarIcon: ({ color, focused }) => <AnimatedIcon name={focused ? "folder-open" : "folder-open-outline"} size={24} color={color} focused={focused} isDark={isDark} /> }}
       />
       <Tab.Screen 
         name="Profile" 

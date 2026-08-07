@@ -132,13 +132,36 @@ const EngineeringPathScreen = ({ navigation }: any) => {
   const [currentNodeKey, setCurrentNodeKey] = useState('root');
   const [history, setHistory] = useState<string[]>([]);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [selectedStream, setSelectedStream] = useState<string>('MPC');
+  const [selectedSubPath, setSelectedSubPath] = useState<string>('MPC');
   
   const slideAnim = useRef(new Animated.Value(0)).current; 
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const node = CAREER_TREE[currentNodeKey];
 
-  const handleOptionSelect = (nextKey: string) => {
+  const handleOptionSelect = (nextKey: string, option?: any) => {
+    let updatedStream = selectedStream;
+    let updatedSubPath = selectedSubPath;
+
+    if (option) {
+      if (option.id === 'mpc') {
+        updatedStream = 'MPC';
+        updatedSubPath = 'MPC';
+      } else if (option.id === 'mbipc') {
+        updatedStream = 'BiPC';
+        updatedSubPath = 'BiPC';
+      } else if (currentNodeKey === 'diploma_sector') {
+        updatedStream = 'Polytechnic';
+        updatedSubPath = option.label;
+      } else if (currentNodeKey === 'iti_sector') {
+        updatedStream = 'ITI';
+        updatedSubPath = option.label;
+      }
+      setSelectedStream(updatedStream);
+      setSelectedSubPath(updatedSubPath);
+    }
+
     Animated.parallel([
         Animated.timing(slideAnim, { toValue: -width, duration: 300, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 0, duration: 250, useNativeDriver: true })
@@ -157,12 +180,20 @@ const EngineeringPathScreen = ({ navigation }: any) => {
                         supabase.from('profiles').upsert({ 
                             id: user.id, 
                             sector: 'ENGINEERING', 
+                            stream: updatedStream,
+                            sub_path: updatedSubPath,
                             updated_at: new Date() 
                         }).then(({ error }) => {
                             if (error) console.log('Error saving sector:', error.message);
                         });
                     }
                 });
+                
+                // Save locally
+                AsyncStorage.setItem('activeSector', 'ENGINEERING').catch(() => {});
+                AsyncStorage.setItem('activeStream', updatedStream).catch(() => {});
+                AsyncStorage.setItem('activeSubPath', updatedSubPath).catch(() => {});
+
                 setTimeout(() => navigation.replace('Home'), 2000);
             }
         });
@@ -241,7 +272,7 @@ const EngineeringPathScreen = ({ navigation }: any) => {
                                 styles.optionBox, 
                                 isHovered && styles.optionBoxHovered
                             ]}
-                            onPress={() => handleOptionSelect(option.next)}
+                            onPress={() => handleOptionSelect(option.next, option)}
                             onMouseEnter={() => setHoveredId(option.id)}
                             onMouseLeave={() => setHoveredId(null)}
                             activeOpacity={0.8}

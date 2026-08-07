@@ -8,6 +8,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 const neonCyan = '#00F0FF';
@@ -27,90 +28,97 @@ interface College {
   perks: string[];
   requirements: string;
   description: string;
+  stream: 'MPC' | 'BiPC' | 'Polytechnic' | 'ITI';
 }
 
 const MOCK_COLLEGES: College[] = [
   {
-    id: 'nit-1',
-    name: 'Nexora Institute of Technology (NIT)',
-    shortName: 'Nexora Tech',
+    id: 'narayana-mpc',
+    name: 'Narayana Junior College (MPC Block)',
+    shortName: 'Narayana MPC',
+    sector: 'ENGINEERING',
+    rating: 4.7,
+    location: 'Hyderabad Tech Corridor',
+    matchRate: 92,
+    mission: 'Intensive engineering entrance preparation for JEE Main/Advanced.',
+    perks: ['Direct JEE Coaching Node', '100% Academic Merit Waiver', 'IIT Placement Track'],
+    requirements: 'Min 85% in Class 10 Board exam',
+    description: 'Renowned for intensive intermediate coaching, Narayana MPC block prepares students with rigorous scientific and mathematical foundations targeting top engineering entries.',
+    stream: 'MPC'
+  },
+  {
+    id: 'chaitanya-bipc',
+    name: 'Sri Chaitanya Pre-Medical Academy (BiPC)',
+    shortName: 'Chaitanya BiPC',
+    sector: 'MEDICAL SUPPORT',
+    rating: 4.8,
+    location: 'Vizag Bio-Hub',
+    matchRate: 90,
+    mission: 'Nurturing future surgeons and bio-research scholars.',
+    perks: ['NEET Sandbox Simulation', 'Top 100 Ranker Grant', 'Integrated Bio-Research Labs'],
+    requirements: 'Min 88% in Class 10 Science & Math',
+    description: 'A dedicated Intermediate block focusing on Biology, Physics, and Chemistry (BiPC) designed to successfully guide students through clinical entrance and medical research gates.',
+    stream: 'BiPC'
+  },
+  {
+    id: 'govt-poly',
+    name: 'Government Polytechnic College',
+    shortName: 'Govt Polytechnic',
+    sector: 'ENGINEERING',
+    rating: 4.6,
+    location: 'Bangalore Industrial Node',
+    matchRate: 94,
+    mission: 'Practical technical mastery and core diploma engineering.',
+    perks: ['100% Government Stipend Cover', 'CNC Machining Workshop Access', 'Direct Lateral Entry to B.Tech'],
+    requirements: 'Class 10 Pass / POLYCET Entrance Exam',
+    description: 'Government polytechnic institute offering hands-on 3-year diploma programs. Provides direct admission into the 2nd year of engineering streams for diploma holders.',
+    stream: 'Polytechnic'
+  },
+  {
+    id: 'centauri-poly',
+    name: 'Centauri Polytechnic Institute',
+    shortName: 'Centauri Poly',
+    sector: 'COMPUTERS',
+    rating: 4.7,
+    location: 'Hyderabad Tech-Spur',
+    matchRate: 95,
+    mission: 'Hands-on code compilation, hardware logic, and network wiring.',
+    perks: ['Advanced Microprocessor Lab', 'Cybersecurity Sandbox Access', 'Direct Job Placement Node'],
+    requirements: 'Class 10 or equivalent, POLYCET rank',
+    description: 'Specialized diploma programs focused on software systems, micro-assembly, and computing infrastructure, paving a clear way for lateral entry into B.Tech CSE.',
+    stream: 'Polytechnic'
+  },
+  {
+    id: 'nit-lateral',
+    name: 'Nexora Institute of Technology (Lateral Entry)',
+    shortName: 'NIT Lateral',
     sector: 'ENGINEERING',
     rating: 4.9,
     location: 'Bangalore Cyber-Nexus',
     matchRate: 96,
     mission: 'Designing next-generation orbital telemetry & neural architecture.',
-    perks: ['Elite Future Leaders (100% Tuition)', 'Interactive Neural AI Sandbox', 'Direct ISRO/SpaceX Placement'],
-    requirements: 'Min 92% in STEM Path, Portfolio Review',
-    description: 'The flagship technical institute of Nexora. NIT provides a fully immersive environment focused on quantum computing, aerospace mechanics, and advanced autonomous robotics. Our graduates lead global engineering hubs.'
+    perks: ['Elite Lateral Fellowship (100% Tuition)', 'Interactive Neural AI Sandbox', 'Direct ISRO/SpaceX Placement'],
+    requirements: 'Diploma in Engineering with min 70% aggregate marks',
+    description: 'The flagship engineering branch of Nexora. NIT provides a direct lateral entry gateway for Polytechnic diploma graduates into the 2nd year of Computer, Electronics, and Mechanical Engineering.',
+    stream: 'Polytechnic'
   },
   {
-    id: 'amra-2',
-    name: 'Apex Medical Research Academy (AMRA)',
-    shortName: 'Apex Medical',
-    sector: 'MEDICAL SUPPORT',
-    rating: 4.8,
-    location: 'Mumbai Bio-District',
-    matchRate: 89,
-    mission: 'Decoding quantum bio-signals for surgical robotic support.',
-    perks: ['Bio-Tech Merit Fund (50% Covered)', 'Nano-Surgery Hologram Lab', 'Global AI Medical Certification'],
-    requirements: 'NEET / NEXORA Med 85+, Live Dexterity Test',
-    description: 'AMRA is a world-renowned medical institute pioneering micro-robotic surgeries and predictive health analytics. Students work in high-fidelity augmented-reality operating theatres with leading global neurosurgeons.'
-  },
-  {
-    id: 'vbs-3',
-    name: 'Vanguard Business School (VBS)',
-    shortName: 'Vanguard Business',
-    sector: 'BUSINESS',
-    rating: 4.7,
-    location: 'Delhi Financial Corridor',
-    matchRate: 91,
-    mission: 'Engineering predictive market models & global supply logistics.',
-    perks: ['Global Founders Fellowship', 'Quantum Crypto-Finance Cluster', 'Silicon Valley Startup Sync'],
-    requirements: 'CAT / GMAT 90 percentile, Personal Interview',
-    description: 'VBS shapes the future leaders of the digital economy. Specializing in algorithmic high-frequency finance, venture development, and tech-logistics supply chain management. Mentorship is provided directly by startup unicorn founders.'
-  },
-  {
-    id: 'iast-4',
-    name: 'Imperial Academy of Skilled Trades (IAST)',
-    shortName: 'Imperial Trades',
+    id: 'govt-iti',
+    name: 'Government ITI Industrial Training School',
+    shortName: 'Govt ITI',
     sector: 'SKILLED TRADES',
-    rating: 4.6,
+    rating: 4.5,
     location: 'Chennai Industrial Cluster',
-    matchRate: 85,
-    mission: 'Mastering mechanical automation, CNC tooling & micro-wiring.',
-    perks: ['Industry-Ready Stipend (100% Paid)', 'Advanced CNC Tooling Lab', 'Global Industrial Trade Badge'],
-    requirements: 'Class 10/12 Technical Aptitude, Manual Agility Test',
-    description: 'Providing premium vocational training in mechanical automation, electric smart-grids, and manufacturing technology. IAST focuses on production-ready expertise, placing graduates directly into advanced aerospace and automotive manufacturing lines.'
-  },
-  {
-    id: 'ndfl-5',
-    name: 'Nova Design & Fashion Lab (NDFL)',
-    shortName: 'Nova Design',
-    sector: 'FASHION & DESIGN',
-    rating: 4.8,
-    location: 'Pune Creative Atelier',
-    matchRate: 82,
-    mission: 'Creating responsive biomorphic wearables and smart fabrics.',
-    perks: ['Visionary Maker Grant', 'Smart Fabric Nano-Lab', 'Paris/Milan Atelier Internship'],
-    requirements: 'Portfolio Dossier, Creative Originality Test',
-    description: 'NDFL is the creative peak of biomorphic fashion and active industrial design. Integrating smart electronic components, soft-circuit fabrics, and sustainable organic materials to redefine human attire in the modern epoch.'
-  },
-  {
-    id: 'cas-6',
-    name: 'Centauri Computer Academy (CCA)',
-    shortName: 'Centauri Computers',
-    sector: 'COMPUTERS',
-    rating: 4.9,
-    location: 'Hyderabad Tech-Spur',
-    matchRate: 94,
-    mission: 'Developing self-healing compiler nets and decentralized ledgers.',
-    perks: ['100% Developer Scholarship', 'High-Performance Grid Access', 'Web3 Global Accelerator Lab'],
-    requirements: 'Coding Proficiency Test, Github Dossier Review',
-    description: 'Centauri is the core hub for high-performance software engineering. Focused on low-level systems, kernel development, neural net architecture, and blockchain infrastructure. CCA hosts continuous global hackathons with massive reward pools.'
+    matchRate: 88,
+    mission: 'Vocational trade engineering, machine assembly, and smart grids.',
+    perks: ['Free Tooling Kit Allowance', 'Direct Corporate Apprenticeship', 'Vocational Trade Certification'],
+    requirements: 'Class 10 Pass, Manual Agility Test',
+    description: 'Pioneering vocational training in industrial electrician trades, fitter crafts, and lathe machining operations. Focuses on immediate, production-ready workplace placement.',
+    stream: 'ITI'
   }
 ];
 
-const SECTOR_FILTERS = ['ALL', 'ENGINEERING', 'MEDICAL SUPPORT', 'COMPUTERS', 'BUSINESS', 'SKILLED TRADES', 'FASHION & DESIGN'];
+const STREAM_FILTERS = ['ALL', 'MPC', 'BiPC', 'Polytechnic', 'ITI'];
 
 const CollegeScreen = () => {
   const isDark = useColorScheme() === 'dark';
@@ -120,7 +128,7 @@ const CollegeScreen = () => {
   const [dbColleges, setDbColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'online' | 'cache'>('cache');
-  const [activeSector, setActiveSector] = useState('ALL');
+  const [activeStream, setActiveStream] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCollege, setSelectedCollege] = useState<College | null>(null);
   const [applyingId, setApplyingId] = useState<string | null>(null);
@@ -147,6 +155,7 @@ const CollegeScreen = () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
+      let userStream = 'ALL';
       if (user) {
         const { data: profileData } = await supabase
           .from('profiles')
@@ -155,8 +164,18 @@ const CollegeScreen = () => {
           .single();
         if (profileData) {
           setProfile(profileData);
+          if (profileData.stream) {
+            userStream = profileData.stream;
+          }
         }
       }
+
+      // Check local storage for offline stream configuration
+      const storedStream = await AsyncStorage.getItem('activeStream');
+      if (storedStream) {
+        userStream = storedStream;
+      }
+      setActiveStream(userStream);
 
       // Try fetching colleges from Supabase if online
       const { data: colData, error: colError } = await supabase
@@ -166,7 +185,12 @@ const CollegeScreen = () => {
       if (colError) throw colError;
 
       if (colData && colData.length > 0) {
-        setDbColleges(colData);
+        // Map database records to include stream classification if absent
+        const mappedDb = colData.map((c: any) => ({
+          ...c,
+          stream: c.stream || (c.sector === 'MEDICAL SUPPORT' ? 'BiPC' : c.sector === 'SKILLED TRADES' ? 'ITI' : 'MPC')
+        }));
+        setDbColleges(mappedDb);
         setSyncStatus('online');
       } else {
         setSyncStatus('cache');
@@ -184,9 +208,37 @@ const CollegeScreen = () => {
     setTimeout(() => {
       setApplyingId(null);
       setAppliedIds([...appliedIds, collegeId]);
+      const token = `NEX-${Math.floor(100000 + Math.random() * 900000)}`;
+      const collegeObj = collegesToUse.find(c => c.id === collegeId);
+      const collegeName = collegeObj ? collegeObj.name : 'College Node';
       Alert.alert(
         'GATEWAY ESTABLISHED',
-        `Admissions Token: NEX-${Math.floor(100000 + Math.random() * 900000)}\n\nYour Nexora Profile Dossier has been securely synchronized with the college registration node. Admissions officers will contact you shortly.`
+        `Admissions Token: ${token}\n\nYour Nexora Profile Dossier has been securely synchronized with the college registration node. Admissions officers will contact you shortly.`,
+        [
+          { text: 'OK' },
+          { 
+            text: 'SAVE TO VAULT',
+            onPress: async () => {
+              try {
+                const stored = await AsyncStorage.getItem('vault_files');
+                let vaultFiles = stored ? JSON.parse(stored) : [];
+                const newFile = {
+                  id: Math.random().toString(),
+                  name: `Token_${collegeId}_${token}.txt`,
+                  category: 'ADMISSIONS',
+                  size: '14 KB',
+                  date: new Date().toISOString().split('T')[0],
+                  content: `GATEWAY TOKEN: ${token}\nCollege: ${collegeName}\nSync Status: Secured Synced Node\nDate Synchronized: ${new Date().toLocaleString()}`
+                };
+                vaultFiles.unshift(newFile);
+                await AsyncStorage.setItem('vault_files', JSON.stringify(vaultFiles));
+                Alert.alert('VAULT UPDATED', 'The admission gateway token has been successfully encrypted and stored in your Vault locker.');
+              } catch (e) {
+                console.log('Error saving token to vault:', e);
+              }
+            }
+          }
+        ]
       );
     }, 2000);
   };
@@ -217,12 +269,12 @@ const CollegeScreen = () => {
   };
 
   const filteredColleges = collegesToUse.filter((col) => {
-    const matchesSector = activeSector === 'ALL' || col.sector.toUpperCase() === activeSector.toUpperCase();
+    const matchesStream = activeStream === 'ALL' || (col.stream && col.stream.toUpperCase() === activeStream.toUpperCase());
     const matchesSearch = col.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       col.shortName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       col.mission.toLowerCase().includes(searchQuery.toLowerCase()) ||
       col.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSector && matchesSearch;
+    return matchesStream && matchesSearch;
   });
 
   const borderGlow = pulseAnim.interpolate({
@@ -289,20 +341,20 @@ const CollegeScreen = () => {
       {/* HORIZONTAL SECTORS */}
       <View style={styles.filterSection}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          {SECTOR_FILTERS.map((sector) => {
-            const isActive = activeSector === sector;
+          {STREAM_FILTERS.map((stream) => {
+            const isActive = activeStream === stream;
             return (
               <TouchableOpacity 
-                key={sector} 
+                key={stream} 
                 style={[
                   styles.filterChip, 
                   isActive && styles.filterChipActive
                 ]}
-                onPress={() => setActiveSector(sector)}
+                onPress={() => setActiveStream(stream)}
               >
                 {isActive && <LinearGradient colors={[neonCyan + 'aa', 'transparent']} style={styles.chipGlow} />}
                 <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                  {sector}
+                  {stream}
                 </Text>
               </TouchableOpacity>
             );
@@ -320,7 +372,7 @@ const CollegeScreen = () => {
         <View style={styles.emptyContainer}>
           <Ionicons name="planet" size={50} color="rgba(255,255,255,0.15)" />
           <Text style={styles.emptyText}>No institute nodes matching the query.</Text>
-          <TouchableOpacity style={styles.resetBtn} onPress={() => { setActiveSector('ALL'); setSearchQuery(''); }}>
+          <TouchableOpacity style={styles.resetBtn} onPress={() => { setActiveStream('ALL'); setSearchQuery(''); }}>
             <Text style={styles.resetTxt}>RESET DATA ACCESS</Text>
           </TouchableOpacity>
         </View>
