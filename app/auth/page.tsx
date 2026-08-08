@@ -27,7 +27,6 @@ export default function AuthPage() {
   const router = useRouter();
   const [tab, setTab] = useState<AuthTab>('login');
   const [loading, setLoading] = useState(false);
-  const [checkingCallback, setCheckingCallback] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -46,45 +45,13 @@ export default function AuthPage() {
   const [recoveryCodeVerified, setRecoveryCodeVerified] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
-  // Handle OAuth/Callback URL tokens & Existing Sessions
+  // Instant non-blocking session check on mount
   useEffect(() => {
-    const handleAuthCallbackAndSession = async () => {
-      try {
-        // Check if there is an OAuth code or token in the URL
-        if (typeof window !== 'undefined') {
-          const urlParams = new URLSearchParams(window.location.search);
-          const code = urlParams.get('code');
-          const error = urlParams.get('error_description') || urlParams.get('error');
-
-          if (error) {
-            setErrorMsg(error);
-          } else if (code) {
-            setLoading(true);
-            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-            if (exchangeError) {
-              console.error('Code exchange error:', exchangeError);
-            } else {
-              router.replace('/dashboard');
-              return;
-            }
-          }
-        }
-
-        // Check active session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          router.replace('/dashboard');
-          return;
-        }
-      } catch (err) {
-        console.error('Auth initialization error:', err);
-      } finally {
-        setCheckingCallback(false);
-        setLoading(false);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace('/dashboard');
       }
-    };
-
-    handleAuthCallbackAndSession();
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
@@ -114,7 +81,7 @@ export default function AuthPage() {
     setRecoveryCodeVerified(false);
   };
 
-  // Instant Demo Access (Bypasses email bottlenecks)
+  // Instant Guest / Demo Clearance (Zero Latency)
   const handleDemoAccess = () => {
     localStorage.setItem('activeSector', 'ENGINEERING');
     localStorage.setItem('activeStream', 'MPC');
@@ -127,7 +94,7 @@ export default function AuthPage() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth` : 'http://localhost:3001/auth';
+      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3001/dashboard';
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -142,13 +109,13 @@ export default function AuthPage() {
     }
   };
 
-  // Email & Password Auth (Login / Auto-Confirmed Signup)
+  // Email & Password Auth (Instant Auto-Confirmed)
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    const cleanEmail = email.trim();
+    const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail || !password) {
       setErrorMsg('Please enter both Email and Password.');
       return;
@@ -165,7 +132,7 @@ export default function AuthPage() {
         
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
-            throw new Error('Invalid credentials. If you previously registered via Google, please use "Continue with Google" or reset your password.');
+            throw new Error('Invalid credentials. If this account was registered via Google, please sign in with Google or use OTP.');
           }
           throw error;
         }
@@ -190,29 +157,22 @@ export default function AuthPage() {
           email: cleanEmail,
           password,
           options: {
-            data: { full_name: name.trim() || 'Nexora Student' },
-            emailRedirectTo: `${window.location.origin}/auth`
+            data: { full_name: name.trim() || 'Nexora Student' }
           }
         });
 
         if (error) throw error;
 
-        // Since we have an auto-confirm database trigger, try immediate sign-in
-        if (data.session) {
+        // Auto-confirmed via postgres trigger - try immediate login
+        const { data: loginData, error: loginErr } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password
+        });
+
+        if (!loginErr && loginData.session) {
           router.replace('/sectors');
         } else {
-          // Attempt automatic login
-          const { data: loginData, error: loginErr } = await supabase.auth.signInWithPassword({
-            email: cleanEmail,
-            password
-          });
-
-          if (!loginErr && loginData.session) {
-            router.replace('/sectors');
-          } else {
-            setSuccessMsg('Account created and verified! Redirecting to command hub...');
-            setTimeout(() => router.replace('/dashboard'), 1000);
-          }
+          router.replace('/dashboard');
         }
       }
     } catch (err: any) {
@@ -222,10 +182,10 @@ export default function AuthPage() {
     }
   };
 
-  // Send OTP (For OTP Login or Password Recovery)
+  // Send OTP
   const handleSendOTP = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const cleanEmail = email.trim();
+    const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
       setErrorMsg('Please provide a valid email address.');
       return;
@@ -243,22 +203,22 @@ export default function AuthPage() {
         if (error) throw error;
         setOtpSent(true);
         setTimer(30);
-        setSuccessMsg('Password recovery signal transmitted. Check your email for code.');
+        setSuccessMsg('Password recovery token dispatched. Check your inbox.');
       } else {
         const { error } = await supabase.auth.signInWithOtp({
           email: cleanEmail,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth`
+            emailRedirectTo: `${window.location.origin}/dashboard`
           }
         });
         if (error) throw error;
         setOtpSent(true);
         setTimer(30);
-        setSuccessMsg('Instant OTP verification token transmitted to your email.');
+        setSuccessMsg('Instant 6-digit OTP verification code dispatched to your email.');
       }
     } catch (err: any) {
       if (err.status === 429) {
-        setErrorMsg('Email rate limit reached on Supabase. Please wait 2 minutes or use Email/Password / Demo Clearance.');
+        setErrorMsg('Email rate limit reached on Supabase. Wait a moment or use Email/Password or Guest Clearance.');
       } else {
         setErrorMsg(err.message || 'Failed to dispatch security code.');
       }
@@ -270,7 +230,7 @@ export default function AuthPage() {
   // Verify OTP Code
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanEmail = email.trim();
+    const cleanEmail = email.trim().toLowerCase();
     const cleanCode = otpCode.trim();
 
     if (!cleanCode || cleanCode.length < 6) {
@@ -284,14 +244,12 @@ export default function AuthPage() {
     try {
       const verifyType = tab === 'recovery' ? 'recovery' : 'email';
       
-      // Try primary verify
       let { data, error } = await supabase.auth.verifyOtp({
         email: cleanEmail,
         token: cleanCode,
         type: verifyType as any
       });
 
-      // Fallback verification if type was magiclink
       if (error && verifyType === 'email') {
         const fallback = await supabase.auth.verifyOtp({
           email: cleanEmail,
@@ -308,7 +266,7 @@ export default function AuthPage() {
 
       if (tab === 'recovery') {
         setRecoveryCodeVerified(true);
-        setSuccessMsg('Recovery identity confirmed. Input your new security password.');
+        setSuccessMsg('Recovery verified. Set your new security password.');
       } else {
         router.replace('/dashboard');
       }
@@ -333,25 +291,14 @@ export default function AuthPage() {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      setSuccessMsg('Password successfully updated! Redirecting to command hub...');
-      setTimeout(() => router.replace('/dashboard'), 1500);
+      setSuccessMsg('Password updated! Redirecting to command hub...');
+      setTimeout(() => router.replace('/dashboard'), 1200);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to update security key.');
+      setErrorMsg(err.message || 'Failed to update password.');
     } finally {
       setLoading(false);
     }
   };
-
-  if (checkingCallback) {
-    return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center">
-        <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin mb-3" />
-        <span className="text-xs font-black uppercase tracking-widest text-cyber-cyan">
-          VERIFYING NEXUS CREDENTIALS...
-        </span>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4">
@@ -384,7 +331,7 @@ export default function AuthPage() {
                 onClick={() => handleTabChange(mode)}
                 className={`py-2 text-[11px] font-black uppercase tracking-wider rounded-xl transition-all ${
                   tab === mode
-                    ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background shadow-md'
+                    ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background shadow-md font-extrabold'
                     : 'text-slate-500 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
