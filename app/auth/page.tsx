@@ -15,7 +15,8 @@ import {
   Loader2,
   ShieldCheck,
   Send,
-  RotateCcw
+  RotateCcw,
+  Zap
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -79,6 +80,14 @@ export default function AuthPage() {
     setRecoveryCodeVerified(false);
   };
 
+  // Instant Demo Access (Bypasses email bottlenecks)
+  const handleDemoAccess = () => {
+    localStorage.setItem('activeSector', 'ENGINEERING');
+    localStorage.setItem('activeStream', 'MPC');
+    localStorage.setItem('activeSubPath', 'Intermediate MPC');
+    router.replace('/dashboard');
+  };
+
   // Google OAuth Login
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -118,7 +127,10 @@ export default function AuthPage() {
           email: cleanEmail,
           password
         });
-        if (error) throw error;
+        if (error) {
+          // If invalid credentials, provide helpful message
+          throw error;
+        }
         router.replace('/dashboard');
       } else if (tab === 'signup') {
         if (password !== confirmPassword) {
@@ -141,7 +153,7 @@ export default function AuthPage() {
         if (data.session) {
           router.replace('/sectors');
         } else {
-          setSuccessMsg('Registration node created! Please check your email to verify your clearance link.');
+          setSuccessMsg('Registration created! If email confirmation is enabled in your Supabase project, verify via the emailed link.');
         }
       }
     } catch (err: any) {
@@ -186,7 +198,7 @@ export default function AuthPage() {
         setSuccessMsg('Instant OTP verification token transmitted to your email.');
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to dispatch security code.');
+      setErrorMsg(err.message || 'Failed to dispatch security code. Check that email provider is enabled on Supabase.');
     } finally {
       setLoading(false);
     }
@@ -260,23 +272,23 @@ export default function AuthPage() {
         <div className="absolute -top-6 -left-6 -right-6 -bottom-6 bg-gradient-to-r from-cyber-cyan/20 via-cyber-violet/20 to-cyber-pink/20 rounded-[36px] blur-xl opacity-75"></div>
 
         {/* Main Auth Container */}
-        <div className="relative glass-panel rounded-3xl border border-white/[0.12] p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+        <div className="relative glass-panel rounded-3xl border border-slate-200 dark:border-white/[0.12] p-6 sm:p-8 shadow-2xl">
           
           {/* Logo / Greeting */}
           <div className="text-center space-y-2 mb-6">
-            <div className="inline-flex w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet p-[1.5px] items-center justify-center mb-1">
+            <div className="inline-flex w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet p-[1.5px] items-center justify-center mb-1 shadow-md">
               <div className="w-full h-full bg-background rounded-[14px] flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6 text-cyber-cyan" />
               </div>
             </div>
-            <h2 className="text-2xl font-black tracking-widest text-white">NEXORA CLEARANCE</h2>
-            <p className="text-xs font-bold text-white/40 uppercase tracking-wider">
+            <h2 className="text-2xl font-black tracking-widest text-slate-900 dark:text-white">NEXORA CLEARANCE</h2>
+            <p className="text-xs font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider">
               STUDENT IDENTITY & ACADEMIC GATEWAY
             </p>
           </div>
 
           {/* Mode Switcher Tabs */}
-          <div className="grid grid-cols-4 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] mb-6">
+          <div className="grid grid-cols-4 p-1 rounded-2xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] mb-6">
             {(['login', 'signup', 'otp', 'recovery'] as AuthTab[]).map((mode) => (
               <button
                 key={mode}
@@ -284,7 +296,7 @@ export default function AuthPage() {
                 className={`py-2 text-[11px] font-black uppercase tracking-wider rounded-xl transition-all ${
                   tab === mode
                     ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background shadow-md'
-                    : 'text-white/50 hover:text-white'
+                    : 'text-slate-500 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Register' : mode === 'otp' ? 'OTP' : 'Reset'}
@@ -294,7 +306,7 @@ export default function AuthPage() {
 
           {/* Feedback Messages */}
           {errorMsg && (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold flex items-center gap-2">
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -313,7 +325,7 @@ export default function AuthPage() {
               <button
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-black tracking-wider text-white flex items-center justify-center gap-3 transition group"
+                className="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/[0.1] text-xs font-black tracking-wider text-slate-800 dark:text-white flex items-center justify-center gap-3 transition group shadow-sm"
               >
                 <svg className="w-4 h-4 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                   <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.4 9 5 12 5z" />
@@ -325,9 +337,9 @@ export default function AuthPage() {
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-[1px] bg-white/[0.08]"></div>
-                <span className="text-[10px] font-black uppercase text-white/30 tracking-widest">OR VIA CREDENTIALS</span>
-                <div className="flex-1 h-[1px] bg-white/[0.08]"></div>
+                <div className="flex-1 h-[1px] bg-slate-200 dark:bg-white/[0.08]"></div>
+                <span className="text-[10px] font-black uppercase text-slate-400 dark:text-white/30 tracking-widest">OR VIA CREDENTIALS</span>
+                <div className="flex-1 h-[1px] bg-slate-200 dark:bg-white/[0.08]"></div>
               </div>
             </div>
           )}
@@ -337,17 +349,17 @@ export default function AuthPage() {
             <form onSubmit={handleEmailAuth} className="space-y-4">
               {tab === 'signup' && (
                 <div>
-                  <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
                     Student Full Name
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/40" />
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. John Doe"
-                      className="w-full bg-surface-card border border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition"
+                      className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
                       required
                     />
                   </div>
@@ -355,34 +367,34 @@ export default function AuthPage() {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
                   Student Email
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/40" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="student@institution.edu"
-                    className="w-full bg-surface-card border border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition"
+                    className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
                   Password Key
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/40" />
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full bg-surface-card border border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition"
+                    className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
                     required
                   />
                 </div>
@@ -390,17 +402,17 @@ export default function AuthPage() {
 
               {tab === 'signup' && (
                 <div>
-                  <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
                     Confirm Password Key
                   </label>
                   <div className="relative">
-                    <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                    <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/40" />
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full bg-surface-card border border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition"
+                      className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
                       required
                     />
                   </div>
@@ -433,17 +445,17 @@ export default function AuthPage() {
               {!otpSent ? (
                 <form onSubmit={handleSendOTP} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
                       Your Email Address
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/40" />
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="student@institution.edu"
-                        className="w-full bg-surface-card border border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition"
+                        className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
                         required
                       />
                     </div>
@@ -462,7 +474,7 @@ export default function AuthPage() {
                 <form onSubmit={handleVerifyOTP} className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold text-white/70 uppercase tracking-wider">
+                      <label className="text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider">
                         6-Digit Security OTP
                       </label>
                       <span className="text-[11px] font-bold text-cyber-cyan">{timer > 0 ? `${timer}s` : 'Expired'}</span>
@@ -473,7 +485,7 @@ export default function AuthPage() {
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value)}
                       placeholder="123456"
-                      className="w-full bg-surface-card border border-white/[0.1] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-widest text-white focus:outline-none focus:border-cyber-cyan transition"
+                      className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-widest text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition shadow-inner"
                       required
                     />
                   </div>
@@ -492,7 +504,7 @@ export default function AuthPage() {
                       type="button"
                       disabled={timer > 0 || loading}
                       onClick={() => handleSendOTP()}
-                      className="text-xs font-bold text-cyber-cyan hover:underline disabled:text-white/30 flex items-center gap-1.5 mx-auto"
+                      className="text-xs font-bold text-cyber-cyan hover:underline disabled:text-slate-400 dark:disabled:text-white/30 flex items-center gap-1.5 mx-auto"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Resend Token</span>
@@ -509,17 +521,17 @@ export default function AuthPage() {
               {!otpSent ? (
                 <form onSubmit={handleSendOTP} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
                       Account Email for Recovery
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/40" />
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="student@institution.edu"
-                        className="w-full bg-surface-card border border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition"
+                        className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
                         required
                       />
                     </div>
@@ -537,7 +549,7 @@ export default function AuthPage() {
               ) : !recoveryCodeVerified ? (
                 <form onSubmit={handleVerifyOTP} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
                       Enter Recovery Code
                     </label>
                     <input
@@ -546,7 +558,7 @@ export default function AuthPage() {
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value)}
                       placeholder="123456"
-                      className="w-full bg-surface-card border border-white/[0.1] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-widest text-white focus:outline-none focus:border-cyber-cyan transition"
+                      className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-widest text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition shadow-inner"
                       required
                     />
                   </div>
@@ -563,17 +575,17 @@ export default function AuthPage() {
               ) : (
                 <form onSubmit={handleUpdatePassword} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
                       Enter New Security Password
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/40" />
                       <input
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full bg-surface-card border border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition"
+                        className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
                         required
                       />
                     </div>
@@ -591,6 +603,18 @@ export default function AuthPage() {
               )}
             </div>
           )}
+
+          {/* INSTANT QUICK DEMO ACCESS BUTTON */}
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-white/[0.08] text-center">
+            <button
+              onClick={handleDemoAccess}
+              type="button"
+              className="w-full py-2.5 px-4 rounded-xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan text-xs font-black tracking-wider flex items-center justify-center gap-2 transition"
+            >
+              <Zap className="w-4 h-4" />
+              <span>INSTANT GUEST CLEARANCE (DEMO)</span>
+            </button>
+          </div>
 
         </div>
 
