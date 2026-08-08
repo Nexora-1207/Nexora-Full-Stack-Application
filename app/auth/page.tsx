@@ -45,8 +45,30 @@ export default function AuthPage() {
   const [recoveryCodeVerified, setRecoveryCodeVerified] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
-  // Instant non-blocking session check on mount
+  // Instant URL token & session handler
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const search = window.location.search;
+
+      if (hash && (hash.includes('access_token') || hash.includes('refresh_token'))) {
+        router.replace('/dashboard');
+        return;
+      }
+
+      if (search && search.includes('code=')) {
+        const urlParams = new URLSearchParams(search);
+        const code = urlParams.get('code');
+        if (code) {
+          supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+            if (!error && data.session) {
+              router.replace('/dashboard');
+            }
+          });
+        }
+      }
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.replace('/dashboard');
@@ -54,7 +76,7 @@ export default function AuthPage() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+      if (session) {
         router.replace('/dashboard');
       }
     });
@@ -89,16 +111,16 @@ export default function AuthPage() {
     router.replace('/dashboard');
   };
 
-  // Google OAuth Login
+  // Google OAuth Login with dedicated server callback
   const handleGoogleLogin = async () => {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : 'http://localhost:3001/dashboard';
+      const callbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : 'http://localhost:3001/auth/callback';
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl,
+          redirectTo: callbackUrl,
           queryParams: { prompt: 'select_account' }
         }
       });
@@ -163,7 +185,7 @@ export default function AuthPage() {
 
         if (error) throw error;
 
-        // Auto-confirmed via postgres trigger - try immediate login
+        // Auto-confirmed via database trigger - sign in immediately
         const { data: loginData, error: loginErr } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
           password
@@ -208,7 +230,7 @@ export default function AuthPage() {
         const { error } = await supabase.auth.signInWithOtp({
           email: cleanEmail,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         });
         if (error) throw error;
