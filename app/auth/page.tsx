@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   Send,
   RotateCcw,
-  Zap
+  Zap,
+  Info
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -26,6 +27,7 @@ export default function AuthPage() {
   const router = useRouter();
   const [tab, setTab] = useState<AuthTab>('login');
   const [loading, setLoading] = useState(false);
+  const [checkingCallback, setCheckingCallback] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -44,13 +46,45 @@ export default function AuthPage() {
   const [recoveryCodeVerified, setRecoveryCodeVerified] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
-  // Check existing session
+  // Handle OAuth/Callback URL tokens & Existing Sessions
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.replace('/dashboard');
+    const handleAuthCallbackAndSession = async () => {
+      try {
+        // Check if there is an OAuth code or token in the URL
+        if (typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search);
+          const code = urlParams.get('code');
+          const error = urlParams.get('error_description') || urlParams.get('error');
+
+          if (error) {
+            setErrorMsg(error);
+          } else if (code) {
+            setLoading(true);
+            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+            if (exchangeError) {
+              console.error('Code exchange error:', exchangeError);
+            } else {
+              router.replace('/dashboard');
+              return;
+            }
+          }
+        }
+
+        // Check active session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          router.replace('/dashboard');
+          return;
+        }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+      } finally {
+        setCheckingCallback(false);
+        setLoading(false);
       }
-    });
+    };
+
+    handleAuthCallbackAndSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
@@ -93,10 +127,11 @@ export default function AuthPage() {
     setLoading(true);
     setErrorMsg(null);
     try {
+      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth` : 'http://localhost:3001/auth';
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: redirectUrl,
           queryParams: { prompt: 'select_account' }
         }
       });
@@ -107,7 +142,7 @@ export default function AuthPage() {
     }
   };
 
-  // Email & Password Auth
+  // Email & Password Auth (Login / Auto-Confirmed Signup)
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -123,18 +158,30 @@ export default function AuthPage() {
 
     try {
       if (tab === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
           password
         });
+        
         if (error) {
-          // If invalid credentials, provide helpful message
+          if (error.message.includes('Invalid login credentials')) {
+            throw new Error('Invalid credentials. If you previously registered via Google, please use "Continue with Google" or reset your password.');
+          }
           throw error;
         }
-        router.replace('/dashboard');
+
+        if (data.session) {
+          router.replace('/dashboard');
+        }
       } else if (tab === 'signup') {
         if (password !== confirmPassword) {
           setErrorMsg('Password confirmation does not match.');
+          setLoading(false);
+          return;
+        }
+
+        if (password.length < 6) {
+          setErrorMsg('Password must be at least 6 characters.');
           setLoading(false);
           return;
         }
@@ -144,16 +191,28 @@ export default function AuthPage() {
           password,
           options: {
             data: { full_name: name.trim() || 'Nexora Student' },
-            emailRedirectTo: `${window.location.origin}/dashboard`
+            emailRedirectTo: `${window.location.origin}/auth`
           }
         });
 
         if (error) throw error;
 
+        // Since we have an auto-confirm database trigger, try immediate sign-in
         if (data.session) {
           router.replace('/sectors');
         } else {
-          setSuccessMsg('Registration created! If email confirmation is enabled in your Supabase project, verify via the emailed link.');
+          // Attempt automatic login
+          const { data: loginData, error: loginErr } = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password
+          });
+
+          if (!loginErr && loginData.session) {
+            router.replace('/sectors');
+          } else {
+            setSuccessMsg('Account created and verified! Redirecting to command hub...');
+            setTimeout(() => router.replace('/dashboard'), 1000);
+          }
         }
       }
     } catch (err: any) {
@@ -184,12 +243,12 @@ export default function AuthPage() {
         if (error) throw error;
         setOtpSent(true);
         setTimer(30);
-        setSuccessMsg('Password recovery signal transmitted. Check your email for OTP code.');
+        setSuccessMsg('Password recovery signal transmitted. Check your email for code.');
       } else {
         const { error } = await supabase.auth.signInWithOtp({
           email: cleanEmail,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`
+            emailRedirectTo: `${window.location.origin}/auth`
           }
         });
         if (error) throw error;
@@ -198,7 +257,11 @@ export default function AuthPage() {
         setSuccessMsg('Instant OTP verification token transmitted to your email.');
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to dispatch security code. Check that email provider is enabled on Supabase.');
+      if (err.status === 429) {
+        setErrorMsg('Email rate limit reached on Supabase. Please wait 2 minutes or use Email/Password / Demo Clearance.');
+      } else {
+        setErrorMsg(err.message || 'Failed to dispatch security code.');
+      }
     } finally {
       setLoading(false);
     }
@@ -220,11 +283,26 @@ export default function AuthPage() {
 
     try {
       const verifyType = tab === 'recovery' ? 'recovery' : 'email';
-      const { data, error } = await supabase.auth.verifyOtp({
+      
+      // Try primary verify
+      let { data, error } = await supabase.auth.verifyOtp({
         email: cleanEmail,
         token: cleanCode,
-        type: verifyType
+        type: verifyType as any
       });
+
+      // Fallback verification if type was magiclink
+      if (error && verifyType === 'email') {
+        const fallback = await supabase.auth.verifyOtp({
+          email: cleanEmail,
+          token: cleanCode,
+          type: 'magiclink' as any
+        });
+        if (!fallback.error) {
+          data = fallback.data;
+          error = null;
+        }
+      }
 
       if (error) throw error;
 
@@ -264,12 +342,23 @@ export default function AuthPage() {
     }
   };
 
+  if (checkingCallback) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin mb-3" />
+        <span className="text-xs font-black uppercase tracking-widest text-cyber-cyan">
+          VERIFYING NEXUS CREDENTIALS...
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4">
       <div className="w-full max-w-md relative">
         
         {/* Glowing Background Ring */}
-        <div className="absolute -top-6 -left-6 -right-6 -bottom-6 bg-gradient-to-r from-cyber-cyan/20 via-cyber-violet/20 to-cyber-pink/20 rounded-[36px] blur-xl opacity-75"></div>
+        <div className="absolute -top-6 -left-6 -right-6 -bottom-6 bg-gradient-to-r from-cyber-cyan/20 via-cyber-violet/20 to-cyber-pink/20 rounded-[36px] blur-xl opacity-75 pointer-events-none"></div>
 
         {/* Main Auth Container */}
         <div className="relative glass-panel rounded-3xl border border-slate-200 dark:border-white/[0.12] p-6 sm:p-8 shadow-2xl">
@@ -306,15 +395,15 @@ export default function AuthPage() {
 
           {/* Feedback Messages */}
           {errorMsg && (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-bold flex items-start gap-2 leading-relaxed">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="mb-4 p-3 rounded-xl bg-cyber-emerald/10 border border-cyber-emerald/30 text-cyber-emerald text-xs font-bold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <div className="mb-4 p-3 rounded-xl bg-cyber-emerald/10 border border-cyber-emerald/30 text-cyber-emerald text-xs font-bold flex items-start gap-2 leading-relaxed">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -431,7 +520,7 @@ export default function AuthPage() {
                   </>
                 ) : (
                   <>
-                    <span>{tab === 'login' ? 'ENTER NEXUS HUB' : 'CREATE STUDENT DOSSIER'}</span>
+                    <span>{tab === 'login' ? 'ENTER NEXUS HUB' : 'CREATE INSTANT STUDENT DOSSIER'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
