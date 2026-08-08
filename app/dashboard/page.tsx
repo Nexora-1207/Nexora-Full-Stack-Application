@@ -35,7 +35,7 @@ const SLIDES = [
     date: 'Deadline: Aug 25, 2026',
     desc: 'Joint Entrance Examination portal is open for registration. Target elite NIT and IIT engineering blocks.',
     badge: 'CRITICAL',
-    badgeColor: 'bg-cyber-magenta/20 text-cyber-magenta border-cyber-magenta/40'
+    badgeColor: 'bg-cyber-magenta/15 text-cyber-magenta border-cyber-magenta/40'
   },
   {
     id: 's2',
@@ -44,7 +44,7 @@ const SLIDES = [
     date: 'Starts: Sep 10, 2026',
     desc: '48-hour virtual engineering challenge in AI, Robotics, and Smart Grid software. Teams of 2 to 4 eligible.',
     badge: 'INR 2 LAKH PRIZE',
-    badgeColor: 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/40'
+    badgeColor: 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/40'
   },
   {
     id: 's3',
@@ -53,7 +53,7 @@ const SLIDES = [
     date: 'Closes: Oct 02, 2026',
     desc: 'Pitch your technical prototype directly to Silicon Valley seed investor panels for 100% tuition coverage.',
     badge: '100% FUNDED',
-    badgeColor: 'bg-cyber-amber/20 text-cyber-amber border-cyber-amber/40'
+    badgeColor: 'bg-cyber-amber/15 text-cyber-amber border-cyber-amber/40'
   }
 ];
 
@@ -130,29 +130,29 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 space-y-8">
       
       {/* TOP WELCOME BAR & PILL SWITCHER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               Hi, {studentFirstName} 👋
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/30 text-[10px] font-black text-cyber-cyan tracking-wider uppercase">
+            <span className="px-2.5 py-0.5 rounded-full bg-cyber-cyan/15 border border-cyber-cyan/40 text-[10px] font-black text-cyber-cyan tracking-wider uppercase">
               {profile.stream} TRACK
             </span>
           </div>
-          <p className="text-xs text-white/50 font-medium mt-0.5">
-            Academic Sector: <span className="font-bold text-white/80">{profile.sector}</span> • Placement Readiness Matrix Synced
+          <p className="text-xs text-slate-500 dark:text-white/50 font-medium mt-0.5">
+            Academic Sector: <span className="font-bold text-slate-800 dark:text-white/80">{profile.sector}</span> • Placement Readiness Matrix Synced
           </p>
         </div>
 
         {/* Home / Events Pill Switcher */}
-        <div className="inline-flex p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] self-start sm:self-auto">
+        <div className="inline-flex p-1 rounded-2xl bg-slate-200/80 dark:bg-white/[0.04] border border-slate-300/80 dark:border-white/[0.08] self-start sm:self-auto shadow-inner">
           <button
             onClick={() => setActiveTab('Home')}
             className={`px-5 py-2 rounded-xl text-xs font-black tracking-wider transition-all ${
               activeTab === 'Home'
                 ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background shadow-lg shadow-cyber-cyan/20 scale-105'
-                : 'text-white/50 hover:text-white'
+                : 'text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             HOME
@@ -162,7 +162,7 @@ export default function DashboardPage() {
             className={`px-5 py-2 rounded-xl text-xs font-black tracking-wider transition-all ${
               activeTab === 'Events'
                 ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background shadow-lg shadow-cyber-cyan/20 scale-105'
-                : 'text-white/50 hover:text-white'
+                : 'text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             EVENTS
@@ -174,11 +174,11 @@ export default function DashboardPage() {
       {activeTab === 'Home' ? (
         <div className="space-y-8">
           
-          {/* HERO ROW: Left Slideshow (flex 2) + Right Schedule Displayer (flex 1.2) */}
+          {/* HERO ROW: Left Slideshow + Right Schedule */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Left Carousel Panel */}
-            <div className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.1] relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+            <div className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[260px]">
               <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-cyber-cyan/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>
 
               <div>
@@ -194,19 +194,19 @@ export default function DashboardPage() {
                   </span>
                 </div>
 
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   {SLIDES[currentSlide].title}
                 </h2>
                 <span className="inline-block text-xs font-bold text-cyber-amber mt-1">
                   {SLIDES[currentSlide].date}
                 </span>
-                <p className="text-xs sm:text-sm text-white/60 mt-2 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 mt-2 leading-relaxed max-w-xl">
                   {SLIDES[currentSlide].desc}
                 </p>
               </div>
 
               {/* Bottom Pagination & Action */}
-              <div className="flex items-center justify-between pt-4 mt-4 border-t border-white/[0.06]">
+              <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-200 dark:border-white/[0.06]">
                 <div className="flex items-center gap-1.5">
                   {SLIDES.map((_, i) => (
                     <button
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                       className={`h-2 rounded-full transition-all ${
                         currentSlide === i 
                           ? 'w-6 bg-cyber-cyan shadow-[0_0_8px_#00F0FF]' 
-                          : 'w-2 bg-white/20 hover:bg-white/40'
+                          : 'w-2 bg-slate-300 dark:bg-white/20 hover:bg-slate-400 dark:hover:bg-white/40'
                       }`}
                     ></button>
                   ))}
@@ -232,12 +232,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Right Schedule Displayer Panel */}
-            <div className="lg:col-span-5 glass-panel rounded-3xl p-6 sm:p-7 border border-white/[0.1] flex flex-col justify-between min-h-[260px] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+            <div className="lg:col-span-5 glass-panel rounded-3xl p-6 sm:p-7 flex flex-col justify-between min-h-[260px]">
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/[0.08] mb-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-cyber-cyan" />
-                    <h3 className="font-black text-xs uppercase tracking-widest text-white">
+                    <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 dark:text-white">
                       TODAY&apos;S ROUTINE
                     </h3>
                   </div>
@@ -254,13 +254,13 @@ export default function DashboardPage() {
                   {schedule.map((item) => (
                     <div
                       key={item.id}
-                      className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-cyber-cyan/30 transition flex items-center justify-between gap-3"
+                      className="p-3 rounded-2xl bg-slate-100/70 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] hover:border-cyber-cyan/30 transition flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-cyber-cyan shadow-[0_0_6px_#00F0FF] shrink-0"></div>
                         <div>
-                          <h4 className="text-xs font-black text-white">{item.title}</h4>
-                          <span className="text-[10px] text-white/40 font-bold">{item.location}</span>
+                          <h4 className="text-xs font-black text-slate-900 dark:text-white">{item.title}</h4>
+                          <span className="text-[10px] text-slate-500 dark:text-white/40 font-bold">{item.location}</span>
                         </div>
                       </div>
                       <span className="text-[10px] font-mono font-bold text-cyber-cyan px-2 py-0.5 rounded-lg bg-cyber-cyan/10 shrink-0">
@@ -271,7 +271,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-white/40">
+              <div className="pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-white/40">
                 <span>{schedule.length} checkpoints scheduled</span>
                 <span className="text-cyber-emerald flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> All systems nominal
@@ -283,11 +283,9 @@ export default function DashboardPage() {
 
           {/* INTERACTIVE TOOLKITS GRID */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-black tracking-widest text-cyber-cyan uppercase">INTELLIGENCE SUITE</span>
-                <h2 className="text-xl font-black text-white tracking-tight">Interactive Student Toolkits</h2>
-              </div>
+            <div>
+              <span className="text-[10px] font-black tracking-widest text-cyber-cyan uppercase">INTELLIGENCE SUITE</span>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Interactive Student Toolkits</h2>
             </div>
 
             {/* 3-Column Top Grid */}
@@ -296,18 +294,18 @@ export default function DashboardPage() {
               {/* Tool 1: Resume AI */}
               <button
                 onClick={() => setResumeOpen(true)}
-                className="text-left glass-card glass-card-hover rounded-3xl p-5 border border-white/[0.08] hover:border-cyber-amber/40 group relative overflow-hidden"
+                className="text-left glass-card glass-card-hover rounded-3xl p-5 hover:border-cyber-amber/40 group relative overflow-hidden"
               >
                 <div className="w-11 h-11 rounded-2xl bg-cyber-amber/15 border border-cyber-amber/30 text-cyber-amber flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-base text-white group-hover:text-cyber-amber transition">
+                <h3 className="font-black text-base text-slate-900 dark:text-white group-hover:text-cyber-amber transition">
                   Resume AI
                 </h3>
-                <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed">
                   Scan and benchmark your technical credentials against placement gates.
                 </p>
-                <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-cyber-amber">
+                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-cyber-amber">
                   <span>Launch Scanner</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
@@ -316,18 +314,18 @@ export default function DashboardPage() {
               {/* Tool 2: Interview Prep */}
               <button
                 onClick={() => setInterviewOpen(true)}
-                className="text-left glass-card glass-card-hover rounded-3xl p-5 border border-white/[0.08] hover:border-cyber-magenta/40 group relative overflow-hidden"
+                className="text-left glass-card glass-card-hover rounded-3xl p-5 hover:border-cyber-magenta/40 group relative overflow-hidden"
               >
                 <div className="w-11 h-11 rounded-2xl bg-cyber-magenta/15 border border-cyber-magenta/30 text-cyber-magenta flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Mic className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-base text-white group-hover:text-cyber-magenta transition">
+                <h3 className="font-black text-base text-slate-900 dark:text-white group-hover:text-cyber-magenta transition">
                   Interview Prep
                 </h3>
-                <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed">
                   Simulate technical engineering and behavioral interview questions with AI.
                 </p>
-                <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-cyber-magenta">
+                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-cyber-magenta">
                   <span>Start Mock Session</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
@@ -336,18 +334,18 @@ export default function DashboardPage() {
               {/* Tool 3: Concept Explainer */}
               <button
                 onClick={() => setExplainerOpen(true)}
-                className="text-left glass-card glass-card-hover rounded-3xl p-5 border border-white/[0.08] hover:border-cyber-cyan/40 group relative overflow-hidden"
+                className="text-left glass-card glass-card-hover rounded-3xl p-5 hover:border-cyber-cyan/40 group relative overflow-hidden"
               >
                 <div className="w-11 h-11 rounded-2xl bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Lightbulb className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-base text-white group-hover:text-cyber-cyan transition">
+                <h3 className="font-black text-base text-slate-900 dark:text-white group-hover:text-cyber-cyan transition">
                   Concept Explainer
                 </h3>
-                <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed">
                   Input complex science or mechanical terms to get analogy-rich summaries.
                 </p>
-                <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-cyber-cyan">
+                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-cyber-cyan">
                   <span>Solve Terminology</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
@@ -358,22 +356,22 @@ export default function DashboardPage() {
             {/* Smart Note Pad Full Width Banner */}
             <button
               onClick={() => setNotesOpen(true)}
-              className="w-full text-left glass-card glass-card-hover rounded-3xl p-5 border border-white/[0.08] hover:border-cyber-violet/40 flex items-center justify-between group transition"
+              className="w-full text-left glass-card glass-card-hover rounded-3xl p-5 hover:border-cyber-violet/40 flex items-center justify-between group transition"
             >
               <div className="flex items-center gap-4">
                 <div className="w-11 h-11 rounded-2xl bg-cyber-violet/15 border border-cyber-violet/30 text-cyber-violet flex items-center justify-center shrink-0">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-black text-base text-white group-hover:text-cyber-violet transition">
+                  <h3 className="font-black text-base text-slate-900 dark:text-white group-hover:text-cyber-violet transition">
                     Smart Lecture Note Pad
                   </h3>
-                  <p className="text-xs text-white/50 mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-white/50 mt-0.5">
                     Draft lecture take-aways and instantly save notes to your Document Vault.
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-cyber-violet group-hover:translate-x-1 transition-transform shrink-0" />
+              <ChevronRight className="w-5 h-5 text-slate-400 dark:text-white/40 group-hover:text-cyber-violet group-hover:translate-x-1 transition-transform shrink-0" />
             </button>
           </div>
 
@@ -384,8 +382,8 @@ export default function DashboardPage() {
                 <CalendarPlus className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-black text-sm text-white">Academic Schedule Planner</h4>
-                <p className="text-xs text-white/50">Manage semester routines, exam dates, and laboratory schedules</p>
+                <h4 className="font-black text-sm text-slate-900 dark:text-white">Academic Schedule Planner</h4>
+                <p className="text-xs text-slate-500 dark:text-white/50">Manage semester routines, exam dates, and laboratory schedules</p>
               </div>
             </div>
 
@@ -402,29 +400,27 @@ export default function DashboardPage() {
       ) : (
         /* EVENTS TIMELINE FEED */
         <div className="space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <span className="text-[10px] font-black tracking-widest text-cyber-cyan uppercase">LIVE RADAR</span>
-              <h2 className="text-xl font-black text-white tracking-tight">Campus & Career Event Nodes</h2>
-            </div>
+          <div className="mb-2">
+            <span className="text-[10px] font-black tracking-widest text-cyber-cyan uppercase">LIVE RADAR</span>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Campus & Career Event Nodes</h2>
           </div>
 
           <div className="space-y-3.5">
             {INITIAL_EVENTS.map((evt) => (
               <div
                 key={evt.id}
-                className="glass-card rounded-3xl p-6 border border-white/[0.08] hover:border-cyber-cyan/40 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="glass-card rounded-3xl p-6 hover:border-cyber-cyan/40 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="flex items-start gap-4">
                   {/* Date Badge */}
-                  <div className="w-14 h-14 rounded-2xl bg-surface border border-white/[0.1] flex flex-col items-center justify-center shrink-0 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/[0.1] flex flex-col items-center justify-center shrink-0 text-center">
                     <span className="text-base font-black text-cyber-cyan leading-none">{evt.dateNum}</span>
-                    <span className="text-[9px] font-black uppercase text-white/50 tracking-wider mt-0.5">{evt.dateMon}</span>
+                    <span className="text-[9px] font-black uppercase text-slate-500 dark:text-white/50 tracking-wider mt-0.5">{evt.dateMon}</span>
                   </div>
                   
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/[0.04] text-white/60">
+                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/[0.04] text-slate-700 dark:text-white/60">
                         {evt.category}
                       </span>
                       <span 
@@ -434,8 +430,8 @@ export default function DashboardPage() {
                         {evt.badge}
                       </span>
                     </div>
-                    <h3 className="font-black text-base text-white">{evt.title}</h3>
-                    <p className="text-xs text-white/60 leading-relaxed max-w-2xl">{evt.description}</p>
+                    <h3 className="font-black text-base text-slate-900 dark:text-white">{evt.title}</h3>
+                    <p className="text-xs text-slate-600 dark:text-white/60 leading-relaxed max-w-2xl">{evt.description}</p>
                   </div>
                 </div>
 

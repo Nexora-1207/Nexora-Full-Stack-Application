@@ -5,13 +5,36 @@
 :root {
   --font-outfit: 'Outfit', sans-serif;
   --font-inter: 'Inter', sans-serif;
+  
+  /* Light Mode Palette Tokens */
+  --bg-primary: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(226, 232, 240, 0.85);
+  --glass-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08);
+}
+
+.dark {
+  /* Dark Mode Palette Tokens */
+  --bg-primary: #030712;
+  --bg-surface: #090D16;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #64748B;
+  --glass-bg: rgba(15, 23, 42, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
 body {
-  color: #F8FAFC;
-  background-color: #030712;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
   font-family: var(--font-outfit), var(--font-inter), sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* Custom scrollbar */
@@ -21,73 +44,101 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #030712;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 240, 255, 0.4);
+  background: rgba(0, 240, 255, 0.5);
 }
 
-/* Custom Glass & Cyberpunk utility classes */
+/* LIQUID GLASS & CYBERPUNK DESIGN SYSTEM */
 @layer components {
-  .glass-card {
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  /* Liquid Glass Refraction Container */
+  .liquid-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    position: relative;
   }
 
-  .glass-card-hover {
+  /* Liquid Glass Specular Shimmer Highlight */
+  .liquid-glass::before {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 10%; 
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    pointer-events: none;
+  }
+
+  /* Ultra-Curved Bottom Floating Taskbar Dock */
+  .liquid-glass-dock {
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.7), 0 0 30px -5px rgba(0, 240, 255, 0.15);
+    border-radius: 2.25rem;
+    position: relative;
+  }
+
+  .light .liquid-glass-dock {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.12), 0 0 30px -5px rgba(2, 132, 199, 0.12);
+  }
+
+  /* Water droplet active indicator */
+  .liquid-drop {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #00F0FF;
+    border-radius: 9999px;
+    box-shadow: 0 0 10px #00F0FF, 0 0 20px #00F0FF;
+    animation: dropletPulse 2s ease-in-out infinite;
+  }
+
+  .light .liquid-drop {
+    background: #0284C7;
+    box-shadow: 0 0 10px #0284C7, 0 0 20px #0284C7;
+  }
+
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .glass-card-hover:hover {
-    background: rgba(20, 30, 55, 0.75);
-    border-color: rgba(0, 240, 255, 0.35);
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px -15px rgba(0, 240, 255, 0.25);
+    border-color: rgba(0, 240, 255, 0.4);
+    box-shadow: 0 25px 50px -12px rgba(0, 240, 255, 0.25);
+  }
+
+  .light .glass-card-hover:hover {
+    border-color: rgba(2, 132, 199, 0.4);
+    box-shadow: 0 25px 50px -12px rgba(2, 132, 199, 0.2);
   }
 
   .glass-panel {
-    background: rgba(9, 13, 22, 0.85);
+    background: var(--glass-bg);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .neon-border {
-    position: relative;
-    border: 1px solid transparent;
-    background-clip: padding-box;
-  }
-
-  .neon-border::after {
-    content: '';
-    position: absolute;
-    top: -1px; bottom: -1px; left: -1px; right: -1px;
-    background: linear-gradient(135deg, rgba(0, 240, 255, 0.4), rgba(168, 85, 247, 0.2), rgba(255, 0, 138, 0.4));
-    border-radius: inherit;
-    z-index: -1;
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-  }
-
-  .neon-border:hover::after {
-    opacity: 1;
-  }
-
-  .cyber-glow-cyan {
-    box-shadow: 0 0 25px -5px rgba(0, 240, 255, 0.4);
-  }
-
-  .cyber-glow-magenta {
-    box-shadow: 0 0 25px -5px rgba(255, 0, 138, 0.4);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
   }
 
   .cyber-button-primary {
@@ -107,23 +158,38 @@ body {
 
   .cyber-button-secondary {
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #F8FAFC;
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
     font-weight: 700;
     letter-spacing: 0.05em;
     transition: all 0.25s ease;
   }
 
-  .cyber-button-secondary:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 240, 255, 0.4);
-    color: #00F0FF;
-    transform: translateY(-2px);
+  .light .cyber-button-secondary {
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    color: #0F172A;
   }
 
-  .cyber-pill {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
+  .cyber-button-secondary:hover {
+    transform: translateY(-2px);
+    border-color: #00F0FF;
+    color: #00F0FF;
+  }
+
+  .light .cyber-button-secondary:hover {
+    border-color: #0284C7;
+    color: #0284C7;
+  }
+}
+
+@keyframes dropletPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
   }
 }

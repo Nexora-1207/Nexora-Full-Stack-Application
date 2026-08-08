@@ -140,7 +140,7 @@ export default function ProfilePage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 space-y-8">
       
       {/* PROFESSIONAL BANNER & HEADER */}
-      <div className="glass-panel rounded-3xl border border-white/[0.12] overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+      <div className="glass-panel rounded-3xl overflow-hidden relative shadow-2xl">
         
         {/* Banner Gradient */}
         <div className="h-36 sm:h-48 bg-gradient-to-r from-cyber-cyan/30 via-cyber-violet/30 to-cyber-pink/30 relative">
@@ -156,12 +156,12 @@ export default function ProfilePage() {
             
             {/* Avatar */}
             <div className="relative">
-              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-surface border-4 border-background p-1 shadow-2xl overflow-hidden">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-white dark:bg-surface border-4 border-white dark:border-background p-1 shadow-2xl overflow-hidden">
                 <div className="w-full h-full bg-gradient-to-tr from-cyber-cyan to-cyber-violet rounded-2xl flex items-center justify-center text-3xl sm:text-4xl font-black text-background">
                   {fullName ? fullName.charAt(0).toUpperCase() : 'S'}
                 </div>
               </div>
-              <span className="absolute bottom-2 right-2 w-5 h-5 rounded-full bg-cyber-emerald border-2 border-background shadow-[0_0_8px_#10B981]"></span>
+              <span className="absolute bottom-2 right-2 w-5 h-5 rounded-full bg-cyber-emerald border-2 border-white dark:border-background shadow-md"></span>
             </div>
 
             {/* Placement Readiness Badge */}
@@ -170,7 +170,7 @@ export default function ProfilePage() {
                 <Award className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase text-white/50 tracking-wider block">PLACEMENT READINESS</span>
+                <span className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-wider block">PLACEMENT READINESS</span>
                 <span className="text-sm font-black text-cyber-cyan">94% MATRICULATED</span>
               </div>
             </div>
@@ -178,20 +178,20 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-black text-white">{fullName || 'Nexora Student'}</h1>
-            <p className="text-xs sm:text-sm text-white/60 font-medium max-w-2xl leading-relaxed">{bio}</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{fullName || 'Nexora Student'}</h1>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium max-w-2xl leading-relaxed">{bio}</p>
           </div>
         </div>
 
       </div>
 
       {/* EDITABLE DOSSIER FORM */}
-      <form onSubmit={handleSaveProfile} className="glass-panel rounded-3xl border border-white/[0.1] p-6 sm:p-8 space-y-6">
+      <form onSubmit={handleSaveProfile} className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
         
-        <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08]">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-cyber-cyan" />
-            <h3 className="font-black text-base uppercase tracking-wider text-white">
+            <h3 className="font-black text-base uppercase tracking-wider text-slate-900 dark:text-white">
               STUDENT IDENTITY DOSSIER
             </h3>
           </div>
@@ -206,75 +206,75 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           
           <div>
-            <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
               Full Name
             </label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-surface-card border border-white/[0.1] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
               Target College / Institute
             </label>
             <input
               type="text"
               value={college}
               onChange={(e) => setCollege(e.target.value)}
-              className="w-full bg-surface-card border border-white/[0.1] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
               Secondary / Junior School
             </label>
             <input
               type="text"
               value={school}
               onChange={(e) => setSchool(e.target.value)}
-              className="w-full bg-surface-card border border-white/[0.1] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
               Phone Number
             </label>
             <input
               type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full bg-surface-card border border-white/[0.1] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
               Campus Location / City
             </label>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full bg-surface-card border border-white/[0.1] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
               LinkedIn / Portfolio URL
             </label>
             <input
               type="text"
               value={linkedin}
               onChange={(e) => setLinkedin(e.target.value)}
-              className="w-full bg-surface-card border border-white/[0.1] rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
             />
           </div>
 
@@ -282,20 +282,20 @@ export default function ProfilePage() {
 
         {/* Bio textarea */}
         <div>
-          <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
             Student Mission & Bio Statement
           </label>
           <textarea
             rows={3}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            className="w-full bg-surface-card border border-white/[0.1] rounded-xl p-4 text-xs text-white focus:outline-none focus:border-cyber-cyan transition resize-none leading-relaxed"
+            className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl p-4 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition resize-none leading-relaxed"
           />
         </div>
 
         {/* Career Skills Chips */}
         <div className="space-y-3 pt-2">
-          <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
+          <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider">
             Verified Technical Skillsets
           </label>
           
@@ -309,7 +309,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => handleRemoveSkill(skill)}
-                  className="hover:text-white transition"
+                  className="hover:text-cyber-pink transition"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -324,7 +324,7 @@ export default function ProfilePage() {
               value={newSkill}
               onChange={(e) => setNewSkill(e.target.value)}
               placeholder="e.g. Microprocessors, CAD, React..."
-              className="flex-1 bg-surface-card border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+              className="flex-1 bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -335,7 +335,7 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={handleAddSkill}
-              className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-bold text-white transition flex items-center gap-1"
+              className="px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] border border-slate-300 dark:border-white/[0.1] text-xs font-bold text-slate-800 dark:text-white transition flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add</span>
@@ -344,7 +344,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Submit */}
-        <div className="pt-4 border-t border-white/[0.08] flex items-center justify-end">
+        <div className="pt-4 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-end">
           <button
             type="submit"
             disabled={saving}

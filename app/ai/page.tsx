@@ -131,22 +131,22 @@ export default function AIPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4 sm:pt-8 flex flex-col h-[calc(100vh-140px)]">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4 sm:pt-8 flex flex-col h-[calc(100vh-160px)]">
       
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] shrink-0">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08] shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet p-[1.5px] shadow-[0_0_20px_rgba(0,240,255,0.4)]">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet p-[1.5px] shadow-md">
             <div className="w-full h-full bg-background rounded-[14px] flex items-center justify-center">
               <Bot className="w-5 h-5 text-cyber-cyan" />
             </div>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-black text-lg text-white tracking-wider">NEXORA S-NODE AI</h1>
+              <h1 className="font-black text-lg text-slate-900 dark:text-white tracking-wider">NEXORA S-NODE AI</h1>
               <span className="w-2 h-2 rounded-full bg-cyber-emerald shadow-[0_0_8px_#10B981] animate-pulse"></span>
             </div>
-            <p className="text-[11px] text-white/40 font-bold uppercase tracking-wider">
+            <p className="text-[11px] text-slate-500 dark:text-white/40 font-bold uppercase tracking-wider">
               QUANTUM REASONING & CAREER ADVISOR
             </p>
           </div>
@@ -154,7 +154,7 @@ export default function AIPage() {
 
         <button
           onClick={handleClearChat}
-          className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-white/50 hover:text-white flex items-center justify-center transition"
+          className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-slate-500 dark:text-white/50 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition"
           title="Reset Conversation"
         >
           <Trash2 className="w-4 h-4" />
@@ -172,15 +172,15 @@ export default function AIPage() {
               className={`flex items-start gap-3 ${isAi ? 'justify-start' : 'justify-end'}`}
             >
               {isAi && (
-                <div className="w-8 h-8 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center shrink-0 mt-1 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
+                <div className="w-8 h-8 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center shrink-0 mt-1 shadow-md">
                   <Sparkles className="w-4 h-4" />
                 </div>
               )}
 
               <div className={`relative max-w-[85%] sm:max-w-[75%] rounded-3xl p-5 ${
                 isAi
-                  ? 'glass-panel border border-white/[0.1] text-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.4)]'
-                  : 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background font-bold shadow-lg shadow-cyber-cyan/20'
+                  ? 'glass-panel text-slate-800 dark:text-white/90 shadow-lg'
+                  : 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background font-bold shadow-md'
               }`}>
                 {/* Markdown text rendering */}
                 <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
@@ -188,7 +188,7 @@ export default function AIPage() {
                 </div>
 
                 <div className={`flex items-center justify-between mt-2 pt-2 border-t text-[10px] ${
-                  isAi ? 'border-white/[0.06] text-white/30' : 'border-black/10 text-black/60'
+                  isAi ? 'border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-white/30' : 'border-black/10 text-black/60'
                 }`}>
                   <span>{msg.timestamp}</span>
                   {isAi && (
@@ -213,7 +213,7 @@ export default function AIPage() {
               </div>
 
               {!isAi && (
-                <div className="w-8 h-8 rounded-xl bg-white/[0.08] border border-white/[0.12] text-white/80 flex items-center justify-center shrink-0 mt-1">
+                <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-white/[0.08] border border-slate-300 dark:border-white/[0.12] text-slate-700 dark:text-white/80 flex items-center justify-center shrink-0 mt-1">
                   <User className="w-4 h-4" />
                 </div>
               )}
@@ -226,11 +226,11 @@ export default function AIPage() {
             <div className="w-8 h-8 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center shrink-0">
               <Sparkles className="w-4 h-4 animate-spin-slow" />
             </div>
-            <div className="glass-panel px-4 py-3 rounded-2xl border border-white/[0.1] flex items-center gap-2">
+            <div className="glass-panel px-4 py-3 rounded-2xl flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-bounce"></span>
               <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-bounce [animation-delay:0.2s]"></span>
               <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-bounce [animation-delay:0.4s]"></span>
-              <span className="text-[11px] font-bold text-white/40 ml-1">S-Node Reasoning...</span>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 ml-1">S-Node Reasoning...</span>
             </div>
           </div>
         )}
@@ -247,7 +247,7 @@ export default function AIPage() {
             <button
               key={i}
               onClick={() => handleSend(sug)}
-              className="px-3.5 py-1.5 rounded-full bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] hover:border-cyber-cyan/40 text-[11px] font-bold text-white/70 hover:text-white transition shrink-0 whitespace-nowrap"
+              className="px-3.5 py-1.5 rounded-full bg-white dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.08] hover:border-cyber-cyan/40 text-[11px] font-bold text-slate-700 dark:text-white/70 hover:text-slate-900 dark:hover:text-white transition shrink-0 whitespace-nowrap shadow-sm"
             >
               {sug}
             </button>
@@ -268,14 +268,14 @@ export default function AIPage() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Ask S-Node AI about MPC, BiPC, lateral entry, or college admissions..."
-              className="w-full bg-surface-card border border-white/[0.12] rounded-2xl pl-5 pr-12 py-3.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-inner"
+              className="w-full bg-white dark:bg-surface-card border border-slate-200 dark:border-white/[0.12] rounded-2xl pl-5 pr-12 py-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-inner"
             />
           </div>
 
           <button
             type="submit"
             disabled={!inputText.trim() || isTyping}
-            className="w-12 h-12 rounded-2xl cyber-button-primary flex items-center justify-center shrink-0 disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-cyber-cyan/20 transition-transform active:scale-95"
+            className="w-12 h-12 rounded-2xl cyber-button-primary flex items-center justify-center shrink-0 disabled:opacity-30 disabled:cursor-not-allowed shadow-md transition-transform active:scale-95"
           >
             {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>

@@ -12,17 +12,19 @@ import {
   Compass, 
   LogOut, 
   ShieldCheck,
-  Menu,
-  X
+  Sun,
+  Moon,
+  Laptop
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useTheme } from '@/components/ThemeProvider';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { resolvedTheme, toggleTheme, theme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [activeSector, setActiveSector] = useState<string>('ENGINEERING');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -30,7 +32,7 @@ export default function Navbar() {
       if (user) {
         supabase
           .from('profiles')
-          .select('sector, stream, full_name')
+          .select('sector')
           .eq('id', user.id)
           .single()
           .then(({ data }) => {
@@ -55,7 +57,7 @@ export default function Navbar() {
     router.push('/auth');
   };
 
-  // Do not show full navbar on auth page
+  // Do not show taskbar on auth page
   if (pathname === '/auth') return null;
 
   const navItems = [
@@ -68,91 +70,62 @@ export default function Navbar() {
 
   return (
     <>
-      {/* DESKTOP STICKY NAVBAR */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-2xl bg-surface/80 border-b border-white/[0.08]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      {/* MINIMAL TOP HEADER BAR */}
+      <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-background/70 border-b border-black/5 dark:border-white/[0.08] transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           
           {/* Brand Logo */}
-          <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet p-[1.5px] group-hover:scale-105 transition-transform">
+          <Link href="/dashboard" className="flex items-center gap-2.5 group">
+            <div className="relative w-8 h-8 rounded-xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet p-[1.5px] group-hover:scale-105 transition-transform shadow-md">
               <div className="w-full h-full bg-background rounded-[10px] flex items-center justify-center">
-                <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-cyber-pink text-lg tracking-wider">
+                <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-cyber-pink text-sm tracking-wider">
                   N
                 </span>
               </div>
             </div>
             <div>
-              <span className="font-black text-xl tracking-widest text-white flex items-center gap-1.5">
+              <span className="font-black text-base tracking-widest text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
                 NEXORA
                 <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-pulse"></span>
               </span>
-              <span className="text-[10px] tracking-widest font-bold text-white/40 block -mt-1 uppercase">
-                STUDENT NEXUS
+              <span className="text-[9px] tracking-widest font-bold text-slate-500 dark:text-white/40 block uppercase">
+                STUDENT HUB
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-1.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              
-              if (item.isAi) {
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`relative px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-black tracking-wider transition-all duration-300 ${
-                      isActive 
-                        ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background shadow-[0_0_20px_rgba(0,240,255,0.4)] scale-105' 
-                        : 'text-cyber-cyan bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 animate-spin-slow" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              }
-
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`relative px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold tracking-wider transition-all ${
-                    isActive
-                      ? 'text-white bg-white/[0.08] shadow-inner'
-                      : 'text-white/60 hover:text-white hover:bg-white/[0.04]'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-cyber-cyan' : 'text-white/40'}`} />
-                  <span>{item.name}</span>
-                  {isActive && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-cyber-cyan rounded-full shadow-[0_0_8px_#00F0FF]"></span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right Action Controls */}
-          <div className="flex items-center gap-3">
-            {/* Sector Indicator / Switcher Link */}
+          {/* Right Controls: Sector, Theme Switcher & Logout */}
+          <div className="flex items-center gap-2.5">
+            {/* Sector Indicator */}
             <Link
               href="/sectors"
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-cyber-cyan/40 hover:bg-white/[0.08] transition text-xs font-bold text-white/80"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:border-cyber-cyan/40 transition text-xs font-bold text-slate-700 dark:text-white/80"
               title="Switch Academic Sector"
             >
               <Compass className="w-3.5 h-3.5 text-cyber-cyan" />
-              <span className="uppercase tracking-wider text-[11px] font-black text-cyber-cyan">
+              <span className="uppercase tracking-wider text-[10px] font-black text-cyber-cyan">
                 {activeSector}
               </span>
             </Link>
 
+            {/* Dynamic Light/Dark Theme Switcher Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:border-cyber-cyan/40 text-slate-700 dark:text-white/80 flex items-center justify-center transition shadow-sm"
+              title={`Switch to ${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {resolvedTheme === 'dark' ? (
+                <Sun className="w-4 h-4 text-cyber-amber animate-spin-slow" />
+              ) : (
+                <Moon className="w-4 h-4 text-cyber-violet" />
+              )}
+            </button>
+
+            {/* User State */}
             {user ? (
               <button
                 onClick={handleLogout}
-                className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-red-500/20 hover:border-red-500/40 text-white/60 hover:text-red-400 flex items-center justify-center transition"
+                className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:bg-red-500/10 hover:border-red-500/30 text-slate-500 dark:text-white/60 hover:text-red-500 flex items-center justify-center transition"
                 title="Sign Out"
               >
                 <LogOut className="w-4 h-4" />
@@ -160,50 +133,21 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth"
-                className="cyber-button-primary px-4 py-1.5 rounded-xl text-xs flex items-center gap-1.5"
+                className="cyber-button-primary px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5"
               >
-                <ShieldCheck className="w-4 h-4" />
+                <ShieldCheck className="w-3.5 h-3.5" />
                 <span>SIGN IN</span>
               </Link>
             )}
-
-            {/* Mobile Menu Toggle Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/80 flex items-center justify-center"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
 
         </div>
-
-        {/* Mobile Dropdown Menu (For Secondary Links) */}
-        {mobileMenuOpen && (
-          <div className="md:hidden glass-panel border-t border-white/[0.08] px-4 py-4 space-y-2">
-            <Link
-              href="/sectors"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs font-bold"
-            >
-              <span className="text-white/60">Current Career Sector</span>
-              <span className="text-cyber-cyan font-black">{activeSector}</span>
-            </Link>
-            <Link
-              href="/sectors/engineering"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] text-xs font-bold text-white/80 hover:text-white"
-            >
-              <Compass className="w-4 h-4 text-cyber-violet" />
-              <span>Engineering Stream Tree (MPC / BiPC / Polytechnic)</span>
-            </Link>
-          </div>
-        )}
       </header>
 
-      {/* MOBILE FLOATING BOTTOM DOCK */}
-      <div className="md:hidden fixed bottom-4 left-4 right-4 z-50">
-        <div className="glass-panel rounded-3xl p-1.5 px-3 flex items-center justify-around border border-white/[0.12] shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+      {/* ULTRA-CURVED FLOATING LIQUID GLASS TASKBAR DOCK (BOTTOM) */}
+      <div className="fixed bottom-5 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+        <nav className="liquid-glass-dock pointer-events-auto w-full max-w-lg px-4 py-2 flex items-center justify-around">
+          
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -213,11 +157,15 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`-mt-7 w-13 h-13 p-3 rounded-full bg-gradient-to-tr from-cyber-cyan to-cyber-violet flex items-center justify-center shadow-[0_0_25px_rgba(0,240,255,0.6)] border-2 border-background transition-transform active:scale-95 ${
-                    isActive ? 'scale-110' : ''
+                  className={`relative -mt-8 w-14 h-14 rounded-full bg-gradient-to-tr from-cyber-cyan via-cyber-blue to-cyber-violet p-[2px] shadow-[0_10px_25px_rgba(0,240,255,0.5)] transition-transform duration-300 hover:scale-110 active:scale-95 group ${
+                    isActive ? 'scale-110 ring-4 ring-cyber-cyan/30' : ''
                   }`}
                 >
-                  <Icon className="w-6 h-6 text-background animate-spin-slow" />
+                  <div className="w-full h-full bg-background rounded-full flex flex-col items-center justify-center">
+                    <Icon className="w-6 h-6 text-cyber-cyan animate-spin-slow group-hover:scale-110 transition-transform" />
+                  </div>
+                  {/* Glowing halo pulse */}
+                  <span className="absolute inset-0 rounded-full bg-cyber-cyan/20 animate-ping pointer-events-none"></span>
                 </Link>
               );
             }
@@ -226,19 +174,24 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all relative ${
-                  isActive ? 'text-cyber-cyan' : 'text-white/40 hover:text-white/70'
+                className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition-all duration-200 ${
+                  isActive
+                    ? 'text-cyber-cyan font-black scale-105'
+                    : 'text-slate-500 dark:text-white/40 hover:text-slate-900 dark:hover:text-white/80 hover:scale-105'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
-                <span className="text-[9px] font-black tracking-wider mt-0.5">{item.name}</span>
+                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'stroke-[2.5px]' : ''}`} />
+                <span className="text-[10px] font-bold tracking-wider mt-1">{item.name}</span>
+
+                {/* Liquid Droplet Indicator */}
                 {isActive && (
-                  <span className="w-1 h-1 rounded-full bg-cyber-cyan shadow-[0_0_6px_#00F0FF] mt-0.5"></span>
+                  <span className="liquid-drop -bottom-1 left-1/2 -translate-x-1/2"></span>
                 )}
               </Link>
             );
           })}
-        </div>
+
+        </nav>
       </div>
     </>
   );
