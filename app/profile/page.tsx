@@ -143,7 +143,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-8">
       
       {/* PROFESSIONAL BANNER & HEADER */}
       <div className="glass-panel rounded-3xl overflow-hidden relative shadow-2xl">

@@ -28,7 +28,7 @@ export default function Navbar() {
   const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
-    const guestMode = localStorage.getItem('nexoraGuestMode') === 'true';
+    const guestMode = typeof window !== 'undefined' && localStorage.getItem('nexoraGuestMode') === 'true';
     setIsGuest(guestMode);
 
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -49,7 +49,7 @@ export default function Navbar() {
       setUser(session?.user || null);
     });
 
-    const stored = localStorage.getItem('activeSector');
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('activeSector') : null;
     if (stored) setActiveSector(stored);
 
     return () => subscription.unsubscribe();
@@ -57,13 +57,20 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem('activeSector');
-    localStorage.removeItem('nexoraGuestMode');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('activeSector');
+      localStorage.removeItem('nexoraGuestMode');
+    }
     router.push('/auth');
   };
 
-  // Do not show taskbar on auth page or if user is not authenticated (unless guest mode)
-  if (pathname === '/auth' || (!user && !isGuest)) return null;
+  // ONLY display taskbar and student header on the student portal pages:
+  // /dashboard, /colleges, /ai, /vault, /profile
+  // Hidden completely on Landing (/), Auth (/auth), Sector grid (/sectors), and Decision trees (/sectors/*)
+  const dashboardRoutes = ['/dashboard', '/colleges', '/ai', '/vault', '/profile'];
+  const showNav = dashboardRoutes.includes(pathname);
+
+  if (!showNav) return null;
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -127,7 +134,7 @@ export default function Navbar() {
             </button>
 
             {/* User State */}
-            {user ? (
+            {user || isGuest ? (
               <button
                 onClick={handleLogout}
                 className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:bg-red-500/10 hover:border-red-500/30 text-slate-500 dark:text-white/60 hover:text-red-500 flex items-center justify-center transition"

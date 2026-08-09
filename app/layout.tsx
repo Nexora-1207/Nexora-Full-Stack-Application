@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${outfit.variable} ${inter.variable} bg-background text-foreground min-h-screen relative flex flex-col font-sans selection:bg-cyber-cyan selection:text-background pb-28`}>
+      <body className={`${outfit.variable} ${inter.variable} bg-background text-foreground min-h-screen relative flex flex-col font-sans selection:bg-cyber-cyan selection:text-background`}>
         <ThemeProvider>
           {/* Background Ambient Mesh Glows */}
           <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
