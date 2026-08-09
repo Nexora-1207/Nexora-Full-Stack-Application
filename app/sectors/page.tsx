@@ -112,10 +112,10 @@ export default function SectorsPage() {
           <Compass className="w-4 h-4" />
           <span>ONBOARDING CLEARANCE MATRIX</span>
         </div>
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
           SELECT CAREER DOMAIN
         </h1>
-        <p className="text-xs sm:text-sm text-white/50 leading-relaxed font-medium">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-white/50 leading-relaxed font-medium">
           Choose your active academic sector. Selecting Engineering opens our deep branch mapper (MPC, BiPC, Polytechnic & ITI).
         </p>
       </div>
@@ -134,7 +134,7 @@ export default function SectorsPage() {
               className={`text-left rounded-3xl p-6 border transition-all duration-300 relative group overflow-hidden ${
                 isSelected
                   ? 'bg-surface border-cyber-cyan shadow-[0_0_40px_rgba(0,240,255,0.4)] scale-105'
-                  : 'glass-card border-white/[0.08] hover:border-white/[0.2] hover:bg-surface-hover hover:-translate-y-1'
+                  : 'glass-card border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.2] hover:bg-surface-hover hover:-translate-y-1'
               }`}
             >
               {/* Sector Header */}
@@ -149,25 +149,25 @@ export default function SectorsPage() {
                 >
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-white/50 px-2.5 py-1 rounded-lg bg-white/[0.04]">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-white/50 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.04]">
                   {sector.category}
                 </span>
               </div>
 
               {/* Title & Desc */}
-              <h3 className="font-black text-lg text-white group-hover:text-cyber-cyan transition">
+              <h3 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-cyber-cyan transition">
                 {sector.name}
               </h3>
-              <p className="text-xs text-white/50 mt-1.5 line-clamp-2 leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-white/50 mt-1.5 line-clamp-2 leading-relaxed">
                 {sector.description}
               </p>
 
               {/* Footer action */}
-              <div className="mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between">
+              <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
                 <span className="text-[11px] font-bold text-cyber-cyan">
                   {sector.stats}
                 </span>
-                <div className="w-7 h-7 rounded-xl bg-white/[0.04] group-hover:bg-cyber-cyan group-hover:text-background flex items-center justify-center text-white/60 transition">
+                <div className="w-7 h-7 rounded-xl bg-slate-100 dark:bg-white/[0.04] group-hover:bg-cyber-cyan group-hover:text-background flex items-center justify-center text-slate-500 dark:text-white/60 transition">
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </div>

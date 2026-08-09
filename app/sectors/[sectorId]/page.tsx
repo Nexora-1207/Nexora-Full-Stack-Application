@@ -166,14 +166,14 @@ export default function DynamicOnboardingPage({ params }: OnboardingParams) {
         <button
           onClick={handleGoBack}
           disabled={syncing}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-xs font-bold text-white transition"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-xs font-bold text-slate-700 dark:text-white transition"
         >
           <ChevronLeft className="w-4 h-4" style={{ color: primaryColor }} />
           <span>{showAwareness ? 'Back to Selection' : (history.length > 0 ? 'Previous Level' : 'Exit to Sectors')}</span>
         </button>
 
         {/* Progress Bar */}
-        <div className="flex-1 max-w-xs h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+        <div className="flex-1 max-w-xs h-1.5 rounded-full bg-slate-200 dark:bg-white/[0.06] overflow-hidden">
           <div 
             className="h-full bg-gradient-to-r transition-all duration-500"
             style={{ 
@@ -192,7 +192,7 @@ export default function DynamicOnboardingPage({ params }: OnboardingParams) {
       {!showAwareness ? (
         /* DECISION TREE QUESTIONNAIRE */
         <div 
-          className="glass-panel rounded-3xl border border-white/[0.12] p-6 sm:p-10 relative overflow-hidden transition-all duration-300"
+          className="glass-panel rounded-3xl border border-slate-200 dark:border-white/[0.12] p-6 sm:p-10 relative overflow-hidden transition-all duration-300"
           style={{ boxShadow: `0 0 50px ${colorPalette.primary}10` }}
         >
           {/* Ambient Glow */}
@@ -213,7 +213,7 @@ export default function DynamicOnboardingPage({ params }: OnboardingParams) {
             >
               {node.subtitle}
             </span>
-            <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
               {node.question}
             </h2>
           </div>
@@ -225,25 +225,25 @@ export default function DynamicOnboardingPage({ params }: OnboardingParams) {
                 key={option.id}
                 onClick={() => handleSelectOption(option.next, option.id, option.label)}
                 disabled={syncing}
-                className="text-left glass-card glass-card-hover rounded-2xl p-5 border border-white/[0.08] hover:border-white/[0.18] group flex flex-col justify-between transition-all duration-300 min-h-[140px]"
+                className="text-left glass-card glass-card-hover rounded-2xl p-5 border border-slate-200 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.18] group flex flex-col justify-between transition-all duration-300 min-h-[140px]"
               >
                 <div>
                   <h3 
-                    className="font-black text-base text-white transition-colors duration-200"
+                    className="font-black text-base text-slate-900 dark:text-white transition-colors duration-200"
                     style={{ '--hover-color': colorPalette.primary } as any}
                   >
                     <span className="group-hover:text-[var(--hover-color)] transition-colors">
                       {option.label}
                     </span>
                   </h3>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-white/40 block mt-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-white/40 block mt-1">
                     {option.sub}
                   </span>
-                  <p className="text-xs text-white/50 mt-3 font-normal leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-white/50 mt-3 font-normal leading-relaxed">
                     {option.brief}
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-[11px] font-bold text-white/40 group-hover:text-[var(--hover-color)] transition-colors">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.04] flex items-center justify-between text-[11px] font-bold text-slate-400 dark:text-white/40 group-hover:text-[var(--hover-color)] transition-colors">
                   <span>Advance Path</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -254,7 +254,7 @@ export default function DynamicOnboardingPage({ params }: OnboardingParams) {
       ) : (
         /* AWARENESS & MARKET INSIGHT SCREEN */
         <div 
-          className="glass-panel rounded-3xl border border-white/[0.12] p-6 sm:p-10 relative overflow-hidden transition-all duration-300 space-y-8"
+          className="glass-panel rounded-3xl border border-slate-200 dark:border-white/[0.12] p-6 sm:p-10 relative overflow-hidden transition-all duration-300 space-y-8"
           style={{ boxShadow: `0 0 50px ${colorPalette.primary}15` }}
         >
           {/* Ambient Glow */}
@@ -273,48 +273,48 @@ export default function DynamicOnboardingPage({ params }: OnboardingParams) {
             <span className="text-[11px] font-black tracking-widest text-cyber-cyan uppercase">
               MISSION STATUS: Pathway Resolved
             </span>
-            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
               {sectorData.name} Awareness Brief
             </h2>
-            <p className="text-sm text-white/50 max-w-lg mx-auto">
-              Selected Specialization: <span className="font-black text-white uppercase">{selectedSubPath || selectedStream}</span>
+            <p className="text-sm text-slate-500 dark:text-white/50 max-w-lg mx-auto">
+              Selected Specialization: <span className="font-black text-slate-900 dark:text-white uppercase">{selectedSubPath || selectedStream}</span>
             </p>
           </div>
 
-          <hr className="border-white/[0.08]" />
+          <hr className="border-slate-100 dark:border-white/[0.08]" />
 
           {/* Awareness Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Pay Scale Card */}
-            <div className="glass-card rounded-2xl p-5 border border-white/[0.06] flex items-center gap-4">
+            <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center justify-center shrink-0">
                 <DollarSign className="w-6 h-6 text-green-400" />
               </div>
               <div>
-                <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">STARTING PACKAGE</h4>
-                <p className="text-base font-black text-white mt-0.5">{awareness.salaryRange}</p>
+                <h4 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest">STARTING PACKAGE</h4>
+                <p className="text-base font-black text-slate-900 dark:text-white mt-0.5">{awareness.salaryRange}</p>
               </div>
             </div>
 
             {/* Demand Scale Card */}
-            <div className="glass-card rounded-2xl p-5 border border-white/[0.06] flex items-center gap-4">
+            <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center shrink-0">
                 <Flame className="w-6 h-6 text-red-400 animate-pulse" />
               </div>
               <div>
-                <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">MARKET DEMAND</h4>
+                <h4 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest">MARKET DEMAND</h4>
                 <p className="text-base font-black text-red-400 mt-0.5">{awareness.demand}</p>
               </div>
             </div>
 
             {/* Roles Card */}
-            <div className="glass-card rounded-2xl p-5 border border-white/[0.06] flex items-center gap-4">
+            <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-white/[0.06] flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center shrink-0">
                 <Briefcase className="w-6 h-6 text-cyber-cyan" />
               </div>
               <div>
-                <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">PLACEMENT ROLES</h4>
-                <p className="text-[11px] font-bold text-white mt-0.5 line-clamp-2 leading-tight">
+                <h4 className="text-[10px] font-black text-slate-400 dark:text-white/40 uppercase tracking-widest">PLACEMENT ROLES</h4>
+                <p className="text-[11px] font-bold text-slate-900 dark:text-white mt-0.5 line-clamp-2 leading-tight">
                   {awareness.roles.join(', ')}
                 </p>
               </div>
@@ -322,20 +322,20 @@ export default function DynamicOnboardingPage({ params }: OnboardingParams) {
           </div>
 
           {/* Description Paragraphs */}
-          <div className="space-y-4 text-sm text-white/70 leading-relaxed font-normal bg-white/[0.02] border border-white/[0.05] p-6 rounded-2xl">
+          <div className="space-y-4 text-sm text-slate-600 dark:text-white/70 leading-relaxed font-normal bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.05] p-6 rounded-2xl">
             <div className="flex items-start gap-2.5">
               <Info className="w-5 h-5 text-cyber-cyan shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-xs font-black text-white uppercase tracking-widest mb-1">DOMAIN DIRECTIVE</h4>
-                <p className="text-xs text-white/60">{awareness.description}</p>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest mb-1">DOMAIN DIRECTIVE</h4>
+                <p className="text-xs text-slate-500 dark:text-white/60">{awareness.description}</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-2.5 pt-2 border-t border-white/[0.04]">
+            <div className="flex items-start gap-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.04]">
               <TrendingUp className="w-5 h-5 text-cyber-magenta shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-xs font-black text-white uppercase tracking-widest mb-1">TECH & MARKET OUTLOOK</h4>
-                <p className="text-xs text-white/60">{awareness.marketInsight}</p>
+                <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest mb-1">TECH & MARKET OUTLOOK</h4>
+                <p className="text-xs text-slate-500 dark:text-white/60">{awareness.marketInsight}</p>
               </div>
             </div>
           </div>
