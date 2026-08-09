@@ -5,34 +5,59 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import NexoraIntro from '@/components/NexoraIntro';
 
+const SESSION_KEY = 'nexoraIntroPlayed';
+
 export default function RootPage() {
   const router = useRouter();
-  const [introComplete, setIntroComplete] = useState(false);
   const [destination, setDestination] = useState<string | null>(null);
 
-  // Determine where to route — but wait for intro first
+  // Check auth destination in the background immediately
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setDestination(session ? '/dashboard' : '/auth');
     });
   }, []);
 
-  // When the intro calls onComplete, navigate
-  const handleIntroComplete = () => {
-    setIntroComplete(true);
+  // Decide whether to skip intro or show it
+  const introAlreadyPlayed =
+    typeof window !== 'undefined' &&
+    sessionStorage.getItem(SESSION_KEY) === 'true';
+
+  const navigate = (dest: string) => {
+    router.replace(dest);
+  };
+
+  // If intro was already played this browser session, skip straight to the destination
+  if (introAlreadyPlayed) {
     if (destination) {
-      router.replace(destination);
+      navigate(destination);
     } else {
-      // Fallback — keep checking until destination is resolved
+      // Auth check still in flight — wait for it
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        navigate(session ? '/dashboard' : '/auth');
+      });
+    }
+    // Return null while redirecting
+    return null;
+  }
+
+  // First visit this session — show the intro
+  const handleIntroComplete = () => {
+    // Mark intro as played for the remainder of this session (tab open)
+    sessionStorage.setItem(SESSION_KEY, 'true');
+
+    if (destination) {
+      navigate(destination);
+    } else {
+      // Poll until session check resolves
       const poll = setInterval(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
           clearInterval(poll);
-          router.replace(session ? '/dashboard' : '/auth');
+          navigate(session ? '/dashboard' : '/auth');
         });
       }, 200);
     }
   };
 
-  // Always render intro on root visit
   return <NexoraIntro onComplete={handleIntroComplete} />;
 }
