@@ -31,6 +31,24 @@ import ExplainerModal from '@/components/Modals/ExplainerModal';
 import NotesModal from '@/components/Modals/NotesModal';
 import PlannerModal from '@/components/Modals/PlannerModal';
 
+// Sector-specific high-resolution ambient thematic background images
+const SECTOR_BACKGROUND_IMAGES: Record<string, string> = {
+  ENGINEERING: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=2000&auto=format&fit=crop",
+  "MEDICAL SUPPORT": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2000&auto=format&fit=crop",
+  COMPUTERS: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000&auto=format&fit=crop",
+  "SKILLED TRADES": "https://images.unsplash.com/photo-1581092335397-9583fe92d232?q=80&w=2000&auto=format&fit=crop",
+  "MERCHANT NAVY": "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2000&auto=format&fit=crop",
+  "FASHION & DESIGN": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2000&auto=format&fit=crop",
+  BUSINESS: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2000&auto=format&fit=crop",
+  MEDIA: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=2000&auto=format&fit=crop",
+  HOSPITALITY: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop",
+  AGRICULTURE: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=2000&auto=format&fit=crop",
+  AVIATION: "https://images.unsplash.com/photo-1519074069444-1ba4ea16e632?q=80&w=2000&auto=format&fit=crop",
+  SPORTS: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2000&auto=format&fit=crop",
+  LAW: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop",
+  VOCATIONAL: "https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?q=80&w=2000&auto=format&fit=crop",
+};
+
 // Helper to get specialized schedule items for each sector
 const getScheduleForSector = (sectorId: string) => {
   const normalized = (sectorId || 'ENGINEERING').toUpperCase();
@@ -61,91 +79,95 @@ const getScheduleForSector = (sectorId: string) => {
       ];
     case 'MERCHANT NAVY':
       return [
-        { id: '1', time: '08:00 AM', title: 'Nautical Science & Sea Bearings', location: 'Simulator Room' },
-        { id: '2', time: '10:30 AM', title: 'Marine Engine Valve Calibrations', location: 'Workshop Block' },
-        { id: '3', time: '01:30 PM', title: 'Maritime Safety & Fire Fighting', location: 'Drill Quad' },
+        { id: '1', time: '07:30 AM', title: 'Physical Drills & Shipboard Safety', location: 'Drill Deck' },
+        { id: '10:00 AM', title: 'Celestial Navigation & Radar', location: 'Bridge Sim 1' },
+        { id: '02:30 PM', title: 'Marine Diesel Maintenance', location: 'Engine Lab' },
       ];
     case 'FASHION & DESIGN':
       return [
-        { id: '1', time: '09:00 AM', title: 'Pattern Drafting & Draping Lab', location: 'Studio Block' },
-        { id: '2', time: '11:30 AM', title: 'Textile Fiber Quality Analysis', location: 'Materials Lab' },
-        { id: '3', time: '02:30 PM', title: 'Illustrator & Pattern CAD Nodes', location: 'Computer Lab 4' },
+        { id: '1', time: '09:00 AM', title: 'Fashion Illustration & Draping', location: 'Studio 4' },
+        { id: '2', time: '11:30 AM', title: 'Textile Fiber Testing Lab', location: 'Weaving Lab' },
+        { id: '3', time: '02:30 PM', title: 'Digital Pattern Drafting (CAD)', location: 'Design Lab 2' },
       ];
     case 'BUSINESS':
       return [
-        { id: '1', time: '08:30 AM', title: 'Financial Ledger Accounting', location: 'Classroom 301' },
-        { id: '2', time: '11:00 AM', title: 'FinTech Database Queries (SQL)', location: 'Data Lab B' },
-        { id: '3', time: '02:00 PM', title: 'Venture Capital & Pitch Deck Lab', location: 'Boardroom B' },
+        { id: '1', time: '08:30 AM', title: 'Financial Accounting & Ledgers', location: 'Hall 201' },
+        { id: '2', time: '11:00 AM', title: 'Macroeconomics & Global Markets', location: 'Hall 105' },
+        { id: '3', time: '02:00 PM', title: 'FinTech Startup Analytics Lab', location: 'Computer Block 4' },
       ];
     case 'MEDIA':
       return [
-        { id: '1', time: '09:00 AM', title: 'Video Editing & Timeline Control', location: 'Edit Bay 2' },
-        { id: '2', time: '11:30 AM', title: '3D VFX Rendering & Compositing', location: 'VFX Lab A' },
-        { id: '3', time: '02:30 PM', title: 'Broadcasting & Scripting Studio', location: 'Studio Block C' },
+        { id: '1', time: '09:00 AM', title: 'Digital Cinematography & Lighting', location: 'Studio Floor A' },
+        { id: '2', time: '11:45 AM', title: 'Non-Linear Video Editing Lab', location: 'VFX Suite 3' },
+        { id: '3', time: '03:00 PM', title: 'Mass Communication Law & Ethics', location: 'Seminar Room 1' },
       ];
     case 'HOSPITALITY':
       return [
-        { id: '1', time: '08:30 AM', title: 'Front Office Operation Systems', location: 'Mock Lobby' },
-        { id: '2', time: '11:00 AM', title: 'Aviation Lounge Safety Checklist', location: 'Mock Cabin 1' },
-        { id: '3', time: '02:00 PM', title: 'International Culinary & Bakery', location: 'Kitchen Block' },
+        { id: '1', time: '08:30 AM', title: 'Food Production & Culinary Arts', location: 'Kitchen Lab A' },
+        { id: '2', time: '11:15 AM', title: 'Front Office Operations Simulator', location: 'PMS Lab' },
+        { id: '3', time: '02:30 PM', title: 'Tourism Geography & Guest Service', location: 'Room 302' },
       ];
     case 'AGRICULTURE':
       return [
-        { id: '1', time: '08:30 AM', title: 'Soil PH Nutrient Calibration', location: 'Agri Lab 102' },
-        { id: '2', time: '11:00 AM', title: 'Drone Surveying & Crop Gridding', location: 'Field Quad' },
-        { id: '3', time: '02:00 PM', title: 'Hydroponics & Crop Breeding', location: 'Greenhouse 2' },
+        { id: '1', time: '08:00 AM', title: 'Soil Fertility & Nutrient Testing', location: 'Agronomy Field' },
+        { id: '2', time: '10:30 AM', title: 'Agri-Drone Telemetry & Spraying', location: 'Hangar Block' },
+        { id: '3', time: '02:00 PM', title: 'Horticulture & Plant Pathology', location: 'Greenhouse 2' },
       ];
-    case 'AUTOMOBILE':
+    case 'AVIATION':
       return [
-        { id: '1', time: '08:30 AM', title: 'EV Battery Cell Thermal Analysis', location: 'EV Lab Room' },
-        { id: '2', time: '11:00 AM', title: 'Vehicle Braking & Stop Calculation', location: 'Chassis Quad' },
-        { id: '3', time: '02:00 PM', title: 'Automotive Servicing & Diagnostics', location: 'Garage Block' },
+        { id: '1', time: '08:30 AM', title: 'Aerodynamics & Flight Mechanics', location: 'Sim Hall A' },
+        { id: '2', time: '11:00 AM', title: 'Aircraft Systems & Avionics Lab', location: 'Hangar Lab' },
+        { id: '3', time: '02:15 PM', title: 'Air Traffic Control Protocols', location: 'ATC Tower Sim' },
       ];
-    case 'CONSTRUCTION':
+    case 'SPORTS':
       return [
-        { id: '1', time: '08:30 AM', title: 'Concrete Mix Design & Slump Test', location: 'Materials Lab' },
-        { id: '2', time: '11:00 AM', title: 'BIM Modeling & AutoCAD Layouts', location: 'Design Lab A' },
-        { id: '3', time: '02:00 PM', title: 'Land Surveying & GPS Levelling', location: 'Field Site 2' },
+        { id: '1', time: '06:30 AM', title: 'Athletic Conditioning & Agility', location: 'Track Field' },
+        { id: '2', time: '10:00 AM', title: 'Kinesiology & Biomechanics', location: 'Sports Science Lab' },
+        { id: '3', time: '02:30 PM', title: 'Sports Nutrition & Injury Rehab', location: 'Fitness Centre' },
       ];
-    case 'BEAUTY & WELLNESS':
+    case 'LAW':
       return [
-        { id: '1', time: '09:00 AM', title: 'Dermal Skincare & pH Treatment', location: 'Aesthetic Room' },
-        { id: '2', time: '11:30 AM', title: 'Holistic Dietetics & Nutrition', location: 'Nutrition Lab' },
-        { id: '3', time: '02:30 PM', title: 'Salon Management & Invoicing', location: 'Mock Salon' },
+        { id: '1', time: '09:00 AM', title: 'Constitutional Law & Jurisprudence', location: 'Moot Court 1' },
+        { id: '2', time: '11:30 AM', title: 'Law of Torts & Consumer Protection', location: 'Hall 301' },
+        { id: '3', time: '02:30 PM', title: 'Legal Drafting & Courtroom Advocacy', location: 'Seminar Hall 2' },
       ];
-    case 'RETAIL & LOGISTICS':
+    case 'VOCATIONAL':
       return [
-        { id: '1', time: '08:30 AM', title: 'Stock Barcoding & POS Invoicing', location: 'Mock Warehouse' },
-        { id: '2', time: '11:00 AM', title: 'SCM Route Finder Optimization', location: 'Systems Lab 2' },
-        { id: '3', time: '02:00 PM', title: 'Inventory Auditing & Ledger Scan', location: 'Office Room A' },
+        { id: '1', time: '08:30 AM', title: 'CNC Machine Operation & CAD/CAM', location: 'Tooling Hub' },
+        { id: '2', time: '11:00 AM', title: 'Solar PV Installation & Wiring', location: 'Renewable Lab' },
+        { id: '3', time: '02:00 PM', title: 'Industrial Automation & PLC Lab', location: 'Robotics Wing' },
       ];
     default:
       return [
-        { id: '1', time: '08:30 AM', title: 'Core Academic Foundation Course', location: 'Hall 102' },
-        { id: '2', time: '11:00 AM', title: 'Domain Lab & Interactive Workshop', location: 'Lab Block 3' },
-        { id: '3', time: '02:15 PM', title: 'Professional Skills Seminar', location: 'Hall 104' },
+        { id: '1', time: '08:30 AM', title: 'Mathematics (Calculus & Vectors)', location: 'Hall 102' },
+        { id: '2', time: '10:45 AM', title: 'Core Stream Technical Lab', location: 'Lab Block 3' },
+        { id: '3', time: '02:15 PM', title: 'Applied Sciences & Field Telemetry', location: 'Hall 104' },
       ];
   }
 };
 
 export default function DashboardPage() {
   const router = useRouter();
-  
-  const [profile, setProfile] = useState<any>({
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'Home' | 'Events'>('Home');
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+
+  // Profile data
+  const [profile, setProfile] = useState({
     fullName: 'Nexora Student',
     sector: 'ENGINEERING',
     stream: 'MPC',
-    sub_path: ''
+    sub_path: 'Intermediate MPC'
   });
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'Home' | 'Events'>('Home');
-  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Daily Schedule items loaded optimistically
+  // Schedule & Tasks
   const [schedule, setSchedule] = useState<any[]>([]);
-
-  // Hover states for active glowing cards
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [tasks, setTasks] = useState([
+    { id: 't1', text: 'Review Calculus formula sheet for weekly assessment', done: true },
+    { id: 't2', text: 'Execute B.Tech lateral entry eligibility check in Colleges hub', done: false },
+    { id: 't3', text: 'Upload 10th Marks Memo & Transfer Certificate to Vault', done: false },
+    { id: 't4', text: 'Practice AI mock technical interview on mechatronics', done: false },
+  ]);
 
   // Modals state
   const [resumeOpen, setResumeOpen] = useState(false);
@@ -154,57 +176,39 @@ export default function DashboardPage() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [plannerOpen, setPlannerOpen] = useState(false);
 
-  // Get active sector configuration
-  const sectorKey = (profile.sector || 'ENGINEERING').toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
-  const sectorConfig = SECTOR_TREES[sectorKey] || SECTOR_TREES['engineering'];
-  const { colorPalette } = sectorConfig;
-  const primaryColor = colorPalette.primary;
-  const secondaryColor = colorPalette.secondary;
+  // Interactive Hover Cards
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
-  // Map sector opportunities to sliding carousel alerts
-  const slides = sectorConfig.dashboard.opportunities.map((opp) => ({
-    id: opp.id,
-    tag: opp.tag,
-    title: opp.title,
-    date: opp.date,
-    desc: opp.desc,
-    badge: opp.tag,
-    badgeColor: opp.badgeColor
-  }));
-
-  // Fetch user profile in background & sync cache
+  // Load profile & initial telemetry
   useEffect(() => {
-    // 1. Optimistic Local Cache Load on Mount
-    const cached = localStorage.getItem('userProfile');
-    const storedSector = localStorage.getItem('activeSector');
-    const storedStream = localStorage.getItem('activeStream');
-    const storedSubPath = localStorage.getItem('activeSubPath');
+    // 1. Check local cache first for instant UI response
+    const cachedProfile = localStorage.getItem('userProfile');
+    const cachedSector = localStorage.getItem('activeSector');
+    const cachedStream = localStorage.getItem('activeStream');
+    const cachedSubPath = localStorage.getItem('activeSubPath');
 
-    if (cached) {
+    if (cachedProfile) {
       try {
-        const parsed = JSON.parse(cached);
+        const parsed = JSON.parse(cachedProfile);
         setProfile(parsed);
         setSchedule(getScheduleForSector(parsed.sector));
-        setLoading(false);
       } catch (e) {}
-    } else if (storedSector || storedStream || storedSubPath) {
-      const activeSec = storedSector || 'ENGINEERING';
+    } else if (cachedSector) {
       setProfile({
         fullName: 'Nexora Student',
-        sector: activeSec,
-        stream: storedStream || 'MPC',
-        sub_path: storedSubPath || ''
+        sector: cachedSector,
+        stream: cachedStream || 'MPC',
+        sub_path: cachedSubPath || ''
       });
-      setSchedule(getScheduleForSector(activeSec));
-      setLoading(false);
+      setSchedule(getScheduleForSector(cachedSector));
     }
 
-    // 2. Background verification check
+    // 2. Hydrate from Supabase session
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         supabase
           .from('profiles')
-          .select('full_name, sector, stream, sub_path')
+          .select('*')
           .eq('id', user.id)
           .single()
           .then(({ data }) => {
@@ -237,26 +241,80 @@ export default function DashboardPage() {
 
   // Auto-play carousel
   useEffect(() => {
-    if (slides.length <= 1) return;
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
+      setActiveSlideIndex((prev) => (prev + 1) % 3);
+    }, 4500);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, []);
 
-  const handleAddSchedule = (item: { time: string; title: string; location: string }) => {
-    setSchedule([...schedule, { id: Math.random().toString(), ...item }]);
+  const toggleTask = (taskId: string) => {
+    setTasks(tasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t));
   };
 
-  const studentFirstName = profile.fullName ? profile.fullName.split(' ')[0] : 'Student';
+  const handleAddScheduleEvent = (newEvent: any) => {
+    setSchedule((prev) => [
+      ...prev,
+      {
+        id: Math.random().toString(),
+        time: newEvent.time || '10:00 AM',
+        title: newEvent.title,
+        location: newEvent.type || 'Main Campus'
+      }
+    ]);
+  };
+
+  // Resolve dynamic sector colors from SECTOR_TREES
+  const sectorKey = Object.keys(SECTOR_TREES).find(
+    (k) => SECTOR_TREES[k].id.toLowerCase() === profile.sector.toLowerCase()
+  ) || 'engineering';
+
+  const sectorConfig = SECTOR_TREES[sectorKey] || SECTOR_TREES['engineering'];
+  const primaryColor = sectorConfig?.colorPalette?.primary || '#00F0FF';
+  const secondaryColor = sectorConfig?.colorPalette?.secondary || '#3B82F6';
+  const glowColor = sectorConfig?.colorPalette?.glowColor || 'rgba(0, 240, 255, 0.4)';
+  const sectorBgImage = SECTOR_BACKGROUND_IMAGES[profile.sector.toUpperCase()] || SECTOR_BACKGROUND_IMAGES.ENGINEERING;
+
+  // Dynamic slides tailored to current sector
+  const slides = sectorConfig?.dashboard?.opportunities || [
+    {
+      id: 's1',
+      title: 'JEE Main Phase 3 Portal Active',
+      date: 'Aug 25, 2026',
+      desc: 'Joint Entrance Examination portal is open for registration. Target elite NIT and IIT engineering blocks.',
+      tag: 'CRITICAL',
+      badgeColor: 'bg-red-500/10 text-red-500 border-red-500/30'
+    },
+    {
+      id: 's2',
+      title: 'National Polytechnic Skill Matrix',
+      date: 'Sep 02, 2026',
+      desc: 'Annual evaluation for 2nd and 3rd year diploma students. Top rankers receive industry sponsorships.',
+      tag: 'DIPLOMA GATE',
+      badgeColor: 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/40'
+    },
+    {
+      id: 's3',
+      title: 'Nexora AI Placement Assessment',
+      date: 'Rolling',
+      desc: 'Benchmark your aptitude, coding, and verbal skills to generate a verified industry credential token.',
+      tag: 'PLACEMENT',
+      badgeColor: 'bg-cyber-emerald/15 text-cyber-emerald border-cyber-emerald/40'
+    }
+  ];
+
+  const studentFirstName = profile.fullName ? profile.fullName.split(' ')[0] : 'Nexora';
 
   if (loading) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet animate-spin p-[2px] mb-4">
-          <div className="w-full h-full bg-background rounded-[14px]"></div>
-        </div>
-        <span className="text-xs font-black tracking-widest text-cyber-cyan animate-pulse uppercase">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
+        <div 
+          className="w-12 h-12 rounded-2xl border-2 border-t-transparent animate-spin"
+          style={{ borderColor: primaryColor, borderTopColor: 'transparent' }}
+        ></div>
+        <span 
+          className="text-xs font-black uppercase tracking-widest"
+          style={{ color: primaryColor }}
+        >
           VERIFYING ACCESS AUTHORIZATION...
         </span>
       </div>
@@ -268,17 +326,27 @@ export default function DashboardPage() {
   const customTool2 = sectorConfig.dashboard.tools[1] || { name: 'Interview Prep', desc: 'Simulate technical engineering and behavioral interview questions with AI.' };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-8 relative">
       
+      {/* SECTOR-SPECIFIC AMBIENT HIGH-TECH BACKGROUND OVERLAY */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.06] dark:opacity-[0.08] transition-all duration-1000">
+        <img 
+          src={sectorBgImage} 
+          alt="" 
+          className="w-full h-full object-cover object-center filter saturate-150 blur-[1.5px] transform scale-105 transition-all duration-1000"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
+      </div>
+
       {/* TOP WELCOME BAR & PILL SWITCHER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               Hi, {studentFirstName} 👋
             </h1>
             <span 
-              className="px-2.5 py-0.5 rounded-full border text-[10px] font-black tracking-wider uppercase"
+              className="px-2.5 py-0.5 rounded-full border text-[10px] font-black tracking-wider uppercase shadow-sm"
               style={{
                 color: primaryColor,
                 borderColor: `${primaryColor}40`,
@@ -293,11 +361,15 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Home / Events Pill Switcher */}
-        <div className="inline-flex p-1 rounded-2xl bg-slate-200/80 dark:bg-white/[0.04] border border-slate-300/80 dark:border-white/[0.08] self-start sm:self-auto shadow-inner">
+        {/* Home / Events Smooth Pill Switcher */}
+        <div className="inline-flex p-1 rounded-2xl bg-slate-200/80 dark:bg-white/[0.04] border border-slate-300/80 dark:border-white/[0.08] self-start sm:self-auto shadow-inner relative">
           <button
             onClick={() => setActiveTab('Home')}
-            className={`px-5 py-2 rounded-xl text-xs font-black tracking-wider transition-all`}
+            className={`px-5 py-2 rounded-xl text-xs font-black tracking-wider transition-all duration-300 ${
+              activeTab === 'Home' 
+                ? 'shadow-md transform scale-105' 
+                : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'
+            }`}
             style={activeTab === 'Home' ? {
               backgroundImage: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
               color: '#0A0E1A',
@@ -308,7 +380,11 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab('Events')}
-            className={`px-5 py-2 rounded-xl text-xs font-black tracking-wider transition-all`}
+            className={`px-5 py-2 rounded-xl text-xs font-black tracking-wider transition-all duration-300 ${
+              activeTab === 'Events' 
+                ? 'shadow-md transform scale-105' 
+                : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'
+            }`}
             style={activeTab === 'Events' ? {
               backgroundImage: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
               color: '#0A0E1A',
@@ -320,9 +396,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* TAB CONTENT */}
+      {/* TAB CONTENT WITH SMOOTH ANIMATION */}
       {activeTab === 'Home' ? (
-        <div className="space-y-8">
+        <div key="home-tab" className="space-y-8 animate-tab-slide relative z-10">
           
           {/* HERO ROW: Left Slideshow + Right Schedule */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -348,140 +424,245 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <Megaphone className="w-4 h-4 animate-bounce" style={{ color: secondaryColor }} />
                       <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: secondaryColor }}>
-                        {slides[currentSlide].tag}
+                        GLOBAL ADMISSION NODE
                       </span>
                     </div>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${slides[currentSlide].badgeColor}`}>
-                      {slides[currentSlide].badge}
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase border ${slides[activeSlideIndex].badgeColor}`}>
+                      {slides[activeSlideIndex].tag}
                     </span>
                   </div>
 
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                    {slides[currentSlide].title}
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+                    {slides[activeSlideIndex].title}
                   </h2>
-                  <span className="inline-block text-xs font-bold text-cyber-amber mt-1">
-                    {slides[currentSlide].date}
-                  </span>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 mt-2 leading-relaxed font-medium">
-                    {slides[currentSlide].desc}
+
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-white/40 mb-3">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Deadline: {slides[activeSlideIndex].date}</span>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium leading-relaxed max-w-xl">
+                    {slides[activeSlideIndex].desc}
                   </p>
                 </div>
-              ) : (
-                <div className="my-auto text-center text-white/30 text-xs font-bold">
-                  No active sector announcements.
-                </div>
-              )}
+              ) : null}
 
-              {/* Bottom Pagination & Action */}
-              <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-200 dark:border-white/[0.06]">
+              {/* Slide indicators & link */}
+              <div className="flex items-center justify-between pt-6 mt-4 border-t border-slate-200 dark:border-white/[0.08]">
                 <div className="flex items-center gap-1.5">
-                  {slides.map((_, i) => (
+                  {slides.map((_, idx) => (
                     <button
-                      key={i}
-                      onClick={() => setCurrentSlide(i)}
-                      className={`h-2 rounded-full transition-all`}
-                      style={{
-                        width: currentSlide === i ? '24px' : '8px',
-                        backgroundColor: currentSlide === i ? primaryColor : 'rgba(255,255,255,0.2)',
-                        boxShadow: currentSlide === i ? `0 0 8px ${primaryColor}` : 'none'
-                      }}
-                    ></button>
+                      key={idx}
+                      onClick={() => setActiveSlideIndex(idx)}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        idx === activeSlideIndex 
+                          ? 'w-6' 
+                          : 'w-1.5 bg-slate-300 dark:bg-white/20'
+                      }`}
+                      style={idx === activeSlideIndex ? { backgroundColor: primaryColor } : undefined}
+                    />
                   ))}
                 </div>
 
                 <Link
                   href="/colleges"
-                  className="text-xs font-bold hover:underline flex items-center gap-1 transition-colors"
+                  className="text-xs font-black tracking-wider flex items-center gap-1 hover:underline"
                   style={{ color: primaryColor }}
                 >
                   <span>Explore Admissions</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
 
-            {/* Right Schedule Displayer Panel */}
+            {/* Right: Daily Schedule Panel */}
             <div 
-              className="lg:col-span-5 glass-panel rounded-3xl p-6 sm:p-7 flex flex-col justify-between min-h-[260px] border border-white/[0.08]"
+              className="lg:col-span-5 glass-panel rounded-3xl p-6 sm:p-7 relative overflow-hidden flex flex-col justify-between border border-white/[0.08]"
               style={{
-                boxShadow: hoveredCard === 'routine' ? `0 0 30px ${primaryColor}15` : 'none',
-                borderColor: hoveredCard === 'routine' ? `${primaryColor}30` : 'rgba(255,255,255,0.08)'
+                boxShadow: hoveredCard === 'sched' ? `0 0 30px ${secondaryColor}15` : 'none',
+                borderColor: hoveredCard === 'sched' ? `${secondaryColor}30` : 'rgba(255,255,255,0.08)'
               }}
-              onMouseEnter={() => setHoveredCard('routine')}
+              onMouseEnter={() => setHoveredCard('sched')}
               onMouseLeave={() => setHoveredCard(null)}
             >
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/[0.08] mb-4">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" style={{ color: primaryColor }} />
-                    <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 dark:text-white">
-                      TODAY&apos;S ROUTINE
-                    </h3>
+                    <div 
+                      className="w-8 h-8 rounded-xl flex items-center justify-center border"
+                      style={{
+                        backgroundColor: `${primaryColor}15`,
+                        borderColor: `${primaryColor}30`,
+                        color: primaryColor
+                      }}
+                    >
+                      <Calendar className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-wider">TODAY'S ROUTINE</h3>
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-white/40 block">
+                        {profile.sector} TIMETABLE
+                      </span>
+                    </div>
                   </div>
+
                   <button
                     onClick={() => setPlannerOpen(true)}
-                    className="text-[10px] font-black hover:underline flex items-center gap-1"
-                    style={{ color: primaryColor }}
+                    className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border hover:bg-white/[0.04] transition"
+                    style={{
+                      borderColor: `${primaryColor}40`,
+                      color: primaryColor
+                    }}
                   >
-                    <span>+ ADD CLASS</span>
+                    + Add Class
                   </button>
                 </div>
 
-                {/* Checklist items */}
-                <div className="space-y-2.5 max-h-[170px] overflow-y-auto pr-1">
-                  {schedule.map((item: any) => (
-                    <div
+                {/* Schedule list */}
+                <div className="space-y-2.5">
+                  {schedule.map((item) => (
+                    <div 
                       key={item.id}
-                      className="p-3 rounded-2xl bg-slate-100/70 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] hover:border-white/[0.15] transition flex items-center justify-between gap-3"
+                      className="p-3 rounded-2xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] hover:border-white/20 transition flex items-center justify-between"
                     >
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{
-                            backgroundColor: primaryColor,
-                            boxShadow: `0 0 6px ${primaryColor}`
-                          }}
-                        ></div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-900 dark:text-white">{item.title}</h4>
-                          <span className="text-[10px] text-slate-500 dark:text-white/40 font-bold">{item.location}</span>
+                      <div className="space-y-0.5">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white block">{item.title}</span>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-white/40">
+                          <span className="font-mono font-medium">{item.time}</span>
+                          <span>•</span>
+                          <span>{item.location}</span>
                         </div>
                       </div>
                       <span 
-                        className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg shrink-0"
-                        style={{
-                          color: primaryColor,
-                          backgroundColor: `${primaryColor}10`
-                        }}
-                      >
-                        {item.time}
-                      </span>
+                        className="w-2 h-2 rounded-full animate-pulse"
+                        style={{ backgroundColor: secondaryColor }}
+                      ></span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-white/40">
-                <span>{schedule.length} checkpoints scheduled</span>
-                <span className="flex items-center gap-1" style={{ color: primaryColor }}>
-                  <CheckCircle2 className="w-3.5 h-3.5" /> All systems nominal
-                </span>
+              {/* Routine footer */}
+              <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-white/50">
+                <span>Semester Routine Status</span>
+                <span className="font-bold" style={{ color: primaryColor }}>3 of 3 Completed</span>
               </div>
             </div>
 
           </div>
 
-          {/* INTERACTIVE TOOLKITS GRID */}
-          <div className="space-y-4">
-            <div>
-              <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: primaryColor }}>INTELLIGENCE SUITE</span>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Interactive Student Toolkits</h2>
+          {/* TELEMETRY METRIC STATS ROW */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {sectorConfig.dashboard.stats.map((stat, i) => (
+              <div 
+                key={i} 
+                className="glass-card rounded-2xl p-4 border border-white/[0.06] flex items-center justify-between hover:border-white/20 transition group"
+              >
+                <div>
+                  <span className="text-[10px] font-black uppercase text-slate-500 dark:text-white/40 tracking-wider block mb-1">
+                    {stat.label}
+                  </span>
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    {stat.value}
+                  </span>
+                </div>
+                <div 
+                  className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform border"
+                  style={{
+                    backgroundColor: `${primaryColor}15`,
+                    borderColor: `${primaryColor}30`,
+                    color: primaryColor
+                  }}
+                >
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DAILY TASK & ROADMAP CHECKLIST */}
+          <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08]">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2.5">
+                <div 
+                  className="w-8 h-8 rounded-xl flex items-center justify-center border"
+                  style={{
+                    backgroundColor: `${secondaryColor}15`,
+                    borderColor: `${secondaryColor}30`,
+                    color: secondaryColor
+                  }}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-black text-base text-slate-900 dark:text-white tracking-wide">
+                    PLACEMENT READINESS CHECKLIST
+                  </h3>
+                  <span className="text-xs text-slate-500 dark:text-white/40">
+                    Complete tasks to boost your academic clearance rate
+                  </span>
+                </div>
+              </div>
+
+              <span 
+                className="px-3 py-1 rounded-full text-xs font-black tracking-wider border shadow-sm"
+                style={{
+                  backgroundColor: `${primaryColor}15`,
+                  borderColor: `${primaryColor}30`,
+                  color: primaryColor
+                }}
+              >
+                {tasks.filter(t => t.done).length} / {tasks.length} Completed
+              </span>
             </div>
 
-            {/* 3-Column Top Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  onClick={() => toggleTask(task.id)}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 ${
+                    task.done
+                      ? 'bg-slate-100/60 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.04] opacity-75'
+                      : 'bg-slate-100 dark:bg-white/[0.04] border-slate-200 dark:border-white/[0.08] hover:border-white/20'
+                  }`}
+                >
+                  <button
+                    className="w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition"
+                    style={task.done ? {
+                      backgroundColor: primaryColor,
+                      borderColor: primaryColor,
+                      color: '#030712'
+                    } : {
+                      borderColor: 'rgba(255,255,255,0.2)'
+                    }}
+                  >
+                    {task.done && <CheckCircle2 className="w-3.5 h-3.5 stroke-[3px]" />}
+                  </button>
+                  <span className={`text-xs font-bold leading-relaxed ${task.done ? 'line-through text-slate-400 dark:text-white/40' : 'text-slate-800 dark:text-white/90'}`}>
+                    {task.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* INTERACTIVE SECTOR AI TOOLKITS */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: primaryColor }}>
+                  {profile.sector} TOOLKITS
+                </span>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Academic & Placement Accelerators
+                </h2>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               
-              {/* Tool 1: Dynamic Custom Tool */}
+              {/* Tool 1: Dynamic Sector Tool 1 */}
               <button
                 onClick={() => setResumeOpen(true)}
                 className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300"
@@ -512,12 +693,12 @@ export default function DashboardPage() {
                   className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold"
                   style={{ color: primaryColor }}
                 >
-                  <span>Launch Tool</span>
+                  <span>Launch Scanner</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </button>
 
-              {/* Tool 2: Dynamic Custom Tool 2 */}
+              {/* Tool 2: Dynamic Sector Tool 2 */}
               <button
                 onClick={() => setInterviewOpen(true)}
                 className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300"
@@ -578,23 +759,23 @@ export default function DashboardPage() {
                   Concept Explainer
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed">
-                  Input complex course terminologies to get analogy-rich dynamic summaries.
+                  Break down complex theorems, circuit logic, and formulas into step-by-step breakdowns.
                 </p>
                 <div 
                   className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold"
                   style={{ color: primaryColor }}
                 >
-                  <span>Solve Terminology</span>
+                  <span>Explain Concept</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </button>
 
             </div>
 
-            {/* Smart Note Pad Full Width Banner */}
+            {/* Smart Lecture Notes Banner */}
             <button
               onClick={() => setNotesOpen(true)}
-              className="w-full text-left glass-card glass-card-hover rounded-3xl p-5 flex items-center justify-between group transition-all duration-300 border border-white/[0.06]"
+              className="w-full text-left glass-panel rounded-3xl p-5 sm:p-6 border border-white/[0.06] hover:border-white/20 transition-all flex items-center justify-between gap-4 group"
               style={{
                 boxShadow: hoveredCard === 'notepad' ? `0 0 25px ${secondaryColor}15` : 'none',
                 borderColor: hoveredCard === 'notepad' ? `${secondaryColor}30` : 'rgba(255,255,255,0.06)'
@@ -667,8 +848,8 @@ export default function DashboardPage() {
 
         </div>
       ) : (
-        /* EVENTS TIMELINE FEED */
-        <div className="space-y-4">
+        /* EVENTS TIMELINE FEED WITH SMOOTH ANIMATION */
+        <div key="events-tab" className="space-y-4 animate-tab-slide relative z-10">
           <div className="mb-2">
             <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: primaryColor }}>LIVE RADAR</span>
             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Campus & Career Event Nodes</h2>
@@ -678,39 +859,62 @@ export default function DashboardPage() {
             {INITIAL_EVENTS.map((evt) => (
               <div
                 key={evt.id}
-                className="glass-card rounded-3xl p-6 hover:border-cyber-cyan/40 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="glass-card rounded-3xl p-6 hover:border-white/30 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="flex items-start gap-4">
                   {/* Date Badge */}
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/[0.1] flex flex-col items-center justify-center shrink-0 text-center">
-                    <span className="text-base font-black leading-none" style={{ color: primaryColor }}>{evt.dateNum}</span>
-                    <span className="text-[9px] font-black uppercase text-slate-500 dark:text-white/50 tracking-wider mt-0.5">{evt.dateMon}</span>
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/[0.1] flex flex-col items-center justify-center shrink-0 text-center shadow-sm">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-white/50 uppercase leading-none">
+                      {evt.dateMon}
+                    </span>
+                    <span 
+                      className="text-lg font-black leading-none mt-1"
+                      style={{ color: primaryColor }}
+                    >
+                      {evt.dateNum}
+                    </span>
                   </div>
-                  
+
+                  {/* Info */}
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/[0.04] text-slate-700 dark:text-white/60">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-base font-black text-slate-900 dark:text-white">{evt.title}</h3>
+                      <span 
+                        className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border"
+                        style={{
+                          backgroundColor: `${secondaryColor}15`,
+                          borderColor: `${secondaryColor}30`,
+                          color: secondaryColor
+                        }}
+                      >
                         {evt.category}
                       </span>
-                      <span 
-                        className="text-[9px] font-black px-2 py-0.5 rounded-md border"
-                        style={{ borderColor: `${evt.badgeColor}40`, color: evt.badgeColor, backgroundColor: `${evt.badgeColor}15` }}
-                      >
-                        {evt.badge}
-                      </span>
                     </div>
-                    <h3 className="font-black text-base text-slate-900 dark:text-white">{evt.title}</h3>
-                    <p className="text-xs text-slate-600 dark:text-white/60 leading-relaxed max-w-2xl">{evt.description}</p>
+
+                    <p className="text-xs text-slate-500 dark:text-white/50 font-medium max-w-xl">
+                      {evt.description}
+                    </p>
+
+                    <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-white/40 pt-1 font-medium">
+                      <span className="font-bold" style={{ color: primaryColor }}>{evt.badge}</span>
+                      <span>•</span>
+                      <span>{evt.linkText}</span>
+                    </div>
                   </div>
                 </div>
 
-                <Link
-                  href="/colleges"
-                  className="cyber-button-secondary px-5 py-2.5 rounded-xl text-xs font-bold shrink-0 self-start sm:self-auto flex items-center gap-1.5"
+                {/* Register Action */}
+                <button
+                  onClick={() => alert(`Registered for ${evt.title}! Confirmation synced with your Document Vault.`)}
+                  className="cyber-button-primary px-5 py-2.5 rounded-xl text-xs font-black shrink-0 self-start sm:self-auto shadow-md"
+                  style={{
+                    backgroundImage: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
+                    color: '#0A0E1A',
+                    boxShadow: `0 4px 15px ${primaryColor}20`
+                  }}
                 >
-                  <span>{evt.linkText}</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </Link>
+                  REGISTER ACCESS
+                </button>
               </div>
             ))}
           </div>
@@ -722,7 +926,7 @@ export default function DashboardPage() {
       <InterviewModal isOpen={interviewOpen} onClose={() => setInterviewOpen(false)} />
       <ExplainerModal isOpen={explainerOpen} onClose={() => setExplainerOpen(false)} />
       <NotesModal isOpen={notesOpen} onClose={() => setNotesOpen(false)} />
-      <PlannerModal isOpen={plannerOpen} onClose={() => setPlannerOpen(false)} onAdd={handleAddSchedule} />
+      <PlannerModal isOpen={plannerOpen} onClose={() => setPlannerOpen(false)} onAdd={handleAddScheduleEvent} />
 
     </div>
   );
