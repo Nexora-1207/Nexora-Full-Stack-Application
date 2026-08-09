@@ -53,8 +53,7 @@ export default function CollegesPage() {
               }
             }
             setLoading(false);
-          })
-          .catch(() => {
+          }, () => {
             setLoading(false);
           });
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {

@@ -223,8 +223,7 @@ export default function DashboardPage() {
               localStorage.setItem('activeSubPath', updatedProfile.sub_path);
             }
             setLoading(false);
-          })
-          .catch(() => {
+          }, () => {
             setLoading(false);
           });
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
