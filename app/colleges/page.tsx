@@ -57,6 +57,9 @@ export default function CollegesPage() {
           .catch(() => {
             setLoading(false);
           });
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        // Demo guest — use localStorage stream if available
+        setLoading(false);
       } else {
         router.replace('/auth');
       }

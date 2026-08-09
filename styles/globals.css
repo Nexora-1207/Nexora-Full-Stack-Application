@@ -193,3 +193,245 @@ body {
     opacity: 1;
   }
 }
+
+/* =============================================
+   NEXORA INTRO SPLASH SCREEN
+   ============================================= */
+
+/* Root overlay — full screen, dark always */
+.nexora-intro-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #030712;
+  overflow: hidden;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.nexora-intro-exit {
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+}
+
+/* ── Ambient orbs ─────────────────────────── */
+.nexora-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(90px);
+  animation: nexoraOrbFloat 8s ease-in-out infinite alternate;
+}
+.nexora-bg-orb-1 {
+  width: 600px; height: 600px;
+  top: -120px; left: -180px;
+  background: radial-gradient(circle, rgba(0,240,255,0.18) 0%, transparent 70%);
+  animation-duration: 9s;
+}
+.nexora-bg-orb-2 {
+  width: 500px; height: 500px;
+  bottom: -100px; right: -140px;
+  background: radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 70%);
+  animation-duration: 11s;
+  animation-delay: -3s;
+}
+.nexora-bg-orb-3 {
+  width: 300px; height: 300px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255,0,138,0.10) 0%, transparent 70%);
+  animation-duration: 7s;
+  animation-delay: -1.5s;
+}
+
+@keyframes nexoraOrbFloat {
+  from { transform: translateY(0) scale(1); }
+  to   { transform: translateY(-30px) scale(1.08); }
+}
+
+/* ── Fine grid overlay ───────────────────── */
+.nexora-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ── Particle field ──────────────────────── */
+.nexora-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.nexora-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: #00F0FF;
+  animation: nexoraParticleFade ease-in-out infinite;
+}
+
+@keyframes nexoraParticleFade {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(1); }
+  50%       { opacity: 1; transform: translateY(-20px) scale(1.3); }
+}
+
+/* ── Center group ────────────────────────── */
+.nexora-intro-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.nexora-intro-center-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Letter animation ────────────────────── */
+.nexora-letters-wrap {
+  display: flex;
+  gap: 0.06em;
+  letter-spacing: 0.35em;
+}
+
+.nexora-letter {
+  display: inline-block;
+  font-size: clamp(4rem, 13vw, 9rem);
+  font-weight: 900;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  background: linear-gradient(135deg, #FFFFFF 0%, #00F0FF 45%, #8B5CF6 80%, #FF008A 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 30px rgba(0,240,255,0.5));
+  opacity: 0;
+  transform: translateY(30px) rotateX(40deg);
+  animation: nexoraLetterIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-style: preserve-3d;
+}
+
+@keyframes nexoraLetterIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px) rotateX(50deg);
+    filter: drop-shadow(0 0 0px rgba(0,240,255,0));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+    filter: drop-shadow(0 0 30px rgba(0,240,255,0.55));
+  }
+}
+
+/* Subtle per-letter shimmer hover */
+.nexora-letter:hover {
+  filter: drop-shadow(0 0 50px rgba(0,240,255,0.9)) brightness(1.2);
+  transition: filter 0.2s ease;
+}
+
+/* ── Glowing underline ───────────────────── */
+.nexora-underline {
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00F0FF, #8B5CF6, #FF008A, transparent);
+  border-radius: 9999px;
+  box-shadow: 0 0 16px #00F0FF, 0 0 40px rgba(139,92,246,0.6);
+  margin-top: 8px;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nexora-intro-center-visible .nexora-underline {
+  width: 100%;
+}
+
+/* ── Dot pulse row ───────────────────────── */
+.nexora-dot-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.nexora-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00F0FF;
+  box-shadow: 0 0 10px #00F0FF;
+  opacity: 0;
+  animation: nexoraDotPop 0.5s ease forwards;
+}
+@keyframes nexoraDotPop {
+  0%   { opacity: 0; transform: scale(0); }
+  60%  { opacity: 1; transform: scale(1.4); }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+
+/* ── Tagline ─────────────────────────────── */
+.nexora-tagline {
+  margin-top: 28px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s;
+}
+.nexora-tagline-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Sub-tagline ─────────────────────────── */
+.nexora-subtagline {
+  margin-top: 10px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: rgba(0,240,255,0.5);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s;
+}
+.nexora-subtagline-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Version badge ───────────────────────── */
+.nexora-version-badge {
+  position: absolute;
+  bottom: 24px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+}
+.nexora-version-dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #00F0FF;
+  box-shadow: 0 0 8px #00F0FF;
+  animation: nexoraVersionPulse 2s ease-in-out infinite;
+}
+@keyframes nexoraVersionPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+

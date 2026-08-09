@@ -25,8 +25,12 @@ export default function Navbar() {
   const { resolvedTheme, toggleTheme, theme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [activeSector, setActiveSector] = useState<string>('ENGINEERING');
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
+    const guestMode = localStorage.getItem('nexoraGuestMode') === 'true';
+    setIsGuest(guestMode);
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
       if (user) {
@@ -54,11 +58,12 @@ export default function Navbar() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('activeSector');
+    localStorage.removeItem('nexoraGuestMode');
     router.push('/auth');
   };
 
-  // Do not show taskbar on auth page or if user is not authenticated
-  if (pathname === '/auth' || !user) return null;
+  // Do not show taskbar on auth page or if user is not authenticated (unless guest mode)
+  if (pathname === '/auth' || (!user && !isGuest)) return null;
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },

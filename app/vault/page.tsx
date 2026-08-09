@@ -63,6 +63,10 @@ export default function VaultPage() {
           setFiles(INITIAL_VAULT_FILES as any);
         }
         setLoading(false);
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        // Demo guest — load sample vault data
+        setFiles(INITIAL_VAULT_FILES as any);
+        setLoading(false);
       } else {
         router.replace('/auth');
       }

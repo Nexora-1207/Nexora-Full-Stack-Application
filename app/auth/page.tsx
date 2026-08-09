@@ -105,10 +105,11 @@ export default function AuthPage() {
 
   // Instant Guest / Demo Clearance (Zero Latency)
   const handleDemoAccess = () => {
+    localStorage.setItem('nexoraGuestMode', 'true');
     localStorage.setItem('activeSector', 'ENGINEERING');
     localStorage.setItem('activeStream', 'MPC');
     localStorage.setItem('activeSubPath', 'Intermediate MPC');
-    router.replace('/sectors');
+    router.replace('/dashboard');
   };
 
   // Google OAuth Login with dedicated server callback
@@ -160,6 +161,7 @@ export default function AuthPage() {
         }
 
         if (data.session) {
+          localStorage.removeItem('nexoraGuestMode');
           router.replace('/sectors');
         }
       } else if (tab === 'signup') {

@@ -58,6 +58,8 @@ export default function SectorsPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setLoading(false);
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        setLoading(false);
       } else {
         router.replace('/auth');
       }

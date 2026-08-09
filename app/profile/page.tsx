@@ -70,6 +70,10 @@ export default function ProfilePage() {
             }
             setLoading(false);
           });
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        // Demo guest — show pre-filled demo profile (read-only feel)
+        setFullName('Demo Student');
+        setLoading(false);
       } else {
         router.replace('/auth');
       }

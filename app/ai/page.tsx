@@ -50,6 +50,8 @@ export default function AIPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setLoading(false);
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        setLoading(false);
       } else {
         router.replace('/auth');
       }

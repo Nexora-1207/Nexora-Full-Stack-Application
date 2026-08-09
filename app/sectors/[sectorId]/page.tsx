@@ -51,6 +51,8 @@ export default function DynamicOnboardingPage({ params }: OnboardingParams) {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setLoading(false);
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        setLoading(false);
       } else {
         router.replace('/auth');
       }

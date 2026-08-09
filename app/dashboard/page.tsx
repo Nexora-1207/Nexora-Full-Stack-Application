@@ -227,6 +227,9 @@ export default function DashboardPage() {
           .catch(() => {
             setLoading(false);
           });
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        // Guest / Demo mode — allow through with mock data
+        setLoading(false);
       } else {
         router.replace('/auth');
       }
