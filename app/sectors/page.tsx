@@ -44,8 +44,38 @@ const ICON_MAP: Record<string, any> = {
 
 export default function SectorsPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [selectedSector, setSelectedSector] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+
+  useEffect(() => {
+    // Check cache on client mount
+    const cached = localStorage.getItem('userProfile') || localStorage.getItem('activeSector');
+    if (cached) {
+      setLoading(false);
+    }
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setLoading(false);
+      } else {
+        router.replace('/auth');
+      }
+    });
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet animate-spin p-[2px] mb-4">
+          <div className="w-full h-full bg-background rounded-[14px]"></div>
+        </div>
+        <span className="text-xs font-black tracking-widest text-cyber-cyan animate-pulse uppercase">
+          VERIFYING ACCESS AUTHORIZATION...
+        </span>
+      </div>
+    );
+  }
 
   const handleSelectSector = async (sectorId: string) => {
     setSelectedSector(sectorId);
@@ -64,11 +94,8 @@ export default function SectorsPage() {
       }
 
       setTimeout(() => {
-        if (sectorId === 'ENGINEERING') {
-          router.push('/sectors/engineering');
-        } else {
-          router.push('/dashboard');
-        }
+        const routeId = sectorId.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
+        router.push(`/sectors/${routeId}`);
       }, 500);
     } catch (e) {
       console.error(e);

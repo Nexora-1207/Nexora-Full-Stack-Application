@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Sparkles, 
   Send, 
@@ -25,6 +26,8 @@ interface Message {
 }
 
 export default function AIPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm-init',
@@ -44,8 +47,31 @@ export default function AIPage() {
   };
 
   useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setLoading(false);
+      } else {
+        router.replace('/auth');
+      }
+    });
+  }, [router]);
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet animate-spin p-[2px] mb-4">
+          <div className="w-full h-full bg-background rounded-[14px]"></div>
+        </div>
+        <span className="text-xs font-black tracking-widest text-cyber-cyan animate-pulse uppercase">
+          VERIFYING ACCESS AUTHORIZATION...
+        </span>
+      </div>
+    );
+  }
 
   const handleSend = (queryToSend?: string) => {
     const textToSend = (queryToSend || inputText).trim();

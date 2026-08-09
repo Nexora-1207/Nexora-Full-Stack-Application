@@ -19,9 +19,11 @@ import {
   Loader2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 import confetti from 'canvas-confetti';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -69,10 +71,10 @@ export default function ProfilePage() {
             setLoading(false);
           });
       } else {
-        setLoading(false);
+        router.replace('/auth');
       }
     });
-  }, []);
+  }, [router]);
 
   const handleAddSkill = () => {
     if (!newSkill.trim() || skills.includes(newSkill.trim())) return;

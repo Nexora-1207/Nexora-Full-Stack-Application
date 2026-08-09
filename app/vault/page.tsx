@@ -17,6 +17,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { INITIAL_VAULT_FILES } from '@/lib/data';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 interface VaultFile {
   id: string;
@@ -30,6 +32,8 @@ interface VaultFile {
 const CATEGORIES = ['ALL', 'ACADEMIC', 'TIMETABLE', 'ADMISSIONS', 'OTHERS'] as const;
 
 export default function VaultPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [files, setFiles] = useState<VaultFile[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,20 +47,40 @@ export default function VaultPage() {
   const [newFileCategory, setNewFileCategory] = useState<'ACADEMIC' | 'TIMETABLE' | 'ADMISSIONS' | 'OTHERS'>('ACADEMIC');
   const [newFileContent, setNewFileContent] = useState('');
 
-  // Load files from storage
+  // Load files from storage & check auth
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('vault_files');
-      if (stored) {
-        setFiles(JSON.parse(stored));
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        try {
+          const stored = localStorage.getItem('vault_files');
+          if (stored) {
+            setFiles(JSON.parse(stored));
+          } else {
+            setFiles(INITIAL_VAULT_FILES as any);
+            localStorage.setItem('vault_files', JSON.stringify(INITIAL_VAULT_FILES));
+          }
+        } catch (e) {
+          setFiles(INITIAL_VAULT_FILES as any);
+        }
+        setLoading(false);
       } else {
-        setFiles(INITIAL_VAULT_FILES as any);
-        localStorage.setItem('vault_files', JSON.stringify(INITIAL_VAULT_FILES));
+        router.replace('/auth');
       }
-    } catch (e) {
-      setFiles(INITIAL_VAULT_FILES as any);
-    }
-  }, []);
+    });
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet animate-spin p-[2px] mb-4">
+          <div className="w-full h-full bg-background rounded-[14px]"></div>
+        </div>
+        <span className="text-xs font-black tracking-widest text-cyber-cyan animate-pulse uppercase">
+          VERIFYING ACCESS AUTHORIZATION...
+        </span>
+      </div>
+    );
+  }
 
   const saveFilesToStorage = (updatedFiles: VaultFile[]) => {
     setFiles(updatedFiles);

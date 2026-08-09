@@ -27,7 +27,7 @@ export default function LandingPage() {
       if (session) {
         router.replace('/dashboard');
       } else {
-        setLoading(false);
+        router.replace('/auth');
       }
     });
   }, [router]);

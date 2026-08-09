@@ -26,7 +26,7 @@ export default function AuthCallbackPage() {
       } catch (err) {
         console.error('Error during callback exchange:', err);
       } finally {
-        router.replace('/dashboard');
+        router.replace('/sectors');
       }
     };
 

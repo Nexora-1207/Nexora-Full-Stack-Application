@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   GraduationCap, 
   Search, 
@@ -23,6 +24,8 @@ import confetti from 'canvas-confetti';
 const STREAMS = ['ALL', 'MPC', 'BiPC', 'Polytechnic', 'ITI'] as const;
 
 export default function CollegesPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [activeStream, setActiveStream] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [profile, setProfile] = useState<any>(null);
@@ -49,7 +52,13 @@ export default function CollegesPage() {
                 setActiveStream(data.stream);
               }
             }
+            setLoading(false);
+          })
+          .catch(() => {
+            setLoading(false);
           });
+      } else {
+        router.replace('/auth');
       }
     });
 
@@ -57,7 +66,20 @@ export default function CollegesPage() {
     if (storedStream) {
       setActiveStream(storedStream);
     }
-  }, []);
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyber-cyan to-cyber-violet animate-spin p-[2px] mb-4">
+          <div className="w-full h-full bg-background rounded-[14px]"></div>
+        </div>
+        <span className="text-xs font-black tracking-widest text-cyber-cyan animate-pulse uppercase">
+          VERIFYING ACCESS AUTHORIZATION...
+        </span>
+      </div>
+    );
+  }
 
   // Personalized Match Rate Calculation
   const getAdjustedMatch = (college: College) => {

@@ -52,7 +52,7 @@ export default function AuthPage() {
       const search = window.location.search;
 
       if (hash && (hash.includes('access_token') || hash.includes('refresh_token'))) {
-        router.replace('/dashboard');
+        router.replace('/sectors');
         return;
       }
 
@@ -62,7 +62,7 @@ export default function AuthPage() {
         if (code) {
           supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
             if (!error && data.session) {
-              router.replace('/dashboard');
+              router.replace('/sectors');
             }
           });
         }
@@ -71,13 +71,13 @@ export default function AuthPage() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.replace('/dashboard');
+        router.replace('/sectors');
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        router.replace('/dashboard');
+        router.replace('/sectors');
       }
     });
 
@@ -108,7 +108,7 @@ export default function AuthPage() {
     localStorage.setItem('activeSector', 'ENGINEERING');
     localStorage.setItem('activeStream', 'MPC');
     localStorage.setItem('activeSubPath', 'Intermediate MPC');
-    router.replace('/dashboard');
+    router.replace('/sectors');
   };
 
   // Google OAuth Login with dedicated server callback
@@ -160,7 +160,7 @@ export default function AuthPage() {
         }
 
         if (data.session) {
-          router.replace('/dashboard');
+          router.replace('/sectors');
         }
       } else if (tab === 'signup') {
         if (password !== confirmPassword) {
@@ -194,7 +194,7 @@ export default function AuthPage() {
         if (!loginErr && loginData.session) {
           router.replace('/sectors');
         } else {
-          router.replace('/dashboard');
+          router.replace('/sectors');
         }
       }
     } catch (err: any) {
@@ -290,7 +290,7 @@ export default function AuthPage() {
         setRecoveryCodeVerified(true);
         setSuccessMsg('Recovery verified. Set your new security password.');
       } else {
-        router.replace('/dashboard');
+        router.replace('/sectors');
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Invalid or expired OTP code.');

@@ -8,5 +8,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    flowType: 'pkce',
+    lock: async (name: any, acquireTimeout: any, fn: any) => {
+      return await fn();
+    }
   },
 });

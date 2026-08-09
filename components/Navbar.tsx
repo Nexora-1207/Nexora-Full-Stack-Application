@@ -57,8 +57,8 @@ export default function Navbar() {
     router.push('/auth');
   };
 
-  // Do not show taskbar on auth page
-  if (pathname === '/auth') return null;
+  // Do not show taskbar on auth page or if user is not authenticated
+  if (pathname === '/auth' || !user) return null;
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
