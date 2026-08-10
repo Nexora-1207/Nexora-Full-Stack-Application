@@ -30,8 +30,14 @@ interface OnboardingParams {
 
 export default function DynamicOnboardingPage({ params }: OnboardingParams) {
   const router = useRouter();
-  const sectorKey = params.sectorId.toLowerCase();
-  const sectorData = SECTOR_TREES[sectorKey];
+  const normalizedKey = params.sectorId.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
+  const sectorData = SECTOR_TREES[normalizedKey] || 
+    SECTOR_TREES[params.sectorId.toLowerCase()] || 
+    Object.values(SECTOR_TREES).find(s => 
+      s.id.toLowerCase() === params.sectorId.toLowerCase() || 
+      s.id.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-') === normalizedKey ||
+      s.name.toLowerCase().includes(normalizedKey)
+    ) || SECTOR_TREES['engineering'];
 
   const [loading, setLoading] = useState(true);
   const [currentNodeKey, setCurrentNodeKey] = useState('root');
