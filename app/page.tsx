@@ -9,55 +9,46 @@ const SESSION_KEY = 'nexoraIntroPlayed';
 
 export default function RootPage() {
   const router = useRouter();
-  const [destination, setDestination] = useState<string | null>(null);
+  const [showIntro, setShowIntro] = useState<boolean | null>(null);
 
-  // Check auth destination in the background immediately
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setDestination(session ? '/dashboard' : '/auth');
-    });
-  }, []);
+    const isGuest = localStorage.getItem('nexoraGuestMode') === 'true';
+    const introPlayed = sessionStorage.getItem(SESSION_KEY) === 'true';
 
-  // Decide whether to skip intro or show it
-  const introAlreadyPlayed =
-    typeof window !== 'undefined' &&
-    sessionStorage.getItem(SESSION_KEY) === 'true';
-
-  const navigate = (dest: string) => {
-    router.replace(dest);
-  };
-
-  // If intro was already played this browser session, skip straight to the destination
-  if (introAlreadyPlayed) {
-    if (destination) {
-      navigate(destination);
-    } else {
-      // Auth check still in flight — wait for it
+    if (introPlayed) {
+      // Skip intro, navigate safely inside useEffect
       supabase.auth.getSession().then(({ data: { session } }) => {
-        navigate(session ? '/dashboard' : '/auth');
+        if (session || isGuest) {
+          router.replace('/dashboard');
+        } else {
+          router.replace('/auth');
+        }
       });
-    }
-    // Return null while redirecting
-    return null;
-  }
-
-  // First visit this session — show the intro
-  const handleIntroComplete = () => {
-    // Mark intro as played for the remainder of this session (tab open)
-    sessionStorage.setItem(SESSION_KEY, 'true');
-
-    if (destination) {
-      navigate(destination);
+      setShowIntro(false);
     } else {
-      // Poll until session check resolves
-      const poll = setInterval(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          clearInterval(poll);
-          navigate(session ? '/dashboard' : '/auth');
-        });
-      }, 200);
+      setShowIntro(true);
+    }
+  }, [router]);
+
+  const handleIntroComplete = async () => {
+    sessionStorage.setItem(SESSION_KEY, 'true');
+    const isGuest = typeof window !== 'undefined' && localStorage.getItem('nexoraGuestMode') === 'true';
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session || isGuest) {
+      router.replace('/dashboard');
+    } else {
+      router.replace('/auth');
     }
   };
+
+  if (showIntro === null || showIntro === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
+        <div className="w-8 h-8 rounded-full border-2 border-cyber-cyan border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
 
   return <NexoraIntro onComplete={handleIntroComplete} />;
 }
