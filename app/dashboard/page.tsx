@@ -8,6 +8,7 @@ import {
   Calendar, 
   Clock, 
   ChevronRight, 
+  ChevronLeft,
   FileText, 
   Mic, 
   Lightbulb, 
@@ -36,14 +37,18 @@ const SECTOR_BACKGROUND_IMAGES: Record<string, string> = {
   ENGINEERING: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=2000&auto=format&fit=crop",
   "MEDICAL SUPPORT": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2000&auto=format&fit=crop",
   COMPUTERS: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000&auto=format&fit=crop",
-  "SKILLED TRADES": "https://images.unsplash.com/photo-1581092335397-9583fe92d232?q=80&w=2000&auto=format&fit=crop",
-  "MERCHANT NAVY": "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2000&auto=format&fit=crop",
+  "SKILLED TRADES": "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?q=80&w=2000&auto=format&fit=crop",
+  "MERCHANT NAVY": "https://images.unsplash.com/photo-1544465544-1b71aee9dfa3?q=80&w=2000&auto=format&fit=crop",
   "FASHION & DESIGN": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2000&auto=format&fit=crop",
   BUSINESS: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2000&auto=format&fit=crop",
   MEDIA: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=2000&auto=format&fit=crop",
   HOSPITALITY: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2000&auto=format&fit=crop",
   AGRICULTURE: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=2000&auto=format&fit=crop",
-  AVIATION: "https://images.unsplash.com/photo-1519074069444-1ba4ea16e632?q=80&w=2000&auto=format&fit=crop",
+  AUTOMOBILE: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=2000&auto=format&fit=crop",
+  CONSTRUCTION: "https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?q=80&w=2000&auto=format&fit=crop",
+  "BEAUTY & WELLNESS": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop",
+  "RETAIL & LOGISTICS": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2000&auto=format&fit=crop",
+  AVIATION: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=2000&auto=format&fit=crop",
   SPORTS: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2000&auto=format&fit=crop",
   LAW: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=2000&auto=format&fit=crop",
   VOCATIONAL: "https://images.unsplash.com/photo-1581092334651-ddf26d9a09d0?q=80&w=2000&auto=format&fit=crop",
@@ -80,8 +85,8 @@ const getScheduleForSector = (sectorId: string) => {
     case 'MERCHANT NAVY':
       return [
         { id: '1', time: '07:30 AM', title: 'Physical Drills & Shipboard Safety', location: 'Drill Deck' },
-        { id: '10:00 AM', title: 'Celestial Navigation & Radar', location: 'Bridge Sim 1' },
-        { id: '02:30 PM', title: 'Marine Diesel Maintenance', location: 'Engine Lab' },
+        { id: '2', time: '10:00 AM', title: 'Celestial Navigation & Radar', location: 'Bridge Sim 1' },
+        { id: '3', time: '02:30 PM', title: 'Marine Diesel Maintenance', location: 'Engine Lab' },
       ];
     case 'FASHION & DESIGN':
       return [
@@ -119,6 +124,30 @@ const getScheduleForSector = (sectorId: string) => {
         { id: '2', time: '11:00 AM', title: 'Aircraft Systems & Avionics Lab', location: 'Hangar Lab' },
         { id: '3', time: '02:15 PM', title: 'Air Traffic Control Protocols', location: 'ATC Tower Sim' },
       ];
+    case 'AUTOMOBILE':
+      return [
+        { id: '1', time: '08:30 AM', title: 'Internal Combustion & EV Battery Diagnostics', location: 'Auto Bay 1' },
+        { id: '2', time: '11:00 AM', title: 'Chassis Dynamics & Aerodynamics Lab', location: 'Wind Tunnel' },
+        { id: '3', time: '02:15 PM', title: 'ECU Telemetry & Engine Mapping', location: 'Dyno Room' },
+      ];
+    case 'CONSTRUCTION':
+      return [
+        { id: '1', time: '08:30 AM', title: 'Structural Analysis & Reinforced Concrete', location: 'Hall 204' },
+        { id: '2', time: '11:00 AM', title: 'Building Information Modeling (BIM)', location: 'CAD Lab 2' },
+        { id: '3', time: '02:00 PM', title: 'Geotechnical Soil Mechanics Lab', location: 'Civil Field' },
+      ];
+    case 'BEAUTY & WELLNESS':
+      return [
+        { id: '1', time: '09:00 AM', title: 'Dermatology Science & Botanical Cosmetology', location: 'Clinic Lab A' },
+        { id: '2', time: '11:30 AM', title: 'Aesthetic Wellness & Hydrotherapy', location: 'Spa Studio' },
+        { id: '3', time: '02:30 PM', title: 'Nutrition & Holistic Health Systems', location: 'Seminar 3' },
+      ];
+    case 'RETAIL & LOGISTICS':
+      return [
+        { id: '1', time: '08:30 AM', title: 'Supply Chain Optimization & Fleet Routing', location: 'Logistics Hub' },
+        { id: '2', time: '11:00 AM', title: 'Warehouse Automation & RFID Tracking', location: 'Sim Lab 4' },
+        { id: '3', time: '02:15 PM', title: 'Retail Category Management & CRM', location: 'Hall 108' },
+      ];
     case 'SPORTS':
       return [
         { id: '1', time: '06:30 AM', title: 'Athletic Conditioning & Agility', location: 'Track Field' },
@@ -151,6 +180,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'Home' | 'Events'>('Home');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
 
   // Profile data
   const [profile, setProfile] = useState({
@@ -280,12 +310,12 @@ export default function DashboardPage() {
 
   // Auto-play carousel
   useEffect(() => {
-    if (!slides || slides.length === 0) return;
+    if (!slides || slides.length === 0 || isCarouselPaused) return;
     const timer = setInterval(() => {
       setActiveSlideIndex((prev) => (prev + 1) % Math.max(1, slides.length));
     }, 4500);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, isCarouselPaused]);
 
   const toggleTask = (taskId: string) => {
     setTasks(tasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t));
@@ -330,16 +360,16 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-8 relative">
       
       {/* SECTOR-SPECIFIC AMBIENT HIGH-TECH BACKGROUND OVERLAY */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.06] dark:opacity-[0.08] transition-all duration-1000">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.07] dark:opacity-[0.09] transition-all duration-1000">
         <img 
           src={sectorBgImage} 
           alt="" 
-          className="w-full h-full object-cover object-center filter saturate-150 blur-[1.5px] transform scale-105 transition-all duration-1000"
+          className="w-full h-full object-cover object-center filter saturate-150 blur-[1px] transform scale-105 transition-all duration-1000"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background"></div>
       </div>
 
-      {/* TOP WELCOME BAR & PILL SWITCHER */}
+      {/* TOP WELCOME BAR & SLIDING CAPSULE SWITCHER */}
       <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
           <div className="flex items-center gap-2">
@@ -362,35 +392,36 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Home / Events Smooth Pill Switcher */}
-        <div className="inline-flex p-1 rounded-2xl bg-slate-200/80 dark:bg-white/[0.04] border border-slate-300/80 dark:border-white/[0.08] self-start sm:self-auto shadow-inner relative">
+        {/* HOME / EVENTS PHYSICAL SLIDING CAPSULE TOGGLE */}
+        <div className="relative inline-flex p-1 rounded-full bg-slate-900/90 dark:bg-slate-950/90 border border-slate-700/60 dark:border-white/10 shadow-lg backdrop-blur-xl self-start sm:self-auto overflow-hidden">
+          {/* Physical Sliding Pill Background */}
+          <div
+            className="absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-md"
+            style={{
+              width: 'calc(50% - 4px)',
+              left: activeTab === 'Home' ? '4px' : 'calc(50%)',
+              backgroundImage: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
+              boxShadow: `0 4px 18px ${primaryColor}40`
+            }}
+          />
+
           <button
             onClick={() => setActiveTab('Home')}
-            className={`px-5 py-2 rounded-xl text-xs font-black tracking-wider transition-all duration-300 ${
-              activeTab === 'Home' 
-                ? 'shadow-md transform scale-105' 
-                : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'
+            className={`relative z-10 w-24 sm:w-28 py-2 rounded-full text-xs tracking-wider transition-colors duration-200 text-center ${
+              activeTab === 'Home'
+                ? 'text-slate-950 font-black'
+                : 'text-white/60 hover:text-white font-bold'
             }`}
-            style={activeTab === 'Home' ? {
-              backgroundImage: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
-              color: '#0A0E1A',
-              boxShadow: `0 4px 15px ${primaryColor}30`
-            } : undefined}
           >
             HOME
           </button>
           <button
             onClick={() => setActiveTab('Events')}
-            className={`px-5 py-2 rounded-xl text-xs font-black tracking-wider transition-all duration-300 ${
-              activeTab === 'Events' 
-                ? 'shadow-md transform scale-105' 
-                : 'text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'
+            className={`relative z-10 w-24 sm:w-28 py-2 rounded-full text-xs tracking-wider transition-colors duration-200 text-center ${
+              activeTab === 'Events'
+                ? 'text-slate-950 font-black'
+                : 'text-white/60 hover:text-white font-bold'
             }`}
-            style={activeTab === 'Events' ? {
-              backgroundImage: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
-              color: '#0A0E1A',
-              boxShadow: `0 4px 15px ${primaryColor}30`
-            } : undefined}
           >
             EVENTS
           </button>
@@ -401,77 +432,110 @@ export default function DashboardPage() {
       {activeTab === 'Home' ? (
         <div key="home-tab" className="space-y-8 animate-tab-slide relative z-10">
           
-          {/* HERO ROW: Left Slideshow + Right Schedule */}
+          {/* HERO ROW: Left Slideshow Cards Track + Right Schedule */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* Left Carousel Panel */}
+            {/* Left Carousel Panel - Sliding Cards Track */}
             <div 
-              className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[260px] border border-white/[0.08] transition-all"
+              className="lg:col-span-7 glass-panel rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[290px] border border-white/[0.08] transition-all"
               style={{
                 boxShadow: hoveredCard === 'slides' ? `0 0 30px ${primaryColor}15` : 'none',
                 borderColor: hoveredCard === 'slides' ? `${primaryColor}30` : 'rgba(255,255,255,0.08)'
               }}
-              onMouseEnter={() => setHoveredCard('slides')}
-              onMouseLeave={() => setHoveredCard(null)}
+              onMouseEnter={() => {
+                setHoveredCard('slides');
+                setIsCarouselPaused(true);
+              }}
+              onMouseLeave={() => {
+                setHoveredCard(null);
+                setIsCarouselPaused(false);
+              }}
             >
+              {/* Ambient Glow */}
               <div 
                 className="absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl pointer-events-none transition-all"
                 style={{ backgroundColor: `${primaryColor}10` }}
               ></div>
 
-              {(() => {
-                const currentSlide = slides[activeSlideIndex % Math.max(1, slides.length)] || slides[0] || {
-                  id: 's0',
-                  title: 'Academic Admission Portal Active',
-                  date: 'Rolling 2026',
-                  desc: 'Admissions and placement nodes are actively synchronized with your academic profile.',
-                  tag: 'ACTIVE',
-                  badgeColor: 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/40'
-                };
+              {/* Header inside carousel with left/right controls */}
+              <div className="flex items-center justify-between gap-2 mb-2 relative z-10">
+                <div className="flex items-center gap-2">
+                  <Megaphone className="w-4 h-4 animate-bounce" style={{ color: secondaryColor }} />
+                  <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: secondaryColor }}>
+                    GLOBAL ADMISSION NODE
+                  </span>
+                </div>
 
-                return (
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-3">
+                {/* Left / Right Carousel Controls */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setActiveSlideIndex((prev) => (prev - 1 + slides.length) % slides.length)}
+                    className="w-7 h-7 rounded-xl bg-slate-200/60 dark:bg-white/[0.06] border border-slate-300 dark:border-white/[0.1] hover:border-white/30 flex items-center justify-center text-slate-700 dark:text-white transition shadow-sm"
+                    title="Previous Slide"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setActiveSlideIndex((prev) => (prev + 1) % slides.length)}
+                    className="w-7 h-7 rounded-xl bg-slate-200/60 dark:bg-white/[0.06] border border-slate-300 dark:border-white/[0.1] hover:border-white/30 flex items-center justify-center text-slate-700 dark:text-white transition shadow-sm"
+                    title="Next Slide"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* SLIDING CARDS TRACK */}
+              <div className="relative overflow-hidden w-full my-auto py-2 z-10">
+                <div 
+                  className="flex transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  style={{
+                    transform: `translateX(-${activeSlideIndex * 100}%)`
+                  }}
+                >
+                  {slides.map((slide, idx) => (
+                    <div 
+                      key={slide.id || idx} 
+                      className="w-full shrink-0 pr-2 space-y-3"
+                    >
                       <div className="flex items-center gap-2">
-                        <Megaphone className="w-4 h-4 animate-bounce" style={{ color: secondaryColor }} />
-                        <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: secondaryColor }}>
-                          GLOBAL ADMISSION NODE
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase border shadow-sm ${slide.badgeColor || 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/40'}`}>
+                          {slide.tag || 'OPPORTUNITY'}
                         </span>
+                        <div className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-white/40">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>Deadline: {slide.date}</span>
+                        </div>
                       </div>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase border ${currentSlide.badgeColor || 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/40'}`}>
-                        {currentSlide.tag || 'NOTICE'}
-                      </span>
+
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+                        {slide.title}
+                      </h2>
+
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium leading-relaxed max-w-xl">
+                        {slide.desc}
+                      </p>
                     </div>
-
-                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
-                      {currentSlide.title}
-                    </h2>
-
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-white/40 mb-3">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Deadline: {currentSlide.date}</span>
-                    </div>
-
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium leading-relaxed max-w-xl">
-                      {currentSlide.desc}
-                    </p>
-                  </div>
-                );
-              })()}
+                  ))}
+                </div>
+              </div>
 
               {/* Slide indicators & link */}
-              <div className="flex items-center justify-between pt-6 mt-4 border-t border-slate-200 dark:border-white/[0.08]">
-                <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-between pt-4 mt-2 border-t border-slate-200 dark:border-white/[0.08] relative z-10">
+                <div className="flex items-center gap-2">
                   {slides.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setActiveSlideIndex(idx)}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                      className={`h-2 rounded-full transition-all duration-300 ${
                         idx === activeSlideIndex 
-                          ? 'w-6' 
-                          : 'w-1.5 bg-slate-300 dark:bg-white/20'
+                          ? 'w-7 shadow-md' 
+                          : 'w-2 bg-slate-300 dark:bg-white/20 hover:bg-white/40'
                       }`}
-                      style={idx === activeSlideIndex ? { backgroundColor: primaryColor } : undefined}
+                      style={idx === activeSlideIndex ? { 
+                        backgroundColor: primaryColor,
+                        boxShadow: `0 0 10px ${primaryColor}80`
+                      } : undefined}
                     />
                   ))}
                 </div>
@@ -501,7 +565,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div 
-                      className="w-8 h-8 rounded-xl flex items-center justify-center border"
+                      className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-sm"
                       style={{
                         backgroundColor: `${primaryColor}15`,
                         borderColor: `${primaryColor}30`,
@@ -597,7 +661,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2.5">
                 <div 
-                  className="w-8 h-8 rounded-xl flex items-center justify-center border"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-sm"
                   style={{
                     backgroundColor: `${secondaryColor}15`,
                     borderColor: `${secondaryColor}30`,
@@ -686,7 +750,7 @@ export default function DashboardPage() {
                 onMouseLeave={() => setHoveredCard(null)}
               >
                 <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border"
+                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
                   style={{
                     backgroundColor: `${primaryColor}15`,
                     borderColor: `${primaryColor}30`,
@@ -722,7 +786,7 @@ export default function DashboardPage() {
                 onMouseLeave={() => setHoveredCard(null)}
               >
                 <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border"
+                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
                   style={{
                     backgroundColor: `${secondaryColor}15`,
                     borderColor: `${secondaryColor}30`,
@@ -758,7 +822,7 @@ export default function DashboardPage() {
                 onMouseLeave={() => setHoveredCard(null)}
               >
                 <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border"
+                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
                   style={{
                     backgroundColor: `${primaryColor}15`,
                     borderColor: `${primaryColor}30`,
@@ -797,7 +861,7 @@ export default function DashboardPage() {
             >
               <div className="flex items-center gap-4">
                 <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border"
+                  className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm"
                   style={{
                     backgroundColor: `${secondaryColor}15`,
                     borderColor: `${secondaryColor}30`,
@@ -829,7 +893,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center gap-3">
               <div 
-                className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border"
+                className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm"
                 style={{
                   backgroundColor: `${primaryColor}10`,
                   borderColor: `${primaryColor}30`,
