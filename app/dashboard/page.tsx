@@ -239,30 +239,6 @@ export default function DashboardPage() {
     });
   }, [router]);
 
-  // Auto-play carousel
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlideIndex((prev) => (prev + 1) % 3);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, []);
-
-  const toggleTask = (taskId: string) => {
-    setTasks(tasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t));
-  };
-
-  const handleAddScheduleEvent = (newEvent: any) => {
-    setSchedule((prev) => [
-      ...prev,
-      {
-        id: Math.random().toString(),
-        time: newEvent.time || '10:00 AM',
-        title: newEvent.title,
-        location: newEvent.type || 'Main Campus'
-      }
-    ]);
-  };
-
   // Resolve dynamic sector colors from SECTOR_TREES
   const sectorKey = Object.keys(SECTOR_TREES).find(
     (k) => SECTOR_TREES[k].id.toLowerCase() === profile.sector.toLowerCase()
@@ -301,6 +277,31 @@ export default function DashboardPage() {
       badgeColor: 'bg-cyber-emerald/15 text-cyber-emerald border-cyber-emerald/40'
     }
   ];
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!slides || slides.length === 0) return;
+    const timer = setInterval(() => {
+      setActiveSlideIndex((prev) => (prev + 1) % Math.max(1, slides.length));
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  const toggleTask = (taskId: string) => {
+    setTasks(tasks.map(t => t.id === taskId ? { ...t, done: !t.done } : t));
+  };
+
+  const handleAddScheduleEvent = (newEvent: any) => {
+    setSchedule((prev) => [
+      ...prev,
+      {
+        id: Math.random().toString(),
+        time: newEvent.time || '10:00 AM',
+        title: newEvent.title,
+        location: newEvent.type || 'Main Campus'
+      }
+    ]);
+  };
 
   const studentFirstName = profile.fullName ? profile.fullName.split(' ')[0] : 'Nexora';
 
@@ -418,34 +419,45 @@ export default function DashboardPage() {
                 style={{ backgroundColor: `${primaryColor}10` }}
               ></div>
 
-              {slides.length > 0 ? (
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2">
-                      <Megaphone className="w-4 h-4 animate-bounce" style={{ color: secondaryColor }} />
-                      <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: secondaryColor }}>
-                        GLOBAL ADMISSION NODE
+              {(() => {
+                const currentSlide = slides[activeSlideIndex % Math.max(1, slides.length)] || slides[0] || {
+                  id: 's0',
+                  title: 'Academic Admission Portal Active',
+                  date: 'Rolling 2026',
+                  desc: 'Admissions and placement nodes are actively synchronized with your academic profile.',
+                  tag: 'ACTIVE',
+                  badgeColor: 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/40'
+                };
+
+                return (
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center gap-2">
+                        <Megaphone className="w-4 h-4 animate-bounce" style={{ color: secondaryColor }} />
+                        <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: secondaryColor }}>
+                          GLOBAL ADMISSION NODE
+                        </span>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase border ${currentSlide.badgeColor || 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/40'}`}>
+                        {currentSlide.tag || 'NOTICE'}
                       </span>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase border ${slides[activeSlideIndex].badgeColor}`}>
-                      {slides[activeSlideIndex].tag}
-                    </span>
+
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+                      {currentSlide.title}
+                    </h2>
+
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-white/40 mb-3">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Deadline: {currentSlide.date}</span>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium leading-relaxed max-w-xl">
+                      {currentSlide.desc}
+                    </p>
                   </div>
-
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
-                    {slides[activeSlideIndex].title}
-                  </h2>
-
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-white/40 mb-3">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Deadline: {slides[activeSlideIndex].date}</span>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium leading-relaxed max-w-xl">
-                    {slides[activeSlideIndex].desc}
-                  </p>
-                </div>
-              ) : null}
+                );
+              })()}
 
               {/* Slide indicators & link */}
               <div className="flex items-center justify-between pt-6 mt-4 border-t border-slate-200 dark:border-white/[0.08]">
