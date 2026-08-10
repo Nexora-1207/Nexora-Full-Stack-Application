@@ -38,7 +38,7 @@ const SECTOR_BACKGROUND_IMAGES: Record<string, string> = {
   "MEDICAL SUPPORT": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2000&auto=format&fit=crop",
   COMPUTERS: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=2000&auto=format&fit=crop",
   "SKILLED TRADES": "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?q=80&w=2000&auto=format&fit=crop",
-  "MERCHANT NAVY": "https://images.unsplash.com/photo-1544465544-1b71aee9dfa3?q=80&w=2000&auto=format&fit=crop",
+  "MERCHANT NAVY": "/images/merchant_navy_engine.jpg",
   "FASHION & DESIGN": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=2000&auto=format&fit=crop",
   BUSINESS: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2000&auto=format&fit=crop",
   MEDIA: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=2000&auto=format&fit=crop",
