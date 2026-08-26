@@ -131,7 +131,7 @@ export default function NexoraIntro({ onComplete }: NexoraIntroProps) {
       {/* Version badge */}
       <div className="nexora-version-badge" aria-hidden="true">
         <span className="nexora-version-dot" />
-        <span>v2.0 &middot; BETA</span>
+        <span>v2.0 &middot; OFFICIAL LAUNCH &middot; NEXORAEDU.CO.IN</span>
       </div>
     </div>
   );

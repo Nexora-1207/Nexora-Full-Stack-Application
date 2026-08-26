@@ -1,3 +1,89 @@
+export const OFFICIAL_NEXORA_EMAIL = 'nexoraofficial1207@gmail.com';
+export const OFFICIAL_NEXORA_DOMAIN = 'nexoraedu.co.in';
+export const OFFICIAL_NEXORA_URL = 'https://nexoraedu.co.in';
+
+export interface LeaderProfile {
+  name: string;
+  titles: string[];
+  roleDescription: string;
+  responsibilities: { role: string; details: string }[];
+  linkedinUrl: string;
+  email: string;
+  avatarGradient: string;
+}
+
+export const LEADERSHIP_TEAM: LeaderProfile[] = [
+  {
+    name: 'Shaik. Nadeem Ahmed',
+    titles: ['Chief Executive Officer (CEO)', 'Chief Technology Officer (CTO)'],
+    roleDescription: "Executive visionary directing Nexora's overall corporate strategy, product innovation, system architecture, and core technological engineering.",
+    responsibilities: [
+      {
+        role: 'Chief Executive Officer (CEO)',
+        details: 'Drives overall strategic vision, corporate roadmap, investor relations, institutional partnerships, and company-wide execution to scale Nexora across India and worldwide.'
+      },
+      {
+        role: 'Chief Technology Officer (CTO)',
+        details: 'Architects the full-stack cloud ecosystem, AI-driven career recommendation engines, encrypted Document Vault, and high-performance serverless infrastructure.'
+      }
+    ],
+    linkedinUrl: 'https://www.linkedin.com/in/nadeem-shaik-458981343',
+    email: 'nexoraofficial1207@gmail.com',
+    avatarGradient: 'from-cyber-cyan via-blue-500 to-cyber-violet'
+  },
+  {
+    name: 'Gudipalli. Rakesh Varma',
+    titles: ['Chief Marketing Officer (CMO)', 'Chief Financial Officer (CFO)'],
+    roleDescription: 'Strategic growth leader overseeing brand marketing, institutional outreach, financial stewardship, capital management, and partnership monetization.',
+    responsibilities: [
+      {
+        role: 'Chief Marketing Officer (CMO)',
+        details: 'Leads student community growth, college campus partnerships, brand storytelling, digital campaigns, and educational outreach to reach millions of students.'
+      },
+      {
+        role: 'Chief Financial Officer (CFO)',
+        details: 'Directs fiscal planning, revenue operations, financial modeling, budgeting, compliance, and long-term sustainable capital allocation for Nexora.'
+      }
+    ],
+    linkedinUrl: 'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343',
+    email: 'nexoraofficial1207@gmail.com',
+    avatarGradient: 'from-cyber-magenta via-pink-500 to-cyber-amber'
+  }
+];
+
+export interface FeeStructure {
+  tuitionFeePerYear: string;
+  hostelFeePerYear: string;
+  admissionFee: string;
+  scholarships: string[];
+}
+
+export interface PlacementDossier {
+  placementRate: number;
+  avgPackage: string;
+  highestPackage: string;
+  topRecruiters: string[];
+}
+
+export interface CollegeBranch {
+  name: string;
+  code: string;
+  seats: number;
+  durationYears: number;
+}
+
+export interface CollegeBrochure {
+  title: string;
+  filename: string;
+  academicYear: string;
+  highlights: string[];
+  pages: {
+    pageNumber: number;
+    title: string;
+    content: string;
+  }[];
+}
+
 export interface College {
   id: string;
   name: string;
@@ -13,6 +99,13 @@ export interface College {
   description: string;
   established?: string;
   acceptanceRate?: string;
+  officialEmail: string;
+  isPartner?: boolean;
+  feeStructure: FeeStructure;
+  placements: PlacementDossier;
+  facilities: string[];
+  branches: CollegeBranch[];
+  brochure: CollegeBrochure;
 }
 
 export interface Sector {
@@ -181,10 +274,67 @@ export const MOCK_COLLEGES: College[] = [
     matchRate: 94,
     established: '1979',
     acceptanceRate: '28%',
+    officialEmail: 'admissions.hyderabad@narayanagroup.com',
+    isPartner: true,
     mission: 'High-intensity scientific foundation and JEE Advanced training.',
     perks: ['Direct IIT/NIT Coaching Sandbox', '100% Merit Fee Waiver for 95%+', 'AI-Driven Test Analysis'],
     requirements: 'Min 85% in Class 10 Board exam with Mathematics distinction',
-    description: 'Renowned for rigorous Intermediate science preparation, Narayana MPC block equips students with superior analytical mathematics and physics problem-solving skills for premier engineering admissions.'
+    description: 'Renowned for rigorous Intermediate science preparation, Narayana MPC block equips students with superior analytical mathematics and physics problem-solving skills for premier engineering admissions.',
+    feeStructure: {
+      tuitionFeePerYear: '₹68,000 / year',
+      hostelFeePerYear: '₹75,000 / year (Optional)',
+      admissionFee: '₹5,000 (One-time)',
+      scholarships: [
+        '100% Tuition Fee Waiver for 10th GPA 10.0 / 95%+',
+        '50% Merit Subsidy for State Rankers',
+        'Jagananna Vidya Deevena (JVD) State Scheme Eligible'
+      ]
+    },
+    placements: {
+      placementRate: 96,
+      avgPackage: '₹8.5 LPA (Target B.Tech Level)',
+      highestPackage: '₹42 LPA (IIT/NIT Lateral Track)',
+      topRecruiters: ['IIT Hyderabad Sandbox', 'BITS Pilani Node', 'TCS Cyber', 'L&T Technology Services']
+    },
+    facilities: [
+      'JEE Simulation AI Computer Lab',
+      'Advanced Physics & Mechanics Workshop',
+      'Air-Conditioned Digital Study Pods',
+      '24/7 Academic Mentor Support',
+      'Hostel & Nutritious Dining Hall'
+    ],
+    branches: [
+      { name: 'Intermediate MPC (Maths, Physics, Chemistry) - IIT Special', code: 'MPC-IIT', seats: 180, durationYears: 2 },
+      { name: 'Intermediate MPC - Olympiad & AI Foundation', code: 'MPC-AI', seats: 120, durationYears: 2 },
+      { name: 'MPC Technical Lateral Prep Track', code: 'MPC-LAT', seats: 90, durationYears: 2 }
+    ],
+    brochure: {
+      title: 'Narayana MPC Official Prospectus 2026-2027',
+      filename: 'Narayana_MPC_Official_Prospectus_2026.pdf',
+      academicYear: '2026 - 2027',
+      highlights: [
+        'Over 4,500+ Selections in Premier Engineering Universities',
+        'Personalized AI Weakness Tracking Matrix',
+        'State-of-the-Art Science & Computing Laboratories'
+      ],
+      pages: [
+        {
+          pageNumber: 1,
+          title: 'Welcome & Executive Directive',
+          content: 'At Narayana MPC Academic Block, our mission is clear: forge the next generation of engineers, data scientists, and technological visionaries through structured problem solving and top-tier JEE coaching.'
+        },
+        {
+          pageNumber: 2,
+          title: 'Curriculum & Pedagogy',
+          content: 'Dual-pathway curriculum covering Board syllabus alongside advanced competitive entrance patterns (JEE Main, JEE Advanced, TS/AP EAPCET). Includes weekly diagnostic mock tests.'
+        },
+        {
+          pageNumber: 3,
+          title: 'Infrastructure & Hostels',
+          content: 'Spacious modern campuses equipped with high-speed Wi-Fi, biometric safety, dedicated doubt-clarification centers, and hygienic residential hostels.'
+        }
+      ]
+    }
   },
   {
     id: 'chaitanya-bipc',
@@ -197,10 +347,60 @@ export const MOCK_COLLEGES: College[] = [
     matchRate: 91,
     established: '1986',
     acceptanceRate: '22%',
+    officialEmail: 'admissions.medical@srichaitanya.net',
+    isPartner: true,
     mission: 'Nurturing surgeons, clinical researchers, and biotech leaders.',
     perks: ['NEET High-Yield Simulation Lab', 'Top 100 Ranker Grant', 'Integrated Bio-Research Wing'],
     requirements: 'Min 88% in Class 10 Science & Mathematics',
-    description: 'A structured Intermediate institution focusing on Biology, Physics, and Chemistry (BiPC) designed to navigate students into premier medical schools, AIIMS gates, and nanobiology labs.'
+    description: 'A structured Intermediate institution focusing on Biology, Physics, and Chemistry (BiPC) designed to navigate students into premier medical schools, AIIMS gates, and nanobiology labs.',
+    feeStructure: {
+      tuitionFeePerYear: '₹72,000 / year',
+      hostelFeePerYear: '₹80,000 / year',
+      admissionFee: '₹6,000 (One-time)',
+      scholarships: [
+        '100% Scholarship for NEET Mock Top 50 Rankers',
+        'Post-Matric Govt Fellowship Eligible',
+        'Women in Bio-Tech Special Grant'
+      ]
+    },
+    placements: {
+      placementRate: 94,
+      avgPackage: '₹9.2 LPA (Pre-Med & Bio-Research Sync)',
+      highestPackage: '₹38 LPA (AIIMS / Global Bio-Lab Entry)',
+      topRecruiters: ['AIIMS New Delhi Network', 'Apollo Healthcare Labs', 'Dr. Reddys Biotech', 'Bharat Biotech']
+    },
+    facilities: [
+      'High-Yield Micro-Biology & Cadaveric Dissection Simulators',
+      'Botanical Research Greenhouse',
+      'Digital Library with 50,000+ Medical Journals',
+      'Residential Health Center'
+    ],
+    branches: [
+      { name: 'Intermediate BiPC (Biology, Physics, Chemistry) - NEET Elite', code: 'BIPC-NEET', seats: 150, durationYears: 2 },
+      { name: 'BiPC Bio-Informatics & AI Genetics Track', code: 'BIPC-GEN', seats: 80, durationYears: 2 }
+    ],
+    brochure: {
+      title: 'Sri Chaitanya BiPC Academy Prospectus 2026',
+      filename: 'Chaitanya_BiPC_Prospectus_2026.pdf',
+      academicYear: '2026 - 2027',
+      highlights: [
+        '#1 Ranked Pre-Medical Academy in South India',
+        'Proven Record of AIIMS & JIPMER Top Selections',
+        'Integrated Clinical Research & Diagnostic Labs'
+      ],
+      pages: [
+        {
+          pageNumber: 1,
+          title: 'Pioneering Healthcare Education',
+          content: 'Sri Chaitanya BiPC Academy empowers future doctors, geneticists, and clinical researchers with rigorous conceptual clarity and diagnostic intuition.'
+        },
+        {
+          pageNumber: 2,
+          title: 'NEET Specialization Matrix',
+          content: 'Daily 3-hour dedicated NEET problem solving sessions, micro-level error analysis, and 3D human anatomy simulations.'
+        }
+      ]
+    }
   },
   {
     id: 'govt-poly',
@@ -213,10 +413,62 @@ export const MOCK_COLLEGES: College[] = [
     matchRate: 96,
     established: '1954',
     acceptanceRate: '35%',
+    officialEmail: 'principal.gptb@karnataka.gov.in',
+    isPartner: true,
     mission: 'Practical technical mastery, CNC tooling, and direct engineering lateral entry.',
     perks: ['100% Government Stipend Cover', 'Industrial Automation Lab', 'Direct Lateral Entry to 2nd Year B.Tech'],
     requirements: 'Class 10 Pass + State POLYCET Merit Rank',
-    description: 'State premier technical institution offering 3-year diplomas in Computer Engineering, ECE, Mechanical, and Civil Engineering with guaranteed lateral entry into accredited B.Tech degree programs.'
+    description: 'State premier technical institution offering 3-year diplomas in Computer Engineering, ECE, Mechanical, and Civil Engineering with guaranteed lateral entry into accredited B.Tech degree programs.',
+    feeStructure: {
+      tuitionFeePerYear: '₹14,500 / year (Govt Subsidized)',
+      hostelFeePerYear: '₹22,000 / year (Mess Included)',
+      admissionFee: '₹1,200',
+      scholarships: [
+        '100% Fee Reimbursement for SC/ST/BC Merit Candidates',
+        'Pragati Scholarship for Girl Technical Students (₹50,000/yr)',
+        'State POLYCET Rank 1-1000 Free Laptop Scheme'
+      ]
+    },
+    placements: {
+      placementRate: 92,
+      avgPackage: '₹4.8 LPA (Diploma Lateral Placement)',
+      highestPackage: '₹14 LPA (Bosch & Siemens Tooling)',
+      topRecruiters: ['Bosch India', 'Siemens Automation', 'L&T Construction', 'Toyota Kirloskar', 'HAL Bangalore']
+    },
+    facilities: [
+      'Heavy Industrial Lathe & CNC Machine Shop',
+      'Electrical Power Grid & Relays Lab',
+      'CAD / CAM Design Workstation Room',
+      'Govt Apprenticeship & Career Placement Cell'
+    ],
+    branches: [
+      { name: 'Diploma in Computer Engineering (DCME)', code: 'DCME', seats: 120, durationYears: 3 },
+      { name: 'Diploma in Mechanical Engineering (DME)', code: 'DME', seats: 120, durationYears: 3 },
+      { name: 'Diploma in Electronics & Comm. (DECE)', code: 'DECE', seats: 90, durationYears: 3 },
+      { name: 'Diploma in Civil Engineering (DCE)', code: 'DCE', seats: 60, durationYears: 3 }
+    ],
+    brochure: {
+      title: 'Govt Polytechnic Bangalore Institutional Prospectus',
+      filename: 'Govt_Polytechnic_Bangalore_2026.pdf',
+      academicYear: '2026 - 2027',
+      highlights: [
+        'AICTE Approved & NBA Accredited State Polytechnic',
+        'Guaranteed Lateral Entry (ECET) into 2nd Year Engineering Degree',
+        'Direct Campus Recruitment Contracts with Tier-1 Heavy Industries'
+      ],
+      pages: [
+        {
+          pageNumber: 1,
+          title: 'Legacy of Technical Excellence',
+          content: 'Established in 1954, Govt Polytechnic Bangalore is Karnataka premier technical diploma hub, training hands-on engineers for global manufacturing and software leadership.'
+        },
+        {
+          pageNumber: 2,
+          title: 'Diploma Branches & Lateral Pathways',
+          content: 'Detailed breakdown of 3-year diploma courses, workshop credit hours, industrial internship semesters, and B.Tech lateral entry seat quotas.'
+        }
+      ]
+    }
   },
   {
     id: 'centauri-poly',
@@ -229,10 +481,56 @@ export const MOCK_COLLEGES: College[] = [
     matchRate: 95,
     established: '2012',
     acceptanceRate: '18%',
+    officialEmail: 'admissions@centauripolytechnic.edu',
+    isPartner: true,
     mission: 'Developing self-healing compiler nets and kernel architecture.',
     perks: ['100% Developer Fellowship', 'High-Performance Grid Access', 'Web3 Global Accelerator Lab'],
     requirements: 'Class 10 or equivalent, POLYCET rank, Code Diagnostic Test',
-    description: 'Centauri focuses on practical computing diplomas: low-level systems, kernel development, neural net architecture, and hardware-software integration, feeding directly into top-tier tech universities.'
+    description: 'Centauri focuses on practical computing diplomas: low-level systems, kernel development, neural net architecture, and hardware-software integration, feeding directly into top-tier tech universities.',
+    feeStructure: {
+      tuitionFeePerYear: '₹85,000 / year',
+      hostelFeePerYear: '₹60,000 / year',
+      admissionFee: '₹8,000',
+      scholarships: [
+        'Nexora Developer Grant (Up to ₹50,000 Waiver)',
+        'Open Source Contributor Merit Fellowship',
+        'Full Tuition Reimbursement for Top 5% Coders'
+      ]
+    },
+    placements: {
+      placementRate: 98,
+      avgPackage: '₹11.4 LPA',
+      highestPackage: '₹32 LPA (Silicon Valley Offsite)',
+      topRecruiters: ['Microsoft India', 'Qualcomm Tech', 'AMD Hyderabad', 'Red Hat Software', 'Atlassian']
+    },
+    facilities: [
+      'High-Performance NVIDIA H100 GPU AI Cluster',
+      'Hardware Oscilloscope & Embedded IoT Testing Lab',
+      'Hackathon Cyber Arena & 24/7 Hacker Lodge',
+      'Gigabit Fiber Mesh Network'
+    ],
+    branches: [
+      { name: 'Diploma in Artificial Intelligence & Software Nets', code: 'D-AI', seats: 90, durationYears: 3 },
+      { name: 'Diploma in Cloud Infrastructure & Cyber Security', code: 'D-CYBER', seats: 60, durationYears: 3 },
+      { name: 'Diploma in Embedded Systems & Robotics', code: 'D-EMBED', seats: 60, durationYears: 3 }
+    ],
+    brochure: {
+      title: 'Centauri Software Academy Official Handbook 2026',
+      filename: 'Centauri_Polytechnic_Prospectus_2026.pdf',
+      academicYear: '2026 - 2027',
+      highlights: [
+        'Pioneering Project-First Computer Engineering Diploma',
+        'Direct Tech Accelerator Grants for Student Startups',
+        'Industry Mentorship from Senior Engineers at Silicon Valley Giants'
+      ],
+      pages: [
+        {
+          pageNumber: 1,
+          title: 'Re-inventing Technical Education',
+          content: 'Centauri Polytechnic discards outdated theoretical rote learning. Students build compilers, deploy cloud clusters, and write production code from Day 1.'
+        }
+      ]
+    }
   },
   {
     id: 'nit-lateral',
@@ -245,10 +543,61 @@ export const MOCK_COLLEGES: College[] = [
     matchRate: 98,
     established: '2020',
     acceptanceRate: '12%',
+    officialEmail: 'admissions@nit.nexora.edu',
+    isPartner: true,
     mission: 'Designing next-generation orbital telemetry & autonomous neural robotics.',
     perks: ['Elite Lateral Fellowship (100% Tuition)', 'Interactive Neural AI Sandbox', 'Direct ISRO/SpaceX Placement'],
     requirements: 'Diploma in Engineering with min 70% aggregate marks',
-    description: 'The flagship university hub of Nexora. NIT provides a direct 2nd-year lateral entry gateway for Polytechnic diploma graduates into cutting-edge Computer, Electronics, and Mechanical branches.'
+    description: 'The flagship university hub of Nexora. NIT provides a direct 2nd-year lateral entry gateway for Polytechnic diploma graduates into cutting-edge Computer, Electronics, and Mechanical branches.',
+    feeStructure: {
+      tuitionFeePerYear: '₹1,25,000 / year',
+      hostelFeePerYear: '₹90,000 / year (Executive Single/Twin)',
+      admissionFee: '₹10,000',
+      scholarships: [
+        'Nexora Institutional Gold Medal Fellowship (100% Tuition + Hostel)',
+        'Polytechnic Lateral Entry Merit Scholarship (50% Waiver)',
+        'Research Grant for Autonomous Robotics Projects'
+      ]
+    },
+    placements: {
+      placementRate: 99,
+      avgPackage: '₹16.8 LPA',
+      highestPackage: '₹54 LPA (Global Telemetry / Aerospace)',
+      topRecruiters: ['ISRO Bangalore', 'SpaceX Aerospace Partner', 'Google Research India', 'Tesla Energy', 'NVIDIA Systems']
+    },
+    facilities: [
+      'Quantum Computing & Neural Telemetry Lab',
+      'Aerospace Wind Tunnel & Satellite Assembly Cleanroom',
+      'Autonomous Vehicle Test Track',
+      'International Scholar Residence & Executive Dining'
+    ],
+    branches: [
+      { name: 'B.Tech Computer Science & Autonomous AI (Lateral 2nd Year)', code: 'BTECH-CSE-LAT', seats: 60, durationYears: 3 },
+      { name: 'B.Tech Robotics & Aerospace Avionics (Lateral 2nd Year)', code: 'BTECH-AERO-LAT', seats: 45, durationYears: 3 },
+      { name: 'B.Tech Electronics & Quantum Communication (Lateral 2nd Year)', code: 'BTECH-ECE-LAT', seats: 45, durationYears: 3 }
+    ],
+    brochure: {
+      title: 'Nexora Institute of Technology Flagship Prospectus 2026',
+      filename: 'NIT_Flagship_Prospectus_2026.pdf',
+      academicYear: '2026 - 2027',
+      highlights: [
+        'The #1 Rated Lateral Entry Engineering Campus in Asia',
+        'Direct Orbital Payload Projects with Space Agencies',
+        '100% Guaranteed High-Impact Placement Match'
+      ],
+      pages: [
+        {
+          pageNumber: 1,
+          title: 'The Frontier of Engineering',
+          content: 'Nexora Institute of Technology (NIT) stands as the beacon of innovation for diploma graduates seeking direct lateral entry into world-class B.Tech engineering disciplines.'
+        },
+        {
+          pageNumber: 2,
+          title: 'Lateral Entry Admissions Policy',
+          content: 'State ECET rankers and Polytechnic diploma holders with 70%+ aggregate are eligible for direct 2nd-year admission into our honors B.Tech degrees.'
+        }
+      ]
+    }
   },
   {
     id: 'apex-iti',
@@ -261,10 +610,56 @@ export const MOCK_COLLEGES: College[] = [
     matchRate: 88,
     established: '1998',
     acceptanceRate: '45%',
+    officialEmail: 'admissions@apexiti.org',
+    isPartner: true,
     mission: 'Mastering mechanical automation, CNC tooling, and electric smart grids.',
     perks: ['Industry-Ready Stipend (100% Paid)', 'Advanced CNC Tooling Lab', 'Global Industrial Trade Certification'],
     requirements: 'Class 10 Pass, Manual Agility Test',
-    description: 'Providing vocational expertise in industrial electrician trades, precision fitting, and CNC lathe machining with direct placement contracts into automotive and aerospace assembly lines.'
+    description: 'Providing vocational expertise in industrial electrician trades, precision fitting, and CNC lathe machining with direct placement contracts into automotive and aerospace assembly lines.',
+    feeStructure: {
+      tuitionFeePerYear: '₹18,000 / year (Fully Reimbursed)',
+      hostelFeePerYear: '₹24,000 / year',
+      admissionFee: '₹1,000',
+      scholarships: [
+        'National Apprenticeship Training Scheme Stipend (₹8,000/month)',
+        '100% Fee Subsidy for Skilled Trade Aspirants',
+        'Free Industrial Safety Toolkit & Protective Gear'
+      ]
+    },
+    placements: {
+      placementRate: 95,
+      avgPackage: '₹3.8 LPA + Monthly Production Incentives',
+      highestPackage: '₹8.5 LPA (Overseas Industrial Operations)',
+      topRecruiters: ['Hyundai Motors India', 'Royal Enfield', 'TVS Motors', 'L&T Heavy Engineering', 'Schindler Elevators']
+    },
+    facilities: [
+      'German Standard CNC Lathe & Milling Workshop',
+      'HVAC & Industrial Refrigeration Lab',
+      'High-Voltage Electrical Relay & Wiring Station',
+      'Apprenticeship & Direct Factory Placement Cell'
+    ],
+    branches: [
+      { name: 'ITI Electrician (2-Year Trade)', code: 'ITI-ELEC', seats: 100, durationYears: 2 },
+      { name: 'ITI Fitter & Precision Machinist (2-Year Trade)', code: 'ITI-FIT', seats: 100, durationYears: 2 },
+      { name: 'ITI COPA (Computer Operator & Programming Asst - 1 Year)', code: 'ITI-COPA', seats: 80, durationYears: 1 }
+    ],
+    brochure: {
+      title: 'Apex Industrial Training Institute Official Trade Prospectus',
+      filename: 'Apex_ITI_Trades_Prospectus_2026.pdf',
+      academicYear: '2026 - 2027',
+      highlights: [
+        'NCVT / SCVT Recognized Government Grade Vocational Hub',
+        'Direct On-the-Job Paid Apprenticeships in Manufacturing Plants',
+        '100% Trade Qualification & Job Assurance'
+      ],
+      pages: [
+        {
+          pageNumber: 1,
+          title: 'Powering Industrial Growth',
+          content: 'Apex ITI transforms Class 10 graduates into certified master craftsmen, electricians, and CNC machinists powering India manufacturing revolution.'
+        }
+      ]
+    }
   }
 ];
 

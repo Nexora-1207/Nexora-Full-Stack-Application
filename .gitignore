@@ -27,3 +27,5 @@ yarn-error.*
 # Build and debug logs
 *.txt
 *.log
+*.tsbuildinfo
+

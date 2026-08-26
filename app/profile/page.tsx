@@ -20,10 +20,12 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import { useCyberToast } from '@/components/CyberToast';
 import confetti from 'canvas-confetti';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const toast = useCyberToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -118,6 +120,7 @@ export default function ProfilePage() {
 
       setSaving(false);
       setSaveSuccess(true);
+      toast.success('Student Dossier Synced!', 'Your profile information and verified skill tags have been synchronized.');
       confetti({
         particleCount: 70,
         spread: 50,
@@ -127,7 +130,7 @@ export default function ProfilePage() {
     } catch (err) {
       console.error(err);
       setSaving(false);
-      alert('Profile saved locally. Check connection for cloud sync.');
+      toast.info('Saved in Local Cache', 'Dossier saved locally and will auto-sync on next server connection.');
     }
   };
 

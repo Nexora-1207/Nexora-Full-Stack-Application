@@ -19,6 +19,7 @@ import {
 import { INITIAL_VAULT_FILES } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useCyberToast } from '@/components/CyberToast';
 
 interface VaultFile {
   id: string;
@@ -33,6 +34,7 @@ const CATEGORIES = ['ALL', 'ACADEMIC', 'TIMETABLE', 'ADMISSIONS', 'OTHERS'] as c
 
 export default function VaultPage() {
   const router = useRouter();
+  const toast = useCyberToast();
   const [loading, setLoading] = useState(true);
   const [files, setFiles] = useState<VaultFile[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
@@ -96,6 +98,7 @@ export default function VaultPage() {
       const updated = files.filter((f) => f.id !== id);
       saveFilesToStorage(updated);
       if (selectedFile?.id === id) setSelectedFile(null);
+      toast.info('Document Removed', 'File has been deleted from your vault locker.');
     }
   };
 
@@ -114,6 +117,7 @@ export default function VaultPage() {
 
     const updated = [newDoc, ...files];
     saveFilesToStorage(updated);
+    toast.success('Document Encrypted & Saved', `${newDoc.name} is now stored in your Document Vault.`);
     
     setNewFileName('');
     setNewFileContent('');
@@ -123,6 +127,7 @@ export default function VaultPage() {
   const handleShareToWhatsApp = (file: VaultFile) => {
     const text = encodeURIComponent(`*Nexora Academic Vault Document*\n\n📄 File: ${file.name}\n📂 Category: ${file.category}\n📅 Date: ${file.date}\n\n${file.content}`);
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    toast.info('WhatsApp Export Triggered', `Dispatching ${file.name} to WhatsApp...`);
   };
 
   const filteredFiles = files.filter((f) => {

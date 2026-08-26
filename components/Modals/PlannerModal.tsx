@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, CalendarPlus, CheckCircle2 } from 'lucide-react';
+import { useCyberToast } from '@/components/CyberToast';
 
 interface PlannerModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface PlannerModalProps {
 }
 
 export default function PlannerModal({ isOpen, onClose, onAdd }: PlannerModalProps) {
+  const toast = useCyberToast();
   const [time, setTime] = useState('');
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
@@ -26,6 +28,7 @@ export default function PlannerModal({ isOpen, onClose, onAdd }: PlannerModalPro
       location: location.trim() || 'Main Academic Block'
     });
 
+    toast.success('Routine Entry Added', `${title.trim()} scheduled at ${time.trim()}`);
     setTime('');
     setTitle('');
     setLocation('');

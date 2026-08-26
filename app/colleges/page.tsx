@@ -19,12 +19,14 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { College, MOCK_COLLEGES, INITIAL_VAULT_FILES } from '@/lib/data';
+import { useCyberToast } from '@/components/CyberToast';
 import confetti from 'canvas-confetti';
 
 const STREAMS = ['ALL', 'MPC', 'BiPC', 'Polytechnic', 'ITI'] as const;
 
 export default function CollegesPage() {
   const router = useRouter();
+  const toast = useCyberToast();
   const [loading, setLoading] = useState(true);
   const [activeStream, setActiveStream] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,9 +157,10 @@ export default function CollegesPage() {
       files.unshift(newFile);
       localStorage.setItem('vault_files', JSON.stringify(files));
       setTokenAlert(null);
-      alert('Admissions Gateway Token successfully encrypted and stored in your Document Vault locker!');
+      toast.success('Token Saved to Vault', `Admissions token ${tokenAlert.token} has been encrypted and stored in your Document Vault.`);
     } catch (e) {
       console.error(e);
+      toast.error('Vault Save Failed', 'Unable to store token in Document Vault.');
     }
   };
 
@@ -254,21 +257,30 @@ export default function CollegesPage() {
             return (
               <div
                 key={college.id}
-                className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col justify-between relative group overflow-hidden"
+                className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col justify-between relative group overflow-hidden border border-white/[0.08] hover:border-cyber-cyan/40 transition-all duration-300 shadow-lg hover:shadow-cyber-cyan/10"
               >
                 <div>
                   {/* Card Header */}
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-cyber-magenta/10 border border-cyber-magenta/30 text-cyber-magenta">
                           {college.sector}
                         </span>
                         <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan">
                           {college.stream}
                         </span>
+                        {college.isPartner && (
+                          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-cyber-emerald/10 border border-cyber-emerald/30 text-cyber-emerald flex items-center gap-1">
+                            <CheckCircle2 className="w-2.5 h-2.5" />
+                            OFFICIAL PARTNER
+                          </span>
+                        )}
                       </div>
-                      <h3 className="text-lg font-black text-slate-900 dark:text-white group-hover:text-cyber-cyan transition pt-1">
+                      <h3 
+                        onClick={() => router.push(`/colleges/${college.id}`)}
+                        className="text-lg font-black text-slate-900 dark:text-white group-hover:text-cyber-cyan transition pt-1 cursor-pointer"
+                      >
                         {college.name}
                       </h3>
                       
@@ -292,6 +304,18 @@ export default function CollegesPage() {
                     </div>
                   </div>
 
+                  {/* Fee & Placement Highlights Bar */}
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06]">
+                      <span className="text-[9px] font-black text-slate-400 dark:text-white/40 uppercase block">TUITION FEE</span>
+                      <span className="text-xs font-bold text-slate-800 dark:text-white truncate block">{college.feeStructure?.tuitionFeePerYear || '₹50k/yr'}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06]">
+                      <span className="text-[9px] font-black text-slate-400 dark:text-white/40 uppercase block">PLACEMENTS</span>
+                      <span className="text-xs font-bold text-cyber-emerald truncate block">{college.placements?.placementRate || 95}% Success Rate</span>
+                    </div>
+                  </div>
+
                   {/* Mission Directive Quote */}
                   <div className="p-3 rounded-xl bg-slate-100/60 dark:bg-white/[0.02] border-l-2 border-cyber-cyan mb-4">
                     <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-white/40 block mb-1">
@@ -306,35 +330,19 @@ export default function CollegesPage() {
                 {/* Card Actions */}
                 <div className="pt-4 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between gap-2">
                   <button
-                    onClick={() => setSelectedCollege(college)}
+                    onClick={() => router.push(`/colleges/${college.id}`)}
                     className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-xs font-bold text-cyber-cyan flex items-center justify-center gap-1.5 transition"
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>MISSION BRIEF</span>
+                    <span>OVERVIEW & BROCHURE</span>
                   </button>
 
                   <button
-                    onClick={() => handleApply(college)}
-                    disabled={isApplied || applyingId === college.id}
-                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition ${
-                      isApplied
-                        ? 'bg-cyber-emerald/20 border border-cyber-emerald text-cyber-emerald'
-                        : 'cyber-button-primary'
-                    }`}
+                    onClick={() => router.push(`/colleges/${college.id}`)}
+                    className="flex-1 py-2.5 px-3 rounded-xl text-xs font-black cyber-button-primary flex items-center justify-center gap-1.5 transition shadow-md"
                   >
-                    {applyingId === college.id ? (
-                      <span className="animate-pulse">CONNECTING...</span>
-                    ) : isApplied ? (
-                      <>
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>SYNCD APPLY</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3.5 h-3.5" />
-                        <span>APPLY GATEWAY</span>
-                      </>
-                    )}
+                    <Send className="w-3.5 h-3.5" />
+                    <span>APPLY NOW</span>
                   </button>
                 </div>
 

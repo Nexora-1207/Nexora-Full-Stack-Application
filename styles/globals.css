@@ -80,20 +80,15 @@ body {
     pointer-events: none;
   }
 
-  /* Ultra-Curved Bottom Floating Taskbar Dock - Enhanced Crystal Transparency */
+  /* Symmetrical Floating Taskbar Dock - Sleek Deep Dark Glass */
   .liquid-glass-dock {
-    background: rgba(10, 15, 30, 0.45);
-    backdrop-filter: blur(28px) saturate(210%);
-    -webkit-backdrop-filter: blur(28px) saturate(210%);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 2.25rem;
+    background: rgba(10, 15, 28, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 1.75rem;
     position: relative;
-    transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-  }
-
-  .light .liquid-glass-dock {
-    background: rgba(255, 255, 255, 0.58);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s ease;
   }
 
   /* Smooth Tab Fade Slide */

@@ -12,18 +12,17 @@ import {
   Compass, 
   LogOut, 
   ShieldCheck,
-  Sun,
-  Moon,
-  Laptop
+  Globe,
+  Users
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useTheme } from '@/components/ThemeProvider';
 import { SECTOR_TREES } from '@/lib/sectorTrees';
+import { useCyberToast } from '@/components/CyberToast';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { resolvedTheme, toggleTheme, theme } = useTheme();
+  const toast = useCyberToast();
   const [user, setUser] = useState<any>(null);
   const [activeSector, setActiveSector] = useState<string>('ENGINEERING');
   const [isGuest, setIsGuest] = useState(false);
@@ -62,6 +61,7 @@ export default function Navbar() {
       localStorage.removeItem('activeSector');
       localStorage.removeItem('nexoraGuestMode');
     }
+    toast.info('Signed Out', 'Session terminated. Clearance returned to gateway.');
     router.push('/auth');
   };
 
@@ -145,19 +145,6 @@ export default function Navbar() {
               </span>
             </Link>
 
-            {/* Dynamic Light/Dark Theme Switcher Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:border-white/20 text-slate-700 dark:text-white/80 flex items-center justify-center transition shadow-sm"
-              title={`Switch to ${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            >
-              {resolvedTheme === 'dark' ? (
-                <Sun className="w-4 h-4 text-cyber-amber animate-spin-slow" />
-              ) : (
-                <Moon className="w-4 h-4 text-cyber-violet" />
-              )}
-            </button>
-
             {/* User State */}
             {user || isGuest ? (
               <button
@@ -181,15 +168,14 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* ULTRA-CURVED FLOATING LIQUID GLASS TASKBAR DOCK (BOTTOM) */}
-      <div className="fixed bottom-5 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+      {/* STREAMLINED SYMMETRICAL FLOATING GLASS DOCK (BOTTOM) */}
+      <div className="fixed bottom-3 sm:bottom-5 left-0 right-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
         <nav 
-          className="liquid-glass-dock pointer-events-auto w-full max-w-lg px-4 py-2 flex items-center justify-around"
+          className="liquid-glass-dock pointer-events-auto w-full max-w-md px-2 py-2 grid grid-cols-5 items-center gap-1 shadow-2xl"
           style={{
-            boxShadow: `0 20px 50px -10px rgba(0, 0, 0, 0.65), 0 0 30px -5px ${glowColor}`
+            boxShadow: `0 15px 35px -5px rgba(0, 0, 0, 0.8), 0 0 25px -5px ${glowColor}`
           }}
         >
-          
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -199,25 +185,33 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`relative -mt-8 w-14 h-14 rounded-full p-[2px] shadow-lg transition-transform duration-300 hover:scale-110 active:scale-95 group ${
-                    isActive ? 'scale-110 ring-4' : ''
+                  className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-200 group ${
+                    isActive
+                      ? 'bg-cyber-cyan/15 border border-cyber-cyan/40 shadow-lg shadow-cyber-cyan/20'
+                      : 'hover:bg-white/[0.04]'
                   }`}
-                  style={{
-                    background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-                    boxShadow: `0 10px 25px ${glowColor}`
-                  }}
                 >
-                  <div className="w-full h-full bg-background rounded-full flex flex-col items-center justify-center">
+                  <div 
+                    className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm"
+                    style={{
+                      background: isActive 
+                        ? `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` 
+                        : 'rgba(0, 240, 255, 0.12)',
+                      border: `1px solid ${primaryColor}50`
+                    }}
+                  >
                     <Icon 
-                      className="w-6 h-6 animate-spin-slow group-hover:scale-110 transition-transform" 
-                      style={{ color: primaryColor }}
+                      className={`w-4 h-4 transition-colors ${
+                        isActive ? 'text-background fill-background' : 'text-cyber-cyan'
+                      }`} 
                     />
                   </div>
-                  {/* Glowing halo pulse */}
                   <span 
-                    className="absolute inset-0 rounded-full animate-ping pointer-events-none"
-                    style={{ backgroundColor: `${primaryColor}25` }}
-                  ></span>
+                    className="text-[9px] font-black tracking-tight mt-1 truncate max-w-full"
+                    style={{ color: isActive ? primaryColor : 'rgba(255,255,255,0.7)' }}
+                  >
+                    Nexora AI
+                  </span>
                 </Link>
               );
             }
@@ -226,30 +220,43 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition-all duration-200 ${
+                className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-200 group relative ${
                   isActive
-                    ? 'font-black scale-105'
-                    : 'text-slate-500 dark:text-white/40 hover:text-slate-900 dark:hover:text-white/80 hover:scale-105'
+                    ? 'bg-white/[0.08] border border-white/[0.12] shadow-md'
+                    : 'text-slate-400 dark:text-white/50 hover:text-white hover:bg-white/[0.04]'
                 }`}
-                style={isActive ? { color: primaryColor } : undefined}
+                style={isActive ? { borderColor: `${primaryColor}40` } : undefined}
               >
-                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'stroke-[2.5px]' : ''}`} />
-                <span className="text-[10px] font-bold tracking-wider mt-1">{item.name}</span>
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <Icon 
+                    className={`w-5 h-5 transition-transform group-hover:scale-110 ${
+                      isActive ? 'stroke-[2.5px]' : 'stroke-[1.75px]'
+                    }`}
+                    style={isActive ? { color: primaryColor } : undefined}
+                  />
+                </div>
+                <span 
+                  className={`text-[9px] tracking-tight truncate max-w-full font-bold ${
+                    isActive ? 'font-black' : ''
+                  }`}
+                  style={isActive ? { color: primaryColor } : undefined}
+                >
+                  {item.name}
+                </span>
 
-                {/* Liquid Droplet Indicator */}
+                {/* Subtle active pill indicator on top */}
                 {isActive && (
                   <span 
-                    className="liquid-drop -bottom-1 left-1/2 -translate-x-1/2"
+                    className="absolute -top-[1px] w-6 h-[2px] rounded-full"
                     style={{
                       backgroundColor: primaryColor,
-                      boxShadow: `0 0 10px ${primaryColor}, 0 0 20px ${primaryColor}`
+                      boxShadow: `0 0 8px ${primaryColor}`
                     }}
                   ></span>
                 )}
               </Link>
             );
           })}
-
         </nav>
       </div>
     </>

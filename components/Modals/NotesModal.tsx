@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, BookOpen, FolderLock, CheckCircle2 } from 'lucide-react';
 import { INITIAL_VAULT_FILES } from '@/lib/data';
+import { useCyberToast } from '@/components/CyberToast';
 
 interface NotesModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface NotesModalProps {
 }
 
 export default function NotesModal({ isOpen, onClose }: NotesModalProps) {
+  const toast = useCyberToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [saved, setSaved] = useState(false);
@@ -35,6 +37,7 @@ export default function NotesModal({ isOpen, onClose }: NotesModalProps) {
       files.unshift(newFile);
       localStorage.setItem('vault_files', JSON.stringify(files));
       setSaved(true);
+      toast.success('Note Encrypted & Saved', `${newFile.name} is now stored in your Document Vault.`);
       setTimeout(() => {
         setSaved(false);
         setTitle('');
@@ -43,6 +46,7 @@ export default function NotesModal({ isOpen, onClose }: NotesModalProps) {
       }, 1500);
     } catch (e) {
       console.error(e);
+      toast.error('Save Failed', 'Could not save note to local vault.');
     }
   };
 

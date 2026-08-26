@@ -26,6 +26,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { INITIAL_EVENTS } from '@/lib/data';
 import { SECTOR_TREES } from '@/lib/sectorTrees';
+import { useCyberToast } from '@/components/CyberToast';
 import ResumeModal from '@/components/Modals/ResumeModal';
 import InterviewModal from '@/components/Modals/InterviewModal';
 import ExplainerModal from '@/components/Modals/ExplainerModal';
@@ -177,6 +178,7 @@ const getScheduleForSector = (sectorId: string) => {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const toast = useCyberToast();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'Home' | 'Events'>('Home');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
@@ -981,7 +983,7 @@ export default function DashboardPage() {
 
                 {/* Register Action */}
                 <button
-                  onClick={() => alert(`Registered for ${evt.title}! Confirmation synced with your Document Vault.`)}
+                  onClick={() => toast.success('Event Registration Confirmed!', `Access pass for ${evt.title} has been encrypted and synced with your Document Vault.`)}
                   className="cyber-button-primary px-5 py-2.5 rounded-xl text-xs font-black shrink-0 self-start sm:self-auto shadow-md"
                   style={{
                     backgroundImage: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
@@ -996,6 +998,20 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* GLOBAL FOOTER */}
+      <footer className="pt-12 pb-6 border-t border-slate-200 dark:border-white/[0.08] text-center space-y-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs font-bold text-slate-500 dark:text-white/50">
+          <span>Nexora Academic &amp; Career Command Hub</span>
+          <span>&middot;</span>
+          <span>Official Launch 2026</span>
+          <span>&middot;</span>
+          <span className="font-mono text-cyber-cyan">nexoraedu.co.in</span>
+        </div>
+        <p className="text-[10px] text-slate-400 dark:text-white/30 tracking-widest uppercase">
+          Nexora Education Technologies &copy; 2026 &middot; All Rights Reserved
+        </p>
+      </footer>
 
       {/* MODAL DIALOGS */}
       <ResumeModal isOpen={resumeOpen} onClose={() => setResumeOpen(false)} />

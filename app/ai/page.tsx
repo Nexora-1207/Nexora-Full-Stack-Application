@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { AI_SUGGESTIONS, AI_RESPONSES } from '@/lib/data';
 import { supabase } from '@/lib/supabase';
+import { useCyberToast } from '@/components/CyberToast';
 
 interface Message {
   id: string;
@@ -27,6 +28,7 @@ interface Message {
 
 export default function AIPage() {
   const router = useRouter();
+  const toast = useCyberToast();
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -144,6 +146,7 @@ export default function AIPage() {
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
+    toast.success('Response Copied', 'S-Node response copied to clipboard.');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -156,6 +159,7 @@ export default function AIPage() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
+    toast.info('Chat Context Reset', 'S-Node AI conversation reset to default state.');
   };
 
   return (
