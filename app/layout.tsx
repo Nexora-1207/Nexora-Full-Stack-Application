@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Outfit, Inter } from 'next/font/google';
 import '../styles/globals.css';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { CyberToastProvider } from '@/components/CyberToast';
 
@@ -33,7 +34,11 @@ export const metadata: Metadata = {
   description: 'AI-driven career pathfinder, academic colleges hub, document vault, and placement readiness platform founded by Shaik Nadeem Ahmed (CEO & CTO) and Gudipalli Rakesh Varma (CMO & CFO).',
   keywords: [
     'Nexora', 
-    'NEXORAEDU.CO.IN', 
+    'NEXORAEDU.CO.IN',
+    'NexoraEdu',
+    'Founders of Nexora',
+    'Founders of NexoraEdu',
+    'Nexora Founders',
     'Shaik Nadeem Ahmed',
     'Shaik. Nadeem Ahmed',
     'Nadeem Shaik',
@@ -44,7 +49,6 @@ export const metadata: Metadata = {
     'Rakesh Varma Gudipalli',
     'Nexora CMO',
     'Nexora CFO',
-    'Nexora Founders',
     'Career Pathfinder', 
     'Engineering Colleges', 
     'Polytechnic Diploma Lateral Entry', 
@@ -61,6 +65,7 @@ export const metadata: Metadata = {
   ],
   creator: 'Shaik. Nadeem Ahmed & Gudipalli. Rakesh Varma (Nexora)',
   publisher: 'Nexora Education Technologies',
+  manifest: '/manifest.webmanifest',
   formatDetection: {
     email: false,
     address: false,
@@ -83,11 +88,17 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon.png', type: 'image/png' },
-      { url: '/icon.png', type: 'image/png' }
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon-512x512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/icon.png', sizes: '640x640', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
-    apple: '/logo.png',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/logo.png', sizes: '512x512', type: 'image/png' },
+    ],
   },
   openGraph: {
     title: 'Nexora | Premier Student Academic & Career Command Hub',
@@ -131,7 +142,7 @@ const jsonLd = {
       '@type': 'EducationalOrganization',
       '@id': 'https://www.nexoraedu.co.in/#organization',
       name: 'Nexora',
-      alternateName: 'Nexora Education Technologies',
+      alternateName: ['NexoraEdu', 'Nexora Education Technologies'],
       url: 'https://www.nexoraedu.co.in',
       logo: {
         '@type': 'ImageObject',
@@ -139,12 +150,16 @@ const jsonLd = {
         width: '512',
         height: '512'
       },
+      image: 'https://www.nexoraedu.co.in/nexora_logo.jpg',
       email: 'nexoraofficial1207@gmail.com',
       description: 'Premier Student Academic & Career Command Hub connecting Intermediate, Polytechnic, and ITI students with top engineering colleges, career pathfinding, and placement readiness.',
       founders: [
         {
           '@type': 'Person',
+          '@id': 'https://www.nexoraedu.co.in/#nadeem',
           name: 'Shaik. Nadeem Ahmed',
+          givenName: 'Nadeem',
+          familyName: 'Shaik',
           jobTitle: 'Co-Founder, Chief Executive Officer (CEO) & Chief Technology Officer (CTO)',
           url: 'https://www.linkedin.com/in/nadeem-shaik-458981343',
           sameAs: [
@@ -155,7 +170,10 @@ const jsonLd = {
         },
         {
           '@type': 'Person',
+          '@id': 'https://www.nexoraedu.co.in/#rakesh',
           name: 'Gudipalli. Rakesh Varma',
+          givenName: 'Rakesh Varma',
+          familyName: 'Gudipalli',
           jobTitle: 'Co-Founder, Chief Marketing Officer (CMO) & Chief Financial Officer (CFO)',
           url: 'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343',
           sameAs: [
@@ -206,9 +224,13 @@ export default function RootLayout({
             <main className="flex-1 relative z-10">
               {children}
             </main>
+
+            {/* Comprehensive SEO & Corporate Footer */}
+            <Footer />
           </CyberToastProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+
