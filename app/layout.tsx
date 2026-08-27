@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://nexoraedu.co.in'),
+  metadataBase: new URL('https://www.nexoraedu.co.in'),
   title: {
     default: 'Nexora | Premier Student Academic & Career Command Hub',
     template: '%s | Nexora'
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   authors: [
     { name: 'Shaik. Nadeem Ahmed - CEO & CTO', url: 'https://www.linkedin.com/in/nadeem-shaik-458981343' },
     { name: 'Gudipalli. Rakesh Varma - CMO & CFO', url: 'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343' },
-    { name: 'Nexora Education Technologies', url: 'https://nexoraedu.co.in' }
+    { name: 'Nexora Education Technologies', url: 'https://www.nexoraedu.co.in' }
   ],
   creator: 'Shaik. Nadeem Ahmed & Gudipalli. Rakesh Varma (Nexora)',
   publisher: 'Nexora Education Technologies',
@@ -67,7 +67,18 @@ export const metadata: Metadata = {
     telephone: false,
   },
   alternates: {
-    canonical: 'https://nexoraedu.co.in',
+    canonical: 'https://www.nexoraedu.co.in',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   icons: {
     icon: [
@@ -81,7 +92,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Nexora | Premier Student Academic & Career Command Hub',
     description: 'AI-driven career pathfinder, academic colleges hub, encrypted document vault, and placement readiness platform founded by Shaik Nadeem Ahmed and Gudipalli Rakesh Varma.',
-    url: 'https://nexoraedu.co.in',
+    url: 'https://www.nexoraedu.co.in',
     siteName: 'Nexora',
     images: [
       {
@@ -104,43 +115,64 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Nexora',
-  alternateName: 'Nexora Education Technologies',
-  url: 'https://nexoraedu.co.in',
-  logo: 'https://nexoraedu.co.in/logo.png',
-  email: 'nexoraofficial1207@gmail.com',
-  description: 'Premier Student Academic & Career Command Hub connecting Intermediate, Polytechnic, and ITI students with top engineering colleges, career pathfinding, and placement readiness.',
-  founders: [
+  '@graph': [
     {
-      '@type': 'Person',
-      name: 'Shaik. Nadeem Ahmed',
-      jobTitle: 'Co-Founder, Chief Executive Officer (CEO) & Chief Technology Officer (CTO)',
-      url: 'https://www.linkedin.com/in/nadeem-shaik-458981343',
-      sameAs: [
-        'https://www.linkedin.com/in/nadeem-shaik-458981343'
-      ],
-      description: "Directs Nexora's overall corporate vision, system architecture, product engineering, and technology strategy as CEO & CTO.",
-      knowsAbout: ['Full-Stack Engineering', 'Cloud Architecture', 'System Design', 'EdTech Innovation', 'Executive Leadership']
+      '@type': 'WebSite',
+      '@id': 'https://www.nexoraedu.co.in/#website',
+      url: 'https://www.nexoraedu.co.in',
+      name: 'Nexora',
+      description: 'Premier Student Academic & Career Command Hub',
+      publisher: {
+        '@id': 'https://www.nexoraedu.co.in/#organization'
+      },
+      inLanguage: 'en-IN'
     },
     {
-      '@type': 'Person',
-      name: 'Gudipalli. Rakesh Varma',
-      jobTitle: 'Co-Founder, Chief Marketing Officer (CMO) & Chief Financial Officer (CFO)',
-      url: 'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343',
-      sameAs: [
-        'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343'
+      '@type': 'EducationalOrganization',
+      '@id': 'https://www.nexoraedu.co.in/#organization',
+      name: 'Nexora',
+      alternateName: 'Nexora Education Technologies',
+      url: 'https://www.nexoraedu.co.in',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.nexoraedu.co.in/logo.png',
+        width: '512',
+        height: '512'
+      },
+      email: 'nexoraofficial1207@gmail.com',
+      description: 'Premier Student Academic & Career Command Hub connecting Intermediate, Polytechnic, and ITI students with top engineering colleges, career pathfinding, and placement readiness.',
+      founders: [
+        {
+          '@type': 'Person',
+          name: 'Shaik. Nadeem Ahmed',
+          jobTitle: 'Co-Founder, Chief Executive Officer (CEO) & Chief Technology Officer (CTO)',
+          url: 'https://www.linkedin.com/in/nadeem-shaik-458981343',
+          sameAs: [
+            'https://www.linkedin.com/in/nadeem-shaik-458981343'
+          ],
+          description: "Directs Nexora's overall corporate vision, system architecture, product engineering, and technology strategy as CEO & CTO.",
+          knowsAbout: ['Full-Stack Engineering', 'Cloud Architecture', 'System Design', 'EdTech Innovation', 'Executive Leadership']
+        },
+        {
+          '@type': 'Person',
+          name: 'Gudipalli. Rakesh Varma',
+          jobTitle: 'Co-Founder, Chief Marketing Officer (CMO) & Chief Financial Officer (CFO)',
+          url: 'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343',
+          sameAs: [
+            'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343'
+          ],
+          description: "Oversees brand marketing, college partnerships, financial stewardship, operations, and business growth as CMO & CFO.",
+          knowsAbout: ['Marketing Strategy', 'Financial Modeling', 'Corporate Operations', 'Institutional Outreach', 'Fiscal Management']
+        }
       ],
-      description: "Oversees brand marketing, college partnerships, financial stewardship, operations, and business growth as CMO & CFO.",
-      knowsAbout: ['Marketing Strategy', 'Financial Modeling', 'Corporate Operations', 'Institutional Outreach', 'Fiscal Management']
+      knowsAbout: [
+        'Career Pathfinder',
+        'Engineering Colleges',
+        'Polytechnic Lateral Entry',
+        'Student Document Vault',
+        'AI Career Guidance'
+      ]
     }
-  ],
-  knowsAbout: [
-    'Career Pathfinder',
-    'Engineering Colleges',
-    'Polytechnic Lateral Entry',
-    'Student Document Vault',
-    'AI Career Guidance'
   ]
 };
 
