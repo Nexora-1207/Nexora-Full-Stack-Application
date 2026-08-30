@@ -24,6 +24,7 @@ export default function Navbar() {
   const router = useRouter();
   const toast = useCyberToast();
   const [user, setUser] = useState<any>(null);
+
   const [activeSector, setActiveSector] = useState<string>('ENGINEERING');
   const [isGuest, setIsGuest] = useState(false);
 

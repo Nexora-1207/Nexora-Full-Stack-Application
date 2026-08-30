@@ -218,12 +218,12 @@ body {
   justify-content: center;
   background: #030712;
   overflow: hidden;
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nexora-intro-exit {
   opacity: 0;
-  transform: scale(1.04);
+  transform: scale(0.97);
   pointer-events: none;
 }
 
@@ -445,3 +445,11 @@ body {
   50%       { opacity: 1; }
 }
 
+/* ── Landing page fade-in (after intro) ───── */
+@keyframes nexoraLandingFadeIn {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.nexora-landing-visible {
+  animation: nexoraLandingFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

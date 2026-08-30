@@ -21,8 +21,8 @@ export default function NexoraIntro({ onComplete }: NexoraIntroProps) {
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('text'), 400);      // letters start rising
     const t2 = setTimeout(() => setPhase('tagline'), 1800);  // tagline & sub fade in
-    const t3 = setTimeout(() => setPhase('exit'), 3100);     // entire screen fades out
-    const t4 = setTimeout(onComplete, 3750);                 // navigation fires after fade
+    const t3 = setTimeout(() => setPhase('exit'), 3000);     // entire screen fades out (1s CSS)
+    const t4 = setTimeout(onComplete, 4100);                 // navigation fires after full fade
 
     return () => {
       clearTimeout(t1);

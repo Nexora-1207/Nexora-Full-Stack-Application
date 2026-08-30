@@ -4,51 +4,66 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import NexoraIntro from '@/components/NexoraIntro';
+import HomePage from '@/components/HomePage';
 
 const SESSION_KEY = 'nexoraIntroPlayed';
 
+type ViewState = 'loading' | 'intro' | 'landing';
+
 export default function RootPage() {
   const router = useRouter();
-  const [showIntro, setShowIntro] = useState<boolean | null>(null);
+  const [view, setView] = useState<ViewState>('loading');
 
   useEffect(() => {
-    const isGuest = localStorage.getItem('nexoraGuestMode') === 'true';
     const introPlayed = sessionStorage.getItem(SESSION_KEY) === 'true';
+    const isGuest = localStorage.getItem('nexoraGuestMode') === 'true';
 
+    // If intro already played this session, skip it and route immediately
     if (introPlayed) {
-      // Skip intro, navigate safely inside useEffect
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session || isGuest) {
           router.replace('/dashboard');
         } else {
-          router.replace('/auth');
+          // Intro played but logged out → show landing page directly (no re-animation)
+          setView('landing');
         }
       });
-      setShowIntro(false);
-    } else {
-      setShowIntro(true);
+      return;
     }
+
+    // First visit this session → always show intro for everyone
+    setView('intro');
   }, [router]);
 
+  // Called when intro animation finishes
   const handleIntroComplete = async () => {
     sessionStorage.setItem(SESSION_KEY, 'true');
     const isGuest = typeof window !== 'undefined' && localStorage.getItem('nexoraGuestMode') === 'true';
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     if (session || isGuest) {
+      // Authenticated → go to dashboard
       router.replace('/dashboard');
     } else {
-      router.replace('/auth');
+      // Not logged in → reveal the landing homepage
+      setView('landing');
     }
   };
 
-  if (showIntro === null || showIntro === false) {
+  // Determining auth state
+  if (view === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#030712]">
-        <div className="w-8 h-8 rounded-full border-2 border-cyber-cyan border-t-transparent animate-spin"></div>
+        <div className="w-8 h-8 rounded-full border-2 border-[#00F0FF] border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  return <NexoraIntro onComplete={handleIntroComplete} />;
+  // Intro splash — plays for every first-time visitor this session
+  if (view === 'intro') {
+    return <NexoraIntro onComplete={handleIntroComplete} />;
+  }
+
+  // Public landing page — shown to logged-out visitors after intro
+  return <HomePage />;
 }
