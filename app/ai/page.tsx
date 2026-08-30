@@ -15,7 +15,8 @@ import {
   Copy,
   Check
 } from 'lucide-react';
-import { AI_SUGGESTIONS, AI_RESPONSES } from '@/lib/data';
+import { AI_SUGGESTIONS } from '@/lib/data';
+import { processNexoraAIQuery } from '@/lib/aiEngine';
 import { supabase } from '@/lib/supabase';
 import { useCyberToast } from '@/components/CyberToast';
 
@@ -34,7 +35,7 @@ export default function AIPage() {
     {
       id: 'm-init',
       sender: 'ai',
-      text: "👋 Greetings, Engineer! I am **Nexora S-Node AI**, your dedicated academic & career intelligence unit.\n\nAsk me anything about **Intermediate MPC**, **BiPC medical lines**, **Polytechnic 3-year diplomas**, **lateral entry into 2nd-year B.Tech**, syllabus reviews, or placement preparation strategy.",
+      text: "👋 Greetings! I am **Nexora AI**, your dedicated academic & career guidance assistant.\n\nI am configured **strictly for educational & career queries**. Ask me anything about **career roadmaps**, **resume building**, **self-introductions**, **Intermediate MPC vs BiPC**, **Polytechnic 3-year diplomas**, **lateral entry into 2nd-year B.Tech**, entrance exams, or college admissions.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -92,23 +93,28 @@ export default function AIPage() {
     setInputText('');
     setIsTyping(true);
 
-    // Simulate AI Typewriter Response
-    setTimeout(() => {
-      const lower = textToSend.toLowerCase();
-      let responseText = AI_RESPONSES[lower];
+    // Process query through Nexora API / Educational AI Engine
+    setTimeout(async () => {
+      let responseText = '';
+      try {
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: textToSend })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.text) {
+            responseText = data.text;
+          }
+        }
+      } catch (err) {
+        console.error('API route call failed:', err);
+      }
 
       if (!responseText) {
-        if (lower.includes('polytechnic') || lower.includes('diploma') || lower.includes('lateral')) {
-          responseText = AI_RESPONSES["what is polytechnic lateral entry?"];
-        } else if (lower.includes('mpc') || lower.includes('math') || lower.includes('physics')) {
-          responseText = AI_RESPONSES["what careers open with intermediate mpc?"];
-        } else if (lower.includes('bipc') || lower.includes('biology') || lower.includes('medical') || lower.includes('neet')) {
-          responseText = AI_RESPONSES["explain bipc medical research path"];
-        } else if (lower.includes('vault') || lower.includes('token') || lower.includes('timetable')) {
-          responseText = AI_RESPONSES["how does the college document vault work?"];
-        } else {
-          responseText = `### 🛰️ Telemetry Directive for "${textToSend}"\n\nYour query has been processed against our academic knowledge base.\n\n- **Target Career Sector**: Engineering & Advanced Tech.\n- **Recommended Strategy**: Check the **Colleges Hub** for institute match ratings and save admissions tokens to your **Document Vault**.\n- **Preparation Tip**: Focus on hands-on practical lab modules and numerical problem-solving to maximize campus placement readiness.`;
-        }
+        const aiResult = processNexoraAIQuery(textToSend);
+        responseText = aiResult.text;
       }
 
       // Stream words with typewriter animation
@@ -139,14 +145,14 @@ export default function AIPage() {
           clearInterval(interval);
           setIsTyping(false);
         }
-      }, 30);
-    }, 600);
+      }, 15);
+    }, 300);
   };
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
-    toast.success('Response Copied', 'S-Node response copied to clipboard.');
+    toast.success('Response Copied', 'Nexora AI response copied to clipboard.');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -155,11 +161,11 @@ export default function AIPage() {
       {
         id: 'm-init',
         sender: 'ai',
-        text: "⚡ Chat context reset. Ready for new telemetry queries.",
+        text: "⚡ Chat context reset. Ready for your queries.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
-    toast.info('Chat Context Reset', 'S-Node AI conversation reset to default state.');
+    toast.info('Chat Context Reset', 'Nexora AI conversation reset to default state.');
   };
 
   return (
@@ -175,11 +181,11 @@ export default function AIPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-black text-lg text-slate-900 dark:text-white tracking-wider">NEXORA S-NODE AI</h1>
+              <h1 className="font-black text-lg text-slate-900 dark:text-white tracking-wider">NEXORA AI</h1>
               <span className="w-2 h-2 rounded-full bg-cyber-emerald shadow-[0_0_8px_#10B981] animate-pulse"></span>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-white/40 font-bold uppercase tracking-wider">
-              QUANTUM REASONING & CAREER ADVISOR
+              ACADEMIC & CAREER AI ADVISOR
             </p>
           </div>
         </div>
@@ -262,7 +268,7 @@ export default function AIPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-bounce"></span>
               <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-bounce [animation-delay:0.2s]"></span>
               <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-bounce [animation-delay:0.4s]"></span>
-              <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 ml-1">S-Node Reasoning...</span>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 ml-1">Nexora AI is thinking...</span>
             </div>
           </div>
         )}
@@ -299,7 +305,7 @@ export default function AIPage() {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ask S-Node AI about MPC, BiPC, lateral entry, or college admissions..."
+              placeholder="Ask Nexora AI about career roadmaps, resume building, streams, or admissions..."
               className="w-full bg-white dark:bg-surface-card border border-slate-200 dark:border-white/[0.12] rounded-2xl pl-5 pr-12 py-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-inner"
             />
           </div>

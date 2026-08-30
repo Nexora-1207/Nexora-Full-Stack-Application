@@ -128,7 +128,7 @@ export const SECTORS: Sector[] = [
     color: '#00F0FF',
     secondaryColor: '#3B82F6',
     description: 'Robotics, Quantum Telemetry, AI Systems & Smart Grids',
-    stats: '96% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'MEDICAL SUPPORT',
@@ -138,7 +138,7 @@ export const SECTORS: Sector[] = [
     color: '#EC4899',
     secondaryColor: '#FF008A',
     description: 'Robotic Surgery, Bioinformatics & Clinical Diagnostics',
-    stats: '89% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'COMPUTERS',
@@ -148,7 +148,7 @@ export const SECTORS: Sector[] = [
     color: '#10B981',
     secondaryColor: '#059669',
     description: 'Full-Stack, Cloud Architecture & Decentralized Ledgers',
-    stats: '95% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'SKILLED TRADES',
@@ -158,7 +158,7 @@ export const SECTORS: Sector[] = [
     color: '#F59E0B',
     secondaryColor: '#D97706',
     description: 'Precision CNC Machining, Electrical Grids & Fitting',
-    stats: '92% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'MERCHANT NAVY',
@@ -168,7 +168,7 @@ export const SECTORS: Sector[] = [
     color: '#06B6D4',
     secondaryColor: '#0284C7',
     description: 'Nautical Science, Marine Engineering & Cargo Logistics',
-    stats: '88% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'FASHION & DESIGN',
@@ -178,7 +178,7 @@ export const SECTORS: Sector[] = [
     color: '#A855F7',
     secondaryColor: '#9333EA',
     description: 'Biomorphic Wearables, Smart Fabrics & Industrial Styling',
-    stats: '84% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'BUSINESS',
@@ -188,7 +188,7 @@ export const SECTORS: Sector[] = [
     color: '#EAB308',
     secondaryColor: '#CA8A04',
     description: 'Algorithmic Trading, Venture Growth & Global Supply',
-    stats: '91% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'MEDIA',
@@ -198,7 +198,7 @@ export const SECTORS: Sector[] = [
     color: '#F43F5E',
     secondaryColor: '#E11D48',
     description: 'Digital Broadcasting, Interactive XR & Journalism',
-    stats: '82% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'HOSPITALITY',
@@ -208,7 +208,7 @@ export const SECTORS: Sector[] = [
     color: '#FB923C',
     secondaryColor: '#EA580C',
     description: 'Global Hotelier Operations, Aviation & Luxury Culinary',
-    stats: '85% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'AGRICULTURE',
@@ -218,7 +218,7 @@ export const SECTORS: Sector[] = [
     color: '#84CC16',
     secondaryColor: '#65A30D',
     description: 'Hydroponics, Automated Drone Farming & Soil Science',
-    stats: '87% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'AUTOMOBILE',
@@ -228,7 +228,7 @@ export const SECTORS: Sector[] = [
     color: '#EF4444',
     secondaryColor: '#DC2626',
     description: 'Electric Vehicles, Powertrain Dynamics & Battery Storage',
-    stats: '90% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'CONSTRUCTION',
@@ -238,7 +238,7 @@ export const SECTORS: Sector[] = [
     color: '#14B8A6',
     secondaryColor: '#0D9488',
     description: 'Smart Megastructures, Urban Planning & BIM Modeling',
-    stats: '86% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'BEAUTY & WELLNESS',
@@ -248,7 +248,7 @@ export const SECTORS: Sector[] = [
     color: '#F472B6',
     secondaryColor: '#DB2777',
     description: 'Dermatological Therapeutics, Cosmetology & Holistic Health',
-    stats: '80% Placement Match'
+    stats: 'Explore Sector'
   },
   {
     id: 'RETAIL & LOGISTICS',
@@ -258,7 +258,7 @@ export const SECTORS: Sector[] = [
     color: '#6366F1',
     secondaryColor: '#4F46E5',
     description: 'Automated Warehousing, Cold Chain & E-Commerce Nodes',
-    stats: '89% Placement Match'
+    stats: 'Explore Sector'
   }
 ];
 
@@ -583,7 +583,7 @@ export const MOCK_COLLEGES: College[] = [
       highlights: [
         'The #1 Rated Lateral Entry Engineering Campus in Asia',
         'Direct Orbital Payload Projects with Space Agencies',
-        '100% Guaranteed High-Impact Placement Match'
+        'Comprehensive Career Placement Support'
       ],
       pages: [
         {
@@ -727,8 +727,10 @@ export const INITIAL_VAULT_FILES = [
 ];
 
 export const AI_SUGGESTIONS = [
+  "What is Merchant Navy?",
+  "What is the career path for CSE?",
+  "What is the pathway for Civil Engineering?",
   "What is Polytechnic lateral entry?",
-  "What careers open with intermediate MPC?",
   "Explain BiPC medical research path",
   "How does the College Document Vault work?"
 ];
