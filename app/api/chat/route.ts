@@ -7,25 +7,27 @@ const MODEL_NAME = 'meta/llama-3.2-11b-vision-instruct';
 const NEXUS_AI_SYSTEM_PROMPT = `You are Nexus AI, the official academic, business & career guidance copilot in the Nexora platform.
 
 YOUR MANDATE:
-1. TYPO & SPELLING TOLERANCE (CRITICAL):
-   - Users may type misspelled words, abbreviations, or typos (e.g., "ptyhon" -> Python, "c++" -> C++, "doploma" -> Polytechnic Diploma, "enineering" -> Engineering, "startp" -> Startup).
-   - Automatically understand the user's intended subject and answer accurately.
+1. MULTI-TURN LINE BREAK RULE (CRITICAL):
+   - Every single bullet point MUST be on its OWN NEW LINE using \\n.
+   - NEVER combine multiple bullet points on a single line.
+   - Always put a \\n line break before every • bullet point.
 
 2. STANDARDIZED RESPONSE FORMAT (MUST FOLLOW):
-   Line 1: Capitalized Title (e.g., Python Programming Language or Polytechnic Lateral Entry Overview)
-   Line 2+: Point-wise list using format: • Label: Explanation
-   Standard Bullet Labels to include:
-   • Overview: Brief definition or description.
-   • Key Features: Main characteristics, advantages, or concepts.
-   • Applications: Real-world usages, career options, or fields.
-   • Use Cases: Practical examples, strategies, or action points.
+   Line 1: Capitalized Title (e.g. Python Programming Language or Assembly Programming Language)
+   Line 2+: Point-wise list using format:
+   • Overview: Brief definition.
+   • Key Features: Main features list.
+   • Applications: Real-world usages.
+   • Use Cases: Practical examples.
 
-3. NO MARKDOWN SYMBOLS RULE:
+3. TYPO & SPELLING TOLERANCE:
+   - Understand typos (e.g., "ptyhon" -> Python, "c++" -> C++, "doploma" -> Polytechnic Diploma, "startp" -> Startup).
+
+4. NO MARKDOWN SYMBOLS:
    - Do NOT output asterisks (*, **, ***) or hashtags (#). Use clean text.
 
-4. REFUSAL RULE (OFF-TOPIC ONLY):
-   - Refuse ONLY if the query is off-topic, silly, movies, gaming, entertainment, or gossip.
-   - Refusal standard: "Nexus AI Specialization Notice\n\n• Notice: I am Nexus AI, specialized exclusively in educational, business, academic doubts, and career guidance. Please feel free to ask any question about your studies, exams, career path, or business concepts!"`;
+5. REFUSAL RULE (OFF-TOPIC ONLY):
+   - Refuse ONLY if off-topic/silly (movies, gaming, sports, gossip).`;
 
 export async function POST(req: Request) {
   try {
@@ -70,12 +72,14 @@ export async function POST(req: Request) {
     const data = await response.json();
     let replyText = data.choices?.[0]?.message?.content || 'I could not synthesize a response. Please try again.';
 
-    // Failsafe server-side cleanup: strip any stray markdown asterisks or hashes
+    // Server-side cleanup & multi-bullet line break insertion
     replyText = replyText
       .replace(/\*\*\*(.*?)\*\*\*/g, '$1')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
-      .replace(/^#{1,6}\s+/gm, '');
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/([^\n])\s*•/g, '$1\n•')
+      .replace(/([^\n])\s*(\d+\.)/g, '$1\n$2');
 
     return NextResponse.json({ reply: replyText });
   } catch (error: any) {

@@ -34,13 +34,18 @@ const renderFormattedText = (text: string, isUser: boolean = false) => {
     .replace(/\*/g, '')
     .replace(/^#{1,6}\s+/gm, '');
 
-  const lines = cleanText.split('\n').filter((l) => l.trim() !== '');
+  // Force newlines before any bullet • or numbered list item 1. that isn't on its own newline
+  const textWithNewlines = cleanText
+    .replace(/([^\n])\s*•/g, '$1\n•')
+    .replace(/([^\n])\s*(\d+\.)/g, '$1\n$2');
+
+  const lines = textWithNewlines.split('\n').filter((l) => l.trim() !== '');
 
   return lines.map((line, lineIdx) => {
     const trimmedLine = line.trim();
 
-    // First non-bullet line is rendered as the Cyan Section Title
-    const isTitle = lineIdx === 0 && !trimmedLine.startsWith('•') && !trimmedLine.match(/^\d+\./);
+    // First line is ONLY Title if lineIdx === 0 AND short (< 65 chars) AND doesn't contain a bullet or colon
+    const isTitle = lineIdx === 0 && trimmedLine.length < 65 && !trimmedLine.startsWith('•') && !trimmedLine.match(/^\d+\./) && !trimmedLine.includes(':');
 
     if (isTitle) {
       return (
@@ -50,12 +55,12 @@ const renderFormattedText = (text: string, isUser: boolean = false) => {
       );
     }
 
-    // Check for colon separator in bullet points or subheaders (e.g. "• Overview: description" or "Key Features: description")
+    // Check for colon separator in bullet points or subheaders (e.g. "• Overview: description" or "• Key Features:")
     const colonIndex = trimmedLine.indexOf(':');
 
     if (colonIndex !== -1 && colonIndex < 45) {
       const rawLabel = trimmedLine.substring(0, colonIndex + 1); // e.g. "• Overview:" or "Key Features:"
-      const rawBody = trimmedLine.substring(colonIndex + 1);
+      const rawBody = trimmedLine.substring(colonIndex + 1).trim();
 
       // Ensure bullet prefix if missing
       const hasBullet = rawLabel.startsWith('•') || rawLabel.match(/^\d+\./);
@@ -64,9 +69,11 @@ const renderFormattedText = (text: string, isUser: boolean = false) => {
       return (
         <div key={lineIdx} className="mb-1.5 leading-relaxed">
           <span className="text-cyber-cyan font-bold mr-1.5">{label}</span>
-          <span className={isUser ? 'text-slate-900 font-medium' : 'text-slate-800 dark:text-white/90 font-medium'}>
-            {rawBody}
-          </span>
+          {rawBody && (
+            <span className={isUser ? 'text-slate-900 font-medium' : 'text-slate-800 dark:text-white/90 font-medium'}>
+              {rawBody}
+            </span>
+          )}
         </div>
       );
     }
@@ -76,7 +83,7 @@ const renderFormattedText = (text: string, isUser: boolean = false) => {
     const lineWithBullet = hasBullet ? trimmedLine : `• ${trimmedLine}`;
 
     return (
-      <div key={lineIdx} className="mb-1.5 leading-relaxed text-slate-800 dark:text-white/90">
+      <div key={lineIdx} className="mb-1.5 leading-relaxed text-slate-800 dark:text-white/90 font-medium">
         {lineWithBullet}
       </div>
     );
