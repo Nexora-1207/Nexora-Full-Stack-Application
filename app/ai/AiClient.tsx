@@ -34,14 +34,53 @@ const renderFormattedText = (text: string, isUser: boolean = false) => {
     .replace(/\*/g, '')
     .replace(/^#{1,6}\s+/gm, '');
 
-  const lines = cleanText.split('\n');
+  const lines = cleanText.split('\n').filter((l) => l.trim() !== '');
 
-  return lines.map((line, lineIdx) => (
-    <React.Fragment key={lineIdx}>
-      {line}
-      {lineIdx < lines.length - 1 && <br />}
-    </React.Fragment>
-  ));
+  return lines.map((line, lineIdx) => {
+    const trimmedLine = line.trim();
+
+    // First non-bullet line is rendered as the Cyan Section Title
+    const isTitle = lineIdx === 0 && !trimmedLine.startsWith('•') && !trimmedLine.match(/^\d+\./);
+
+    if (isTitle) {
+      return (
+        <div key={lineIdx} className="text-cyber-cyan font-black text-sm sm:text-base tracking-wide pb-1 mb-2 border-b border-cyber-cyan/20">
+          {trimmedLine}
+        </div>
+      );
+    }
+
+    // Check for colon separator in bullet points or subheaders (e.g. "• Overview: description" or "Key Features: description")
+    const colonIndex = trimmedLine.indexOf(':');
+
+    if (colonIndex !== -1 && colonIndex < 45) {
+      const rawLabel = trimmedLine.substring(0, colonIndex + 1); // e.g. "• Overview:" or "Key Features:"
+      const rawBody = trimmedLine.substring(colonIndex + 1);
+
+      // Ensure bullet prefix if missing
+      const hasBullet = rawLabel.startsWith('•') || rawLabel.match(/^\d+\./);
+      const label = hasBullet ? rawLabel : `• ${rawLabel}`;
+
+      return (
+        <div key={lineIdx} className="mb-1.5 leading-relaxed">
+          <span className="text-cyber-cyan font-bold mr-1.5">{label}</span>
+          <span className={isUser ? 'text-slate-900 font-medium' : 'text-slate-800 dark:text-white/90 font-medium'}>
+            {rawBody}
+          </span>
+        </div>
+      );
+    }
+
+    // Regular line fallback
+    const hasBullet = trimmedLine.startsWith('•') || trimmedLine.match(/^\d+\./);
+    const lineWithBullet = hasBullet ? trimmedLine : `• ${trimmedLine}`;
+
+    return (
+      <div key={lineIdx} className="mb-1.5 leading-relaxed text-slate-800 dark:text-white/90">
+        {lineWithBullet}
+      </div>
+    );
+  });
 };
 
 export default function AiClient() {
@@ -52,7 +91,7 @@ export default function AiClient() {
     {
       id: 'm-init',
       sender: 'ai',
-      text: "👋 Greetings! I am Nexus AI, your dedicated academic, business & career guidance copilot.\n\nAsk me anything about Intermediate MPC/BiPC, Polytechnic diplomas & lateral entry, college selection, academic doubts, or starting a business & startup preparation.",
+      text: "Nexus AI Copilot\n\n• Overview: I am Nexus AI, your dedicated academic, business & career guidance copilot.\n• Knowledge Scope: Intermediate MPC/BiPC, Polytechnic diplomas, lateral entry, college selection, academic doubts, and business startups.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -135,7 +174,7 @@ export default function AiClient() {
       const errorMsg: Message = {
         id: Math.random().toString(),
         sender: 'ai',
-        text: "I am Nexus AI. I encountered a network connectivity error while contacting my neural inference engine. Please try again.",
+        text: "Nexus AI Network Status\n\n• Connection: Encountered temporary connectivity issue. Please retry.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -157,7 +196,7 @@ export default function AiClient() {
       {
         id: 'm-init',
         sender: 'ai',
-        text: "👋 Greetings! Session history reset. I am Nexus AI — ask me anything about your studies, academic doubts, entrance exams, or business concepts!",
+        text: "Nexus AI Reset\n\n• Session: History cleared.\n• Status: Ready for your academic, business, and study doubt queries.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -214,7 +253,7 @@ export default function AiClient() {
                     : 'bg-white dark:bg-surface-card border border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-white rounded-tl-none'
                 }`}
               >
-                <div className="flex items-center justify-between gap-4 border-b border-black/10 dark:border-white/10 pb-2">
+                <div className="flex items-center justify-between gap-4 border-b border-black/10 dark:border-white/10 pb-2 mb-2">
                   <span className={`text-[10px] font-black uppercase tracking-wider ${m.sender === 'user' ? 'text-slate-900' : 'text-cyber-cyan'}`}>
                     {m.sender === 'user' ? 'STUDENT INQUIRY' : 'NEXUS AI'}
                   </span>
@@ -234,7 +273,7 @@ export default function AiClient() {
                   </div>
                 </div>
 
-                <div className="text-xs sm:text-sm leading-relaxed font-sans font-normal">
+                <div className="text-xs sm:text-sm font-sans font-normal">
                   {renderFormattedText(m.text, m.sender === 'user')}
                 </div>
               </div>
@@ -256,7 +295,7 @@ export default function AiClient() {
               </div>
               <div className="glass-card rounded-2xl px-4 py-3 border border-slate-200 dark:border-white/[0.08] flex items-center gap-2 text-xs font-bold text-cyber-cyan">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Nexus AI is thinking...</span>
+                <span>Nexus AI is synthesizing response...</span>
               </div>
             </div>
           )}
