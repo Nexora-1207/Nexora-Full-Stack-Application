@@ -14,14 +14,54 @@ import {
   ShieldCheck, 
   Plus, 
   X,
-  Award,
-  BookOpen,
+  Palette,
+  Image as ImageIcon,
   Loader2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useCyberToast } from '@/components/CyberToast';
 import confetti from 'canvas-confetti';
+
+interface BannerTemplate {
+  id: string;
+  name: string;
+  gradientClass: string;
+  accentColor: string;
+}
+
+const BANNER_TEMPLATES: BannerTemplate[] = [
+  {
+    id: 'cyber-neon',
+    name: 'Cyber Neon',
+    gradientClass: 'bg-gradient-to-r from-cyber-cyan/40 via-cyber-violet/40 to-cyber-pink/40',
+    accentColor: '#00F0FF'
+  },
+  {
+    id: 'deep-space',
+    name: 'Deep Space',
+    gradientClass: 'bg-gradient-to-r from-slate-950 via-cyber-cyan/30 to-blue-950',
+    accentColor: '#3B82F6'
+  },
+  {
+    id: 'emerald-quantum',
+    name: 'Emerald Quantum',
+    gradientClass: 'bg-gradient-to-r from-emerald-950 via-cyber-emerald/40 to-teal-950',
+    accentColor: '#10B981'
+  },
+  {
+    id: 'imperial-gold',
+    name: 'Imperial Gold',
+    gradientClass: 'bg-gradient-to-r from-amber-950 via-amber-500/40 to-purple-950',
+    accentColor: '#F59E0B'
+  },
+  {
+    id: 'velvet-violet',
+    name: 'Velvet Violet',
+    gradientClass: 'bg-gradient-to-r from-purple-950 via-fuchsia-600/40 to-pink-950',
+    accentColor: '#EC4899'
+  }
+];
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -32,7 +72,6 @@ export default function ProfilePage() {
   
   const [userId, setUserId] = useState('');
   const [fullName, setFullName] = useState('');
-  const [bio, setBio] = useState('');
   const [school, setSchool] = useState('');
   const [college, setCollege] = useState('');
   const [phone, setPhone] = useState('');
@@ -41,11 +80,15 @@ export default function ProfilePage() {
   const [sector, setSector] = useState('ENGINEERING');
   const [stream, setStream] = useState('MPC');
 
-  // Career Skillsets
+  // Custom Banner Template state
+  const [bannerTheme, setBannerTheme] = useState('cyber-neon');
+  const [bannerUrl, setBannerUrl] = useState('');
+
+  // Skillsets
   const [skills, setSkills] = useState<string[]>(['Python', 'Robotics', 'C++', 'Circuit Design']);
   const [newSkill, setNewSkill] = useState('');
 
-  // Load profile from Supabase
+  // Load profile from Supabase Database
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
@@ -55,17 +98,18 @@ export default function ProfilePage() {
           .select('*')
           .eq('id', user.id)
           .single()
-          .then(({ data }) => {
+          .then(({ data, error }) => {
             if (data) {
               setFullName(data.full_name || '');
-              setBio(data.bio || 'Aspiring engineer dedicated to robotics, automation systems, and hardware-software integration.');
               setSchool(data.school || 'St. Xavier Technical Academy');
               setCollege(data.college || 'Nexora Institute of Technology');
-              setPhone(data.phone || '+91 98765 43210');
-              setAddress(data.address || 'Tech Corridor Block 4, Bangalore');
-              setLinkedin(data.linkedin || 'https://linkedin.com/in/student');
+              setPhone(data.phone_number || data.phone || '');
+              setAddress(data.address || '');
+              setLinkedin(data.linkedin_url || data.linkedin || '');
               setSector(data.sector || 'ENGINEERING');
               setStream(data.stream || 'MPC');
+              setBannerTheme(data.banner_theme || 'cyber-neon');
+              setBannerUrl(data.banner_url || '');
               if (data.skills && Array.isArray(data.skills)) {
                 setSkills(data.skills);
               }
@@ -73,7 +117,7 @@ export default function ProfilePage() {
             setLoading(false);
           });
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
-        // Demo guest — show pre-filled demo profile (read-only feel)
+        // Demo guest profile
         setFullName('Demo Student');
         setLoading(false);
       } else {
@@ -100,37 +144,42 @@ export default function ProfilePage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { error } = await supabase.from('profiles').upsert({
+        const profilePayload = {
           id: user.id,
           full_name: fullName,
-          bio,
           school,
           college,
-          phone,
+          phone_number: phone,
           address,
-          linkedin,
+          linkedin_url: linkedin,
           sector,
           stream,
           skills,
-          updated_at: new Date()
-        });
+          banner_theme: bannerTheme,
+          banner_url: bannerUrl,
+          updated_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase
+          .from('profiles')
+          .upsert(profilePayload);
 
         if (error) throw error;
       }
 
       setSaving(false);
       setSaveSuccess(true);
-      toast.success('Student Dossier Synced!', 'Your profile information and verified skill tags have been synchronized.');
+      toast.success('Dossier Synced to Database!', 'Your profile information and custom banner template have been saved.');
       confetti({
         particleCount: 70,
         spread: 50,
         origin: { y: 0.6 }
       });
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Supabase DB Sync Error:', err);
       setSaving(false);
-      toast.info('Saved in Local Cache', 'Dossier saved locally and will auto-sync on next server connection.');
+      toast.info('Saved Locally', 'Dossier saved in local session cache.');
     }
   };
 
@@ -145,23 +194,38 @@ export default function ProfilePage() {
     );
   }
 
+  // Active banner template configuration
+  const activeTemplate = BANNER_TEMPLATES.find((t) => t.id === bannerTheme) || BANNER_TEMPLATES[0];
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-8">
       
-      {/* PROFESSIONAL BANNER & HEADER */}
+      {/* PROFILE BANNER & HEADER */}
       <div className="glass-panel rounded-3xl overflow-hidden relative shadow-2xl">
         
-        {/* Banner Gradient */}
-        <div className="h-36 sm:h-48 bg-gradient-to-r from-cyber-cyan/30 via-cyber-violet/30 to-cyber-pink/30 relative">
-          <div className="absolute inset-0 bg-cyber-mesh opacity-50"></div>
-          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/[0.1] text-[10px] font-black uppercase tracking-widest text-cyber-cyan">
+        {/* Banner Area (Image or Template Gradient) */}
+        <div className={`h-36 sm:h-48 relative transition-all duration-500 ${activeTemplate.gradientClass}`}>
+          {bannerUrl ? (
+            <img 
+              src={bannerUrl} 
+              alt="Custom Banner" 
+              className="w-full h-full object-cover"
+              onError={() => {
+                toast.info('Banner Error', 'Invalid image URL, falling back to template gradient.');
+              }}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-cyber-mesh opacity-50"></div>
+          )}
+
+          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/[0.15] text-[10px] font-black uppercase tracking-widest text-cyber-cyan">
             {sector} • {stream} TRACK
           </div>
         </div>
 
-        {/* Profile Info Overlay */}
+        {/* Profile Avatar & Info Overlay */}
         <div className="px-6 sm:px-8 pb-8 pt-0 relative">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-4">
             
             {/* Avatar */}
             <div className="relative">
@@ -173,29 +237,75 @@ export default function ProfilePage() {
               <span className="absolute bottom-2 right-2 w-5 h-5 rounded-full bg-cyber-emerald border-2 border-white dark:border-background shadow-md"></span>
             </div>
 
-            {/* Placement Readiness Badge */}
-            <div className="glass-card px-4 py-2.5 rounded-2xl border border-cyber-cyan/30 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan">
-                <Award className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-wider block">PLACEMENT READINESS</span>
-                <span className="text-sm font-black text-cyber-cyan">94% MATRICULATED</span>
-              </div>
-            </div>
-
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{fullName || 'Nexora Student'}</h1>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium max-w-2xl leading-relaxed">{bio}</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              {fullName || 'Nexora Student'}
+            </h1>
+            <p className="text-xs font-bold text-cyber-cyan uppercase tracking-wider">
+              {college || 'Nexora Academy'}
+            </p>
           </div>
         </div>
 
       </div>
 
+      {/* BANNER TEMPLATE CUSTOMIZER PANEL */}
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-200 dark:border-white/[0.08]">
+          <Palette className="w-5 h-5 text-cyber-cyan" />
+          <h3 className="font-black text-base uppercase tracking-wider text-slate-900 dark:text-white">
+            BANNER TEMPLATE CUSTOMIZER
+          </h3>
+        </div>
+
+        {/* Preset Templates Grid */}
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider">
+            Select Preset Cyber Template
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {BANNER_TEMPLATES.map((tmpl) => (
+              <button
+                key={tmpl.id}
+                type="button"
+                onClick={() => {
+                  setBannerTheme(tmpl.id);
+                  setBannerUrl('');
+                }}
+                className={`h-14 rounded-2xl p-2.5 relative border transition-all flex flex-col justify-end overflow-hidden ${tmpl.gradientClass} ${
+                  bannerTheme === tmpl.id && !bannerUrl
+                    ? 'ring-2 ring-cyber-cyan scale-[1.03] shadow-lg border-cyber-cyan'
+                    : 'border-white/10 hover:opacity-90'
+                }`}
+              >
+                <span className="text-[10px] font-black uppercase text-white drop-shadow-md tracking-wider">
+                  {tmpl.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Image URL Option */}
+        <div className="space-y-1.5 pt-2">
+          <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+            <ImageIcon className="w-3.5 h-3.5 text-cyber-cyan" />
+            <span>Or Enter Custom Banner Image URL</span>
+          </label>
+          <input
+            type="text"
+            value={bannerUrl}
+            onChange={(e) => setBannerUrl(e.target.value)}
+            placeholder="https://images.unsplash.com/photo-... or custom image URL"
+            className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
+          />
+        </div>
+      </div>
+
       {/* EDITABLE DOSSIER FORM */}
-      <form onSubmit={handleSaveProfile} className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+      <form onSubmit={handleSaveProfile} className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
         
         <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08]">
           <div className="flex items-center gap-2">
@@ -287,19 +397,6 @@ export default function ProfilePage() {
             />
           </div>
 
-        </div>
-
-        {/* Bio textarea */}
-        <div>
-          <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-            Student Mission & Bio Statement
-          </label>
-          <textarea
-            rows={3}
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl p-4 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition resize-none leading-relaxed"
-          />
         </div>
 
         {/* Career Skills Chips */}

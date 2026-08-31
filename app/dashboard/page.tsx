@@ -658,72 +658,7 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* DAILY TASK & ROADMAP CHECKLIST */}
-          <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08]">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <div 
-                  className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-sm"
-                  style={{
-                    backgroundColor: `${secondaryColor}15`,
-                    borderColor: `${secondaryColor}30`,
-                    color: secondaryColor
-                  }}
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-black text-base text-slate-900 dark:text-white tracking-wide">
-                    PLACEMENT READINESS CHECKLIST
-                  </h3>
-                  <span className="text-xs text-slate-500 dark:text-white/40">
-                    Complete tasks to boost your academic clearance rate
-                  </span>
-                </div>
-              </div>
 
-              <span 
-                className="px-3 py-1 rounded-full text-xs font-black tracking-wider border shadow-sm"
-                style={{
-                  backgroundColor: `${primaryColor}15`,
-                  borderColor: `${primaryColor}30`,
-                  color: primaryColor
-                }}
-              >
-                {tasks.filter(t => t.done).length} / {tasks.length} Completed
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => toggleTask(task.id)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 ${
-                    task.done
-                      ? 'bg-slate-100/60 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.04] opacity-75'
-                      : 'bg-slate-100 dark:bg-white/[0.04] border-slate-200 dark:border-white/[0.08] hover:border-white/20'
-                  }`}
-                >
-                  <button
-                    className="w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition"
-                    style={task.done ? {
-                      backgroundColor: primaryColor,
-                      borderColor: primaryColor,
-                      color: '#030712'
-                    } : {
-                      borderColor: 'rgba(255,255,255,0.2)'
-                    }}
-                  >
-                    {task.done && <CheckCircle2 className="w-3.5 h-3.5 stroke-[3px]" />}
-                  </button>
-                  <span className={`text-xs font-bold leading-relaxed ${task.done ? 'line-through text-slate-400 dark:text-white/40' : 'text-slate-800 dark:text-white/90'}`}>
-                    {task.text}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* INTERACTIVE SECTOR AI TOOLKITS */}
           <div className="space-y-4">
