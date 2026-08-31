@@ -24,6 +24,38 @@ interface Message {
   timestamp: string;
 }
 
+const renderFormattedText = (text: string, isUser: boolean = false) => {
+  if (!text) return null;
+
+  const lines = text.split('\n');
+
+  return lines.map((line, lineIdx) => {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+
+    const formattedLine = parts.map((part, partIdx) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+        const content = part.slice(2, -2);
+        return (
+          <strong
+            key={partIdx}
+            className={`font-black ${isUser ? 'text-slate-950 font-bold' : 'text-slate-900 dark:text-cyber-cyan font-bold'}`}
+          >
+            {content}
+          </strong>
+        );
+      }
+      return part;
+    });
+
+    return (
+      <React.Fragment key={lineIdx}>
+        {formattedLine}
+        {lineIdx < lines.length - 1 && <br />}
+      </React.Fragment>
+    );
+  });
+};
+
 export default function AiClient() {
   const router = useRouter();
   const toast = useCyberToast();
@@ -100,7 +132,7 @@ export default function AiClient() {
 
       const data = await response.json();
       
-      const aiReplyText = data.reply || data.error || "Nexus AI could not generate a response. Please try asking again.";
+      const aiReplyText = data.reply || data.error || "Nexus AI could not generate a response. Please try again.";
 
       const aiMsg: Message = {
         id: Math.random().toString(),
@@ -213,8 +245,8 @@ export default function AiClient() {
                   </div>
                 </div>
 
-                <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-line font-sans">
-                  {m.text}
+                <div className="text-xs sm:text-sm leading-relaxed font-sans">
+                  {renderFormattedText(m.text, m.sender === 'user')}
                 </div>
               </div>
 
