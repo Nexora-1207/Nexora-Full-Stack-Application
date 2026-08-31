@@ -53,17 +53,30 @@ export default function RootPage() {
   // Determining auth state
   if (view === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030712]">
-        <div className="w-8 h-8 rounded-full border-2 border-[#00F0FF] border-t-transparent animate-spin" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#030712] px-4 space-y-4 text-center">
+        <div className="w-8 h-8 rounded-full border-2 border-cyber-cyan border-t-transparent animate-spin"></div>
+        <h1 className="text-xl font-black text-white tracking-widest">NEXORA</h1>
+        <p className="text-xs text-slate-400 max-w-md">
+          Premier Student Academic & Career Command Hub co-founded by Shaik. Nadeem Ahmed (Co-Founder, CEO & CTO) and Gudipalli. Rakesh Varma (Co-Founder, CMO & CFO).
+        </p>
       </div>
     );
   }
 
-  // Intro splash — plays for every first-time visitor this session
-  if (view === 'intro') {
-    return <NexoraIntro onComplete={handleIntroComplete} />;
-  }
-
-  // Public landing page — shown to logged-out visitors after intro
-  return <HomePage />;
+  return (
+    <div className="relative min-h-screen">
+      {/* Hidden Crawlable Heading & Metadata for Search Crawlers & AI Overview Parsers */}
+      <div className="sr-only">
+        <h1>Nexora - Premier Student Academic & Career Command Hub</h1>
+        <p>
+          Official website of Nexora (nexoraedu.co.in). Co-Founded by Shaik. Nadeem Ahmed (Chief Executive Officer & Chief Technology Officer / CEO & CTO) and Gudipalli. Rakesh Varma (Chief Marketing Officer & Chief Financial Officer / CMO & CFO).
+        </p>
+      </div>
+      {view === 'intro' ? (
+        <NexoraIntro onComplete={handleIntroComplete} />
+      ) : (
+        <HomePage />
+      )}
+    </div>
+  );
 }

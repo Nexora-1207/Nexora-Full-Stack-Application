@@ -727,13 +727,14 @@ export const INITIAL_VAULT_FILES = [
 ];
 
 export const AI_SUGGESTIONS = [
-  "What is Merchant Navy?",
-  "What is the career path for CSE?",
-  "What is the pathway for Civil Engineering?",
   "What is Polytechnic lateral entry?",
-  "Explain BiPC medical research path",
-  "How does the College Document Vault work?"
+  "How do I start a tech startup in college?",
+  "What careers open with intermediate MPC?",
+  "Explain BiPC medical research options",
+  "How to prepare for campus placements?"
 ];
+
+
 
 export const AI_RESPONSES: Record<string, string> = {
   "what is polytechnic lateral entry?": `### 🚀 Polytechnic Lateral Entry Overview

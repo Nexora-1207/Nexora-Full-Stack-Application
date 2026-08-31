@@ -34,8 +34,10 @@ export const metadata: Metadata = {
   description: 'AI-driven career pathfinder, academic colleges hub, document vault, and placement readiness platform founded by Shaik Nadeem Ahmed (CEO & CTO) and Gudipalli Rakesh Varma (CMO & CFO).',
   keywords: [
     'Nexora', 
+    'NEXORA',
     'NEXORAEDU.CO.IN',
     'NexoraEdu',
+    'Nexora Education Technologies',
     'Founders of Nexora',
     'Founders of NexoraEdu',
     'Nexora Founders',
@@ -132,9 +134,15 @@ const jsonLd = {
       '@id': 'https://www.nexoraedu.co.in/#website',
       url: 'https://www.nexoraedu.co.in',
       name: 'Nexora',
+      alternateName: ['NexoraEdu', 'Nexora Education Technologies', 'NEXORAEDU.CO.IN'],
       description: 'Premier Student Academic & Career Command Hub',
       publisher: {
         '@id': 'https://www.nexoraedu.co.in/#organization'
+      },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://www.nexoraedu.co.in/colleges?search={search_term_string}',
+        'query-input': 'required name=search_term_string'
       },
       inLanguage: 'en-IN'
     },
@@ -142,7 +150,7 @@ const jsonLd = {
       '@type': 'EducationalOrganization',
       '@id': 'https://www.nexoraedu.co.in/#organization',
       name: 'Nexora',
-      alternateName: ['NexoraEdu', 'Nexora Education Technologies'],
+      alternateName: ['NexoraEdu', 'Nexora Education Technologies', 'NEXORAEDU.CO.IN'],
       url: 'https://www.nexoraedu.co.in',
       logo: {
         '@type': 'ImageObject',
@@ -233,4 +241,3 @@ export default function RootLayout({
     </html>
   );
 }
-

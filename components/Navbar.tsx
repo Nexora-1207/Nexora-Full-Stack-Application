@@ -87,7 +87,7 @@ export default function Navbar() {
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Colleges', href: '/colleges', icon: GraduationCap },
-    { name: 'Nexora AI', href: '/ai', icon: Sparkles, isAi: true },
+    { name: 'Nexus AI', href: '/ai', icon: Sparkles, isAi: true },
     { name: 'Vault', href: '/vault', icon: FolderLock },
     { name: 'Profile', href: '/profile', icon: User },
   ];
