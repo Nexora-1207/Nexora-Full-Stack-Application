@@ -27,33 +27,21 @@ interface Message {
 const renderFormattedText = (text: string, isUser: boolean = false) => {
   if (!text) return null;
 
-  const lines = text.split('\n');
+  // Complete cleanup: strip out all asterisks (*), double-asterisks (**), triple-asterisks (***), and hashtags (#)
+  const cleanText = text
+    .replace(/\*\*\*/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/^#{1,6}\s+/gm, '');
 
-  return lines.map((line, lineIdx) => {
-    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  const lines = cleanText.split('\n');
 
-    const formattedLine = parts.map((part, partIdx) => {
-      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-        const content = part.slice(2, -2);
-        return (
-          <strong
-            key={partIdx}
-            className={`font-black ${isUser ? 'text-slate-950 font-bold' : 'text-slate-900 dark:text-cyber-cyan font-bold'}`}
-          >
-            {content}
-          </strong>
-        );
-      }
-      return part;
-    });
-
-    return (
-      <React.Fragment key={lineIdx}>
-        {formattedLine}
-        {lineIdx < lines.length - 1 && <br />}
-      </React.Fragment>
-    );
-  });
+  return lines.map((line, lineIdx) => (
+    <React.Fragment key={lineIdx}>
+      {line}
+      {lineIdx < lines.length - 1 && <br />}
+    </React.Fragment>
+  ));
 };
 
 export default function AiClient() {
@@ -64,7 +52,7 @@ export default function AiClient() {
     {
       id: 'm-init',
       sender: 'ai',
-      text: "👋 Greetings! I am **Nexus AI**, your dedicated academic, business & career guidance copilot.\n\nAsk me anything about **Intermediate MPC/BiPC**, **Polytechnic diplomas & lateral entry**, **college selection**, **academic doubts**, or **starting a business & startup preparation**.",
+      text: "👋 Greetings! I am Nexus AI, your dedicated academic, business & career guidance copilot.\n\nAsk me anything about Intermediate MPC/BiPC, Polytechnic diplomas & lateral entry, college selection, academic doubts, or starting a business & startup preparation.",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -157,7 +145,8 @@ export default function AiClient() {
   };
 
   const handleCopyText = (id: string, text: string) => {
-    navigator.clipboard.writeText(text);
+    const cleanTextToCopy = text.replace(/\*/g, '');
+    navigator.clipboard.writeText(cleanTextToCopy);
     setCopiedId(id);
     toast.info('Copied', 'Nexus AI response copied to clipboard.');
     setTimeout(() => setCopiedId(null), 2000);
@@ -168,7 +157,7 @@ export default function AiClient() {
       {
         id: 'm-init',
         sender: 'ai',
-        text: "👋 Greetings! Session history reset. I am **Nexus AI** — ask me anything about your studies, academic doubts, entrance exams, or business concepts!",
+        text: "👋 Greetings! Session history reset. I am Nexus AI — ask me anything about your studies, academic doubts, entrance exams, or business concepts!",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -245,7 +234,7 @@ export default function AiClient() {
                   </div>
                 </div>
 
-                <div className="text-xs sm:text-sm leading-relaxed font-sans">
+                <div className="text-xs sm:text-sm leading-relaxed font-sans font-normal">
                   {renderFormattedText(m.text, m.sender === 'user')}
                 </div>
               </div>
