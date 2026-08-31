@@ -70,7 +70,7 @@ const renderFormattedText = (text: string, isUser: boolean = false) => {
         <div key={lineIdx} className="mb-1.5 leading-relaxed">
           <span className="text-cyber-cyan font-bold mr-1.5">{label}</span>
           {rawBody && (
-            <span className={isUser ? 'text-slate-900 font-medium' : 'text-slate-800 dark:text-white/90 font-medium'}>
+            <span className={isUser ? 'text-slate-950 font-bold' : 'text-slate-800 dark:text-white/90 font-medium'}>
               {rawBody}
             </span>
           )}
@@ -256,16 +256,16 @@ export default function AiClient() {
               <div
                 className={`max-w-[85%] sm:max-w-[75%] rounded-3xl p-4 sm:p-5 space-y-2 relative group shadow-md ${
                   m.sender === 'user'
-                    ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background font-medium rounded-tr-none'
+                    ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-slate-950 font-bold rounded-tr-none'
                     : 'bg-white dark:bg-surface-card border border-slate-200 dark:border-white/[0.08] text-slate-800 dark:text-white rounded-tl-none'
                 }`}
               >
                 <div className="flex items-center justify-between gap-4 border-b border-black/10 dark:border-white/10 pb-2 mb-2">
-                  <span className={`text-[10px] font-black uppercase tracking-wider ${m.sender === 'user' ? 'text-slate-900' : 'text-cyber-cyan'}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-wider ${m.sender === 'user' ? 'text-slate-950 font-bold' : 'text-cyber-cyan'}`}>
                     {m.sender === 'user' ? 'STUDENT INQUIRY' : 'NEXUS AI'}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[9px] font-mono ${m.sender === 'user' ? 'text-slate-900/60' : 'text-slate-400 dark:text-white/40'}`}>
+                    <span className={`text-[9px] font-mono ${m.sender === 'user' ? 'text-slate-950/80 font-bold' : 'text-slate-400 dark:text-white/40'}`}>
                       {m.timestamp}
                     </span>
                     {m.sender === 'ai' && (
@@ -280,9 +280,15 @@ export default function AiClient() {
                   </div>
                 </div>
 
-                <div className="text-xs sm:text-sm font-sans font-normal">
-                  {renderFormattedText(m.text, m.sender === 'user')}
-                </div>
+                {m.sender === 'user' ? (
+                  <div className="text-xs sm:text-sm font-sans font-bold text-slate-950 leading-relaxed tracking-wide">
+                    {m.text}
+                  </div>
+                ) : (
+                  <div className="text-xs sm:text-sm font-sans font-normal">
+                    {renderFormattedText(m.text, false)}
+                  </div>
+                )}
               </div>
 
               {m.sender === 'user' && (
