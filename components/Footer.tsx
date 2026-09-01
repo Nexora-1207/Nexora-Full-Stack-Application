@@ -34,7 +34,7 @@ export default function Footer() {
           <div className="flex items-center gap-4 text-[11px] text-slate-500">
             <span>© {new Date().getFullYear()} Nexora Education Technologies</span>
             <span>•</span>
-            <span className="text-cyber-cyan">v2.0 Production</span>
+            <span className="text-cyber-cyan">v1.0 Production</span>
           </div>
         </div>
 
