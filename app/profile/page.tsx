@@ -18,6 +18,7 @@ import {
   Camera,
   Upload,
   Trash2,
+  Lock,
   ImageIcon,
   Loader2
 } from 'lucide-react';
@@ -72,6 +73,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showBannerModal, setShowBannerModal] = useState(false);
@@ -98,6 +100,7 @@ export default function ProfilePage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        setIsGuest(false);
         setUserId(user.id);
         supabase
           .from('profiles')
@@ -123,13 +126,59 @@ export default function ProfilePage() {
             setLoading(false);
           });
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
-        setFullName('Demo Student');
+        // Guest mode — lock profile completely!
+        setIsGuest(true);
         setLoading(false);
       } else {
         router.replace('/auth');
       }
     });
   }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin mb-2" />
+        <span className="text-xs font-black uppercase tracking-widest text-cyber-cyan">
+          RETRIEVING STUDENT PROFILE DOSSIER...
+        </span>
+      </div>
+    );
+  }
+
+  // Render Guest Locked Screen for Profile
+  if (isGuest) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-cyber-cyan/20 to-cyber-violet/20 border border-cyber-cyan/30 flex items-center justify-center mx-auto text-cyber-cyan shadow-2xl animate-pulse">
+          <User className="w-12 h-12" />
+        </div>
+        
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-black uppercase tracking-widest">
+            <Lock className="w-3.5 h-3.5" />
+            <span>GUEST ACCESS RESTRICTED</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+            STUDENT PROFILE LOCKED
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium max-w-lg mx-auto leading-relaxed">
+            Register or Sign In to build your verified student dossier, custom LinkedIn-style banner, and sync your credentials across devices.
+          </p>
+        </div>
+        
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            onClick={() => router.push('/auth')}
+            className="cyber-button-primary px-8 py-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-xl w-full sm:w-auto"
+          >
+            <Lock className="w-4 h-4" />
+            <span>REGISTER / SIGN IN TO UNLOCK</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -211,17 +260,6 @@ export default function ProfilePage() {
       toast.info('Saved Locally', 'Dossier saved in local session cache.');
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center">
-        <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin mb-2" />
-        <span className="text-xs font-black uppercase tracking-widest text-cyber-cyan">
-          RETRIEVING STUDENT PROFILE DOSSIER...
-        </span>
-      </div>
-    );
-  }
 
   const activeTemplate = BANNER_TEMPLATES.find((t) => t.id === bannerTheme) || BANNER_TEMPLATES[0];
 

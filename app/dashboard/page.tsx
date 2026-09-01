@@ -208,11 +208,23 @@ export default function DashboardPage() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [plannerOpen, setPlannerOpen] = useState(false);
 
-  // Interactive Hover Cards
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
+
+  const handleOpenTool = (toolSetter: (open: boolean) => void) => {
+    if (isGuest) {
+      toast.info('Registration Required', '🔒 Register or Sign In to access interactive AI toolkits!');
+      router.push('/auth');
+      return;
+    }
+    toolSetter(true);
+  };
 
   // Load profile & initial telemetry
   useEffect(() => {
+    if (localStorage.getItem('nexoraGuestMode') === 'true') {
+      setIsGuest(true);
+    }
     // 1. Check local cache first for instant UI response
     const cachedProfile = localStorage.getItem('userProfile');
     const cachedSector = localStorage.getItem('activeSector');
@@ -677,7 +689,7 @@ export default function DashboardPage() {
               
               {/* Tool 1: Dynamic Sector Tool 1 */}
               <button
-                onClick={() => setResumeOpen(true)}
+                onClick={() => handleOpenTool(setResumeOpen)}
                 className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300"
                 style={{
                   boxShadow: hoveredCard === 'tool1' ? `0 0 25px ${primaryColor}15` : 'none',
@@ -713,7 +725,7 @@ export default function DashboardPage() {
 
               {/* Tool 2: Dynamic Sector Tool 2 */}
               <button
-                onClick={() => setInterviewOpen(true)}
+                onClick={() => handleOpenTool(setInterviewOpen)}
                 className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300"
                 style={{
                   boxShadow: hoveredCard === 'tool2' ? `0 0 25px ${secondaryColor}15` : 'none',
@@ -749,7 +761,7 @@ export default function DashboardPage() {
 
               {/* Tool 3: Concept Explainer */}
               <button
-                onClick={() => setExplainerOpen(true)}
+                onClick={() => handleOpenTool(setExplainerOpen)}
                 className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300"
                 style={{
                   boxShadow: hoveredCard === 'tool3' ? `0 0 25px ${primaryColor}15` : 'none',
@@ -787,7 +799,7 @@ export default function DashboardPage() {
 
             {/* Smart Lecture Notes Banner */}
             <button
-              onClick={() => setNotesOpen(true)}
+              onClick={() => handleOpenTool(setNotesOpen)}
               className="w-full text-left glass-panel rounded-3xl p-5 sm:p-6 border border-white/[0.06] hover:border-white/20 transition-all flex items-center justify-between gap-4 group"
               style={{
                 boxShadow: hoveredCard === 'notepad' ? `0 0 25px ${secondaryColor}15` : 'none',

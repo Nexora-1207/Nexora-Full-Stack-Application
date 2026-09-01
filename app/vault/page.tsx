@@ -14,6 +14,7 @@ import {
   X, 
   HardDrive,
   Sparkles,
+  Lock,
   ExternalLink
 } from 'lucide-react';
 import { INITIAL_VAULT_FILES } from '@/lib/data';
@@ -36,6 +37,7 @@ export default function VaultPage() {
   const router = useRouter();
   const toast = useCyberToast();
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const [files, setFiles] = useState<VaultFile[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +55,7 @@ export default function VaultPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        setIsGuest(false);
         try {
           const stored = localStorage.getItem('vault_files');
           if (stored) {
@@ -66,8 +69,8 @@ export default function VaultPage() {
         }
         setLoading(false);
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
-        // Demo guest — load sample vault data
-        setFiles(INITIAL_VAULT_FILES as any);
+        // Guest mode — lock vault completely!
+        setIsGuest(true);
         setLoading(false);
       } else {
         router.replace('/auth');
@@ -84,6 +87,40 @@ export default function VaultPage() {
         <span className="text-xs font-black tracking-widest text-cyber-cyan animate-pulse uppercase">
           VERIFYING ACCESS AUTHORIZATION...
         </span>
+      </div>
+    );
+  }
+
+  // Render Guest Locked Screen for Vault
+  if (isGuest) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-cyber-cyan/20 to-cyber-violet/20 border border-cyber-cyan/30 flex items-center justify-center mx-auto text-cyber-cyan shadow-2xl animate-pulse">
+          <FolderLock className="w-12 h-12" />
+        </div>
+        
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-black uppercase tracking-widest">
+            <Lock className="w-3.5 h-3.5" />
+            <span>GUEST ACCESS RESTRICTED</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+            STUDENT VAULT LOCKED
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium max-w-lg mx-auto leading-relaxed">
+            Register or Sign In to encrypt, upload, and securely access your marks memos, transfer certificates, and academic documents in your personal Vault locker.
+          </p>
+        </div>
+        
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            onClick={() => router.push('/auth')}
+            className="cyber-button-primary px-8 py-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-xl w-full sm:w-auto"
+          >
+            <Lock className="w-4 h-4" />
+            <span>REGISTER / SIGN IN TO UNLOCK</span>
+          </button>
+        </div>
       </div>
     );
   }

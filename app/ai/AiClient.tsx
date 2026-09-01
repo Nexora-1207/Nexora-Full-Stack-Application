@@ -11,7 +11,8 @@ import {
   Loader2,
   Trash2,
   Copy,
-  Check
+  Check,
+  Lock
 } from 'lucide-react';
 import { AI_SUGGESTIONS } from '@/lib/data';
 import { supabase } from '@/lib/supabase';
@@ -94,6 +95,9 @@ export default function AiClient() {
   const router = useRouter();
   const toast = useCyberToast();
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
+  const [guestCount, setGuestCount] = useState(0);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm-init',
@@ -115,8 +119,12 @@ export default function AiClient() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        setIsGuest(false);
         setLoading(false);
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        setIsGuest(true);
+        const count = parseInt(localStorage.getItem('nexoraGuestAiChatCount') || '0', 10);
+        setGuestCount(count);
         setLoading(false);
       } else {
         router.replace('/auth');
@@ -141,9 +149,17 @@ export default function AiClient() {
     );
   }
 
+  const isGuestLocked = isGuest && guestCount >= 3;
+
   const handleSend = async (overrideText?: string) => {
     const query = (overrideText || inputText).trim();
     if (!query || isTyping) return;
+
+    if (isGuestLocked) {
+      toast.info('Guest AI Limit Reached', 'You have used all 3 free guest queries. Please register or sign in for unlimited AI access!');
+      router.push('/auth');
+      return;
+    }
 
     const userMsg: Message = {
       id: Math.random().toString(),
@@ -156,6 +172,12 @@ export default function AiClient() {
     setMessages(newMessages);
     if (!overrideText) setInputText('');
     setIsTyping(true);
+
+    if (isGuest) {
+      const nextCount = guestCount + 1;
+      setGuestCount(nextCount);
+      localStorage.setItem('nexoraGuestAiChatCount', nextCount.toString());
+    }
 
     try {
       const response = await fetch('/api/chat', {
@@ -219,6 +241,11 @@ export default function AiClient() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan text-[11px] font-black uppercase tracking-widest mb-1.5">
             <Sparkles className="w-3.5 h-3.5" />
             <span>NEXUS AI INTELLIGENCE UNIT</span>
+            {isGuest && (
+              <span className="px-2 py-0.5 rounded-full bg-cyber-pink/20 text-cyber-pink text-[9px]">
+                GUEST FREE TRIAL ({guestCount}/3 USED)
+              </span>
+            )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             ACADEMIC, BUSINESS & CAREER COPILOT
@@ -336,8 +363,8 @@ export default function AiClient() {
               <button
                 key={idx}
                 onClick={() => handleSend(sug)}
-                disabled={isTyping}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:border-cyber-cyan/40 hover:bg-slate-200 dark:hover:bg-white/[0.08] text-xs font-medium text-slate-700 dark:text-white/80 shrink-0 transition"
+                disabled={isTyping || isGuestLocked}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:border-cyber-cyan/40 hover:bg-slate-200 dark:hover:bg-white/[0.08] text-xs font-medium text-slate-700 dark:text-white/80 shrink-0 transition disabled:opacity-40"
               >
                 {sug}
               </button>
@@ -345,30 +372,56 @@ export default function AiClient() {
           </div>
         </div>
 
-        {/* Input Bar */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          className="flex items-center gap-2 pt-2"
-        >
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Ask Nexus AI about studies, business, career roadmaps, or doubts..."
-            className="flex-1 bg-white dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
-          />
-          <button
-            type="submit"
-            disabled={!inputText.trim() || isTyping}
-            className="cyber-button-primary px-6 py-3.5 rounded-2xl text-xs font-black flex items-center gap-2 shadow-lg disabled:opacity-40 transition"
+        {/* Guest Lock Banner or Input Bar */}
+        {isGuestLocked ? (
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-red-500/15 via-purple-500/15 to-cyber-cyan/15 border border-red-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                  GUEST AI LIMIT REACHED (3/3 FREE QUERIES USED)
+                </h4>
+                <p className="text-[11px] text-white/70">
+                  Register or Sign In for unlimited Nexus AI academic, business & career guidance!
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => router.push('/auth')}
+              className="cyber-button-primary px-6 py-2.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 shadow-lg"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>REGISTER / SIGN IN NOW</span>
+            </button>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="flex items-center gap-2 pt-2"
           >
-            <span>SEND</span>
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder={isGuest ? `Ask Nexus AI (${3 - guestCount} free queries remaining)...` : "Ask Nexus AI about studies, business, career roadmaps, or doubts..."}
+              className="flex-1 bg-white dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
+            />
+            <button
+              type="submit"
+              disabled={!inputText.trim() || isTyping}
+              className="cyber-button-primary px-6 py-3.5 rounded-2xl text-xs font-black flex items-center gap-2 shadow-lg disabled:opacity-40 transition"
+            >
+              <span>SEND</span>
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+        )}
 
       </div>
 
