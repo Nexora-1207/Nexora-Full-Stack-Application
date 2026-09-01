@@ -38,10 +38,10 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Search Engine Entity & Founder Authority Text for Google AI / Bing / Edge Crawlers */}
-        <div className="pt-3 border-t border-white/[0.04] text-[10px] text-slate-500/80 leading-relaxed text-center sm:text-left">
+        {/* Search Engine Entity & Founder Authority Text for Google AI / Bing / Edge Crawlers (SEO Only) */}
+        <div className="sr-only">
           <p>
-            Nexora (<strong className="text-slate-400">nexoraedu.co.in</strong>) is the premier student academic & career command hub co-founded by <strong className="text-slate-300 font-bold">Shaik. Nadeem Ahmed</strong> (Co-Founder, Chief Executive Officer & Chief Technology Officer, CEO & CTO) and <strong className="text-slate-300 font-bold">Gudipalli. Rakesh Varma</strong> (Co-Founder, Chief Marketing Officer & Chief Financial Officer, CMO & CFO).
+            Nexora (nexoraedu.co.in) is the premier student academic & career command hub co-founded by Shaik. Nadeem Ahmed (Co-Founder, Chief Executive Officer & Chief Technology Officer, CEO & CTO) and Gudipalli. Rakesh Varma (Co-Founder, Chief Marketing Officer & Chief Financial Officer, CMO & CFO).
           </p>
         </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, 
   Mail, 
@@ -15,7 +15,10 @@ import {
   Plus, 
   X,
   Palette,
-  Image as ImageIcon,
+  Camera,
+  Upload,
+  Trash2,
+  ImageIcon,
   Loader2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -66,9 +69,12 @@ const BANNER_TEMPLATES: BannerTemplate[] = [
 export default function ProfilePage() {
   const router = useRouter();
   const toast = useCyberToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showBannerModal, setShowBannerModal] = useState(false);
   
   const [userId, setUserId] = useState('');
   const [fullName, setFullName] = useState('');
@@ -80,7 +86,7 @@ export default function ProfilePage() {
   const [sector, setSector] = useState('ENGINEERING');
   const [stream, setStream] = useState('MPC');
 
-  // Custom Banner Template state
+  // Custom Banner state
   const [bannerTheme, setBannerTheme] = useState('cyber-neon');
   const [bannerUrl, setBannerUrl] = useState('');
 
@@ -117,7 +123,6 @@ export default function ProfilePage() {
             setLoading(false);
           });
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
-        // Demo guest profile
         setFullName('Demo Student');
         setLoading(false);
       } else {
@@ -125,6 +130,30 @@ export default function ProfilePage() {
       }
     });
   }, [router]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.info('Invalid File', 'Please select a valid image file (JPG, PNG, WebP).');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.info('File Too Large', 'Please select an image smaller than 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setBannerUrl(event.target.result as string);
+        toast.success('Image Loaded', 'Custom banner preview updated!');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleAddSkill = () => {
     if (!newSkill.trim() || skills.includes(newSkill.trim())) return;
@@ -194,7 +223,6 @@ export default function ProfilePage() {
     );
   }
 
-  // Active banner template configuration
   const activeTemplate = BANNER_TEMPLATES.find((t) => t.id === bannerTheme) || BANNER_TEMPLATES[0];
 
   return (
@@ -203,7 +231,7 @@ export default function ProfilePage() {
       {/* PROFILE BANNER & HEADER */}
       <div className="glass-panel rounded-3xl overflow-hidden relative shadow-2xl">
         
-        {/* Banner Area (Image or Template Gradient) */}
+        {/* Banner Area */}
         <div className={`h-36 sm:h-48 relative transition-all duration-500 ${activeTemplate.gradientClass}`}>
           {bannerUrl ? (
             <img 
@@ -218,8 +246,20 @@ export default function ProfilePage() {
             <div className="absolute inset-0 bg-cyber-mesh opacity-50"></div>
           )}
 
-          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/[0.15] text-[10px] font-black uppercase tracking-widest text-cyber-cyan">
-            {sector} • {stream} TRACK
+          {/* LINKEDIN-STYLE CAMERA EDIT BANNER BUTTON */}
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-2 z-10">
+            <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/[0.15] text-[10px] font-black uppercase tracking-widest text-cyber-cyan">
+              {sector} • {stream} TRACK
+            </span>
+            
+            <button
+              type="button"
+              onClick={() => setShowBannerModal(true)}
+              className="w-9 h-9 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition shadow-lg group"
+              title="Edit Profile Banner (LinkedIn Style)"
+            >
+              <Camera className="w-4 h-4 group-hover:scale-110 text-cyber-cyan transition-transform" />
+            </button>
           </div>
         </div>
 
@@ -249,59 +289,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-      </div>
-
-      {/* BANNER TEMPLATE CUSTOMIZER PANEL */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl">
-        <div className="flex items-center gap-2 pb-3 border-b border-slate-200 dark:border-white/[0.08]">
-          <Palette className="w-5 h-5 text-cyber-cyan" />
-          <h3 className="font-black text-base uppercase tracking-wider text-slate-900 dark:text-white">
-            BANNER TEMPLATE CUSTOMIZER
-          </h3>
-        </div>
-
-        {/* Preset Templates Grid */}
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider">
-            Select Preset Cyber Template
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {BANNER_TEMPLATES.map((tmpl) => (
-              <button
-                key={tmpl.id}
-                type="button"
-                onClick={() => {
-                  setBannerTheme(tmpl.id);
-                  setBannerUrl('');
-                }}
-                className={`h-14 rounded-2xl p-2.5 relative border transition-all flex flex-col justify-end overflow-hidden ${tmpl.gradientClass} ${
-                  bannerTheme === tmpl.id && !bannerUrl
-                    ? 'ring-2 ring-cyber-cyan scale-[1.03] shadow-lg border-cyber-cyan'
-                    : 'border-white/10 hover:opacity-90'
-                }`}
-              >
-                <span className="text-[10px] font-black uppercase text-white drop-shadow-md tracking-wider">
-                  {tmpl.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Custom Image URL Option */}
-        <div className="space-y-1.5 pt-2">
-          <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider flex items-center gap-1.5">
-            <ImageIcon className="w-3.5 h-3.5 text-cyber-cyan" />
-            <span>Or Enter Custom Banner Image URL</span>
-          </label>
-          <input
-            type="text"
-            value={bannerUrl}
-            onChange={(e) => setBannerUrl(e.target.value)}
-            placeholder="https://images.unsplash.com/photo-... or custom image URL"
-            className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
-          />
-        </div>
       </div>
 
       {/* EDITABLE DOSSIER FORM */}
@@ -471,6 +458,123 @@ export default function ProfilePage() {
         </div>
 
       </form>
+
+      {/* LINKEDIN-STYLE BANNER EDITOR MODAL */}
+      {showBannerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="glass-panel w-full max-w-lg rounded-3xl border border-white/10 p-6 space-y-6 shadow-2xl relative bg-[#030712]">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Camera className="w-5 h-5 text-cyber-cyan" />
+                <h3 className="font-black text-base uppercase tracking-wider text-white">
+                  EDIT PROFILE BANNER
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowBannerModal(false)}
+                className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/10 text-white/60 hover:text-white flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+
+            {/* Upload File Button */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
+                Upload Image File
+              </label>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-4 rounded-2xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Choose Image from Device</span>
+              </button>
+            </div>
+
+            {/* Preset Themes Grid */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
+                Or Select Preset Cyber Theme
+              </label>
+              <div className="grid grid-cols-5 gap-2">
+                {BANNER_TEMPLATES.map((tmpl) => (
+                  <button
+                    key={tmpl.id}
+                    type="button"
+                    onClick={() => {
+                      setBannerTheme(tmpl.id);
+                      setBannerUrl('');
+                    }}
+                    className={`h-12 rounded-xl p-1 relative border transition-all flex flex-col justify-end overflow-hidden ${tmpl.gradientClass} ${
+                      bannerTheme === tmpl.id && !bannerUrl
+                        ? 'ring-2 ring-cyber-cyan scale-105 border-cyber-cyan'
+                        : 'border-white/10 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <span className="text-[9px] font-black uppercase text-white truncate drop-shadow">
+                      {tmpl.name.split(' ')[0]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom URL Input */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-cyber-cyan" />
+                <span>Or Paste Banner Image Web URL</span>
+              </label>
+              <input
+                type="text"
+                value={bannerUrl}
+                onChange={(e) => setBannerUrl(e.target.value)}
+                placeholder="https://images.unsplash.com/photo-..."
+                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+              />
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between pt-3 border-t border-white/10">
+              {bannerUrl && (
+                <button
+                  type="button"
+                  onClick={() => setBannerUrl('')}
+                  className="text-xs font-bold text-red-400 hover:text-red-300 transition flex items-center gap-1"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Reset to Template</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBannerModal(false);
+                  toast.success('Banner Updated', 'Profile banner updated! Click Save & Sync to persist to database.');
+                }}
+                className="cyber-button-primary px-6 py-2.5 rounded-xl text-xs font-black ml-auto"
+              >
+                APPLY & CLOSE
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
