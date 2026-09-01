@@ -8,15 +8,20 @@ import { useCyberToast } from '@/components/CyberToast';
 interface NotesModalProps {
   isOpen: boolean;
   onClose: () => void;
+  toolTitle?: string;
+  sectorName?: string;
 }
 
-export default function NotesModal({ isOpen, onClose }: NotesModalProps) {
+export default function NotesModal({ isOpen, onClose, toolTitle, sectorName }: NotesModalProps) {
   const toast = useCyberToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [saved, setSaved] = useState(false);
 
   if (!isOpen) return null;
+
+  const displayTitle = (toolTitle || 'SMART SECTOR NOTE PAD').toUpperCase();
+  const displaySector = sectorName || 'Sector Academic';
 
   const handleSave = () => {
     if (!title.trim() || !content.trim()) return;
@@ -27,11 +32,11 @@ export default function NotesModal({ isOpen, onClose }: NotesModalProps) {
       
       const newFile = {
         id: Math.random().toString(),
-        name: `${title.replace(/\s+/g, '_')}_Notes.txt`,
+        name: `${title.replace(/\s+/g, '_')}_${displaySector.replace(/\s+/g, '_')}.txt`,
         category: 'ACADEMIC',
         size: '12 KB',
         date: new Date().toISOString().split('T')[0],
-        content: `LECTURE NOTE: ${title}\nDATE: ${new Date().toLocaleDateString()}\n\nSUMMARY:\n${content}`
+        content: `SECTOR NOTE: ${title}\nSECTOR: ${displaySector}\nDATE: ${new Date().toLocaleDateString()}\n\nSUMMARY:\n${content}`
       };
 
       files.unshift(newFile);
@@ -61,64 +66,64 @@ export default function NotesModal({ isOpen, onClose }: NotesModalProps) {
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-lg text-white tracking-wide">SMART NOTE PAD</h3>
-              <p className="text-xs text-white/50">Draft lecture notes with 1-click sync to your Document Vault</p>
+              <h3 className="font-black text-lg text-white tracking-wide">{displayTitle}</h3>
+              <p className="text-xs text-white/50">Draft observations &amp; sync directly to Document Vault</p>
             </div>
           </div>
           <button 
-            onClick={() => { onClose(); setSaved(false); }}
+            onClick={() => { onClose(); setSaved(false); setTitle(''); setContent(''); }}
             className="w-8 h-8 rounded-full bg-white/[0.05] hover:bg-white/[0.1] text-white/60 hover:text-white flex items-center justify-center transition"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Form */}
+        {/* Input */}
         <div className="mt-6 space-y-4">
           <div>
             <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-2">
-              Note Subject / Title
+              Note Title / Topic
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Electrical Transformers & Faraday's Law"
-              className="w-full bg-surface-card border border-white/[0.1] rounded-2xl px-4 py-3.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-violet transition"
+              placeholder={`e.g. ${displaySector} Lecture & Lab Notes...`}
+              className="w-full bg-surface-card border border-white/[0.1] rounded-2xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-violet transition"
             />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-2">
-              Note Content
+              Note Content / Key Takeaways
             </label>
             <textarea
-              rows={6}
+              rows={5}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Record formula equations, lecture takeaways, lab observations..."
-              className="w-full bg-surface-card border border-white/[0.1] rounded-2xl p-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-violet transition resize-none font-mono"
+              placeholder="Record main takeaways, formulas, procedures, or exam dates..."
+              className="w-full bg-surface-card border border-white/[0.1] rounded-2xl p-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-violet transition resize-none"
             />
           </div>
 
-          {saved ? (
-            <div className="p-3.5 rounded-xl bg-cyber-emerald/10 border border-cyber-emerald/30 text-cyber-emerald flex items-center justify-center gap-2 text-xs font-bold">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>NOTE ENCRYPTED & SYNCHRONIZED TO VAULT LOCKER!</span>
-            </div>
-          ) : (
+          {!saved ? (
             <button
               onClick={handleSave}
               disabled={!title.trim() || !content.trim()}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-cyber-violet to-cyber-pink text-white font-bold text-sm flex items-center justify-center gap-2 hover:brightness-110 transition shadow-[0_0_25px_rgba(168,85,247,0.4)]"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyber-violet to-cyber-pink text-white font-black text-xs flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg"
             >
               <FolderLock className="w-4 h-4" />
-              <span>SAVE TO DOCUMENT VAULT</span>
+              <span>ENCRYPT &amp; SAVE TO DOCUMENT VAULT</span>
             </button>
+          ) : (
+            <div className="p-4 rounded-2xl bg-cyber-emerald/10 border border-cyber-emerald/30 text-center space-y-1">
+              <CheckCircle2 className="w-8 h-8 text-cyber-emerald mx-auto" />
+              <span className="text-xs font-bold text-cyber-emerald uppercase tracking-wider block">NOTE ENCRYPTED &amp; SAVED</span>
+              <p className="text-xs text-white/70">Synced to your Document Vault</p>
+            </div>
           )}
 
         </div>
-
       </div>
     </div>
   );

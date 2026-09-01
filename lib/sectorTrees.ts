@@ -104,8 +104,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹4.8 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "cad_viewer", name: "CAD Simulation Lab", desc: "Interact with mechatronic prototypes and 3D schematics.", icon: "Cpu" },
-        { id: "readiness_matrix", name: "GATEWAY Calculator", desc: "Calculate lateral entry B.Tech admission index based on diploma cgpa.", icon: "Sparkles" }
+        { id: "eng_scanner", name: "ATS Resume & CAD Project Scanner", desc: "Scans engineering resumes, CAD drawings, and technical skill sets against B.Tech benchmarks.", icon: "FileText" },
+        { id: "eng_interview", name: "Technical & Mechatronics Interviewer", desc: "Simulates core technical rounds for mechanical, electrical, ECE, and civil engineering.", icon: "Mic" },
+        { id: "eng_explainer", name: "Engineering Theorems Explainer", desc: "Step-by-step breakdowns of calculus, physics, circuit schematics, and CAD logic.", icon: "Lightbulb" },
+        { id: "eng_notepad", name: "Engineering Lab & Lecture Notepad", desc: "Draft lab observations, circuit specs, and save directly to Document Vault.", icon: "BookOpen" }
       ],
       opportunities: [
         { id: "o1", title: "JEE Main Portal Active", date: "Aug 25, 2026", tag: "CRITICAL", desc: "Joint Entrance Examination is open. Apply for elite IIT and NIT blocks.", badgeColor: "bg-red-500/10 text-red-500 border-red-500/30" },
@@ -166,8 +168,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹3.8 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "pathology_sim", name: "Pathology Analyzer", desc: "Interact with biochemical data slides and bacteria cell tracking.", icon: "HeartPulse" },
-        { id: "dosage_validator", name: "Drug Dosage Calculator", desc: "Check drug mixture safety levels and dosage metrics.", icon: "Sparkles" }
+        { id: "med_scanner", name: "Pathology & Clinical Lab Inspector", desc: "Simulates blood diagnostic screening, cell pathogen tracking, and DMLT lab protocols.", icon: "Activity" },
+        { id: "med_interview", name: "NEET & Clinical Viva Simulator", desc: "Simulates clinical viva questions, NEET prep scenarios, and lab assistant rounds.", icon: "HeartPulse" },
+        { id: "med_explainer", name: "Pharmacology & Dosage Validator", desc: "Calculates pharmaceutical dosages, drug safety levels, and biochemistry formulas.", icon: "Sparkles" },
+        { id: "med_notepad", name: "Clinical Notes & Patient Record Log", desc: "Record clinical lab notes, patient diagnostic logs, and sync to Document Vault.", icon: "FileText" }
       ],
       opportunities: [
         { id: "m1", title: "NEET Prep Mock Drive", date: "Sep 12, 2026", tag: "INTERMEDIATE", desc: "All-India mock test series for BiPC students targeting government medical blocks.", badgeColor: "bg-cyber-pink/10 text-cyber-pink border-cyber-pink/30" },
@@ -220,8 +224,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹5.2 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "code_terminal", name: "S-Node Compiler", desc: "Run HTML/JS micro-snippets and review syntax styling.", icon: "Terminal" },
-        { id: "port_scanner", name: "Network Simulator", desc: "Interact with virtual firewalls and network routing hubs.", icon: "Sparkles" }
+        { id: "cs_scanner", name: "Code Review & Algorithm Optimizer", desc: "Analyzes Python, C++, Java snippets, DSA logic, and full-stack web code syntax.", icon: "Terminal" },
+        { id: "cs_interview", name: "Software Engineer & System Design Interviewer", desc: "Simulates live coding interviews, DSA problem solving, and full-stack web rounds.", icon: "Code" },
+        { id: "cs_explainer", name: "Cyber Security & Cloud Explainer", desc: "Explains cloud infrastructure, IP subnets, firewalls, and encryption protocols.", icon: "Cpu" },
+        { id: "cs_notepad", name: "Dev Snippets & Architecture Notepad", desc: "Draft code snippets, REST API endpoints, and save directly to Document Vault.", icon: "FileCode" }
       ],
       opportunities: [
         { id: "c1", title: "Google Cloud Sandbox Apprentice", date: "Sep 20, 2026", tag: "OPEN INGRESS", desc: "Earn virtual credits and complete network training programs directly.", badgeColor: "bg-cyber-emerald/10 text-cyber-emerald border-cyber-emerald/30" },
@@ -282,8 +288,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹3.0 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "tool_guide", name: "Precision Tool Kit", desc: "Interact with digital calibration gauges and micrometers.", icon: "Wrench" },
-        { id: "circuit_builder", name: "Virtual Wiring Breadboard", desc: "Simulate electrical relays and check fuse values.", icon: "Sparkles" }
+        { id: "trade_scanner", name: "CNC & Wiring Diagram Inspector", desc: "Evaluates ITI fitter blueprints, electrical schematics, and lathe specifications.", icon: "Wrench" },
+        { id: "trade_interview", name: "Industrial NCVT Trade Viva Simulator", desc: "Simulates NCVT trade test viva, railway apprentice rounds, and technician interviews.", icon: "Hammer" },
+        { id: "trade_explainer", name: "Industrial Automation & Safety Explainer", desc: "Explains PLC programming, transformer maintenance, arc welding, and OSHA safety.", icon: "Shield" },
+        { id: "trade_notepad", name: "Workshop Calibration & Tooling Log", desc: "Record machine calibration details, tool inventory, and store in Vault.", icon: "BookOpen" }
       ],
       opportunities: [
         { id: "t1", title: "Railways Apprentice Board", date: "Sep 15, 2026", tag: "GOVT SECTOR", desc: "National apprenticeship drive. Open for ITI Fitter and Electrician nodes.", badgeColor: "bg-cyber-amber/10 text-cyber-amber border-cyber-amber/30" },
@@ -343,8 +351,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹7.2 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "navigation_sim", name: "Navigational Compass Node", desc: "Practice reading sea bearings, nautical chart routes, and wind stats.", icon: "Anchor" },
-        { id: "cdc_checker", name: "CDC Clearance Inspector", desc: "Verify maritime certificate documentation and medical checklists.", icon: "Sparkles" }
+        { id: "mar_scanner", name: "Nautical Navigation & COLREGs Assessor", desc: "Evaluates maritime chart reading, COLREGs navigation rules, and marine safety.", icon: "Anchor" },
+        { id: "mar_interview", name: "Merchant Navy & IMU-CET Oral Simulator", desc: "Simulates maritime sponsorship interviews, IMU-CET oral exams, and seamanship viva.", icon: "Ship" },
+        { id: "mar_explainer", name: "Marine Engine & Weather Dynamics Explainer", desc: "Explains 2-stroke diesel engines, ballast systems, oceanography, and storm navigation.", icon: "Compass" },
+        { id: "mar_notepad", name: "Seafarer Logbook & Watchkeeping Notes", desc: "Draft watchkeeping logs, vessel engine hours, and sync to Document Vault.", icon: "BookOpen" }
       ],
       opportunities: [
         { id: "n1", title: "DG Shipping Rating Examination", date: "Sep 01, 2026", tag: "MANDATORY", desc: "Direct enrollment gate for GP Rating theoretical and practical testing.", badgeColor: "bg-red-500/10 text-red-500 border-red-500/30" },
@@ -404,8 +414,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹3.2 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "pattern_canvas", name: "Pattern Drafter Tool", desc: "Interact with dimensional measurements and drape sketches.", icon: "Palette" },
-        { id: "fabric_lab", name: "Smart Fabric Selector", desc: "Compare fiber qualities, tensile ratings, and cost indices.", icon: "Sparkles" }
+        { id: "des_scanner", name: "Apparel Pattern & Fabric Inspector", desc: "Evaluates apparel sketches, fiber tensile ratings, pattern drafting, and CAD specs.", icon: "Palette" },
+        { id: "des_interview", name: "NIFT & Design Studio Viva Simulator", desc: "Simulates NIFT studio test viva, fashion portfolio reviews, and brand coordinator interviews.", icon: "Layout" },
+        { id: "des_explainer", name: "Garment Technology & Draping Explainer", desc: "Explains fabric weaving physics, double-needle stitching, garment scaling, and color theory.", icon: "Layers" },
+        { id: "des_notepad", name: "Fashion Storyboard & Sketch Pad", desc: "Draft garment collections, client measurement profiles, and save to Vault.", icon: "PenTool" }
       ],
       opportunities: [
         { id: "f1", title: "NIFT Diploma Admission Portal", date: "Aug 30, 2026", tag: "ACADEMIC GATE", desc: "Apply for certificate and diploma programs in fashion technology blocks.", badgeColor: "bg-cyber-violet/10 text-cyber-violet border-cyber-violet/30" },
@@ -457,8 +469,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹4.5 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "ledger_check", name: "FinTech Ledger Auditor", desc: "Interact with simulated transactional data sheets and check balances.", icon: "TrendingUp" },
-        { id: "roi_calc", name: "Compound Interest Matrix", desc: "Simulate startup ROI values and capital amortization metrics.", icon: "Sparkles" }
+        { id: "comm_scanner", name: "Balance Sheet & FinTech Auditor", desc: "Analyzes accounting entries, GST calculations, P&L statements, and audit ledgers.", icon: "BarChart3" },
+        { id: "comm_interview", name: "Corporate Finance & Pitch Interviewer", desc: "Simulates CA/CS viva rounds, venture capital pitches, and MBA case interviews.", icon: "Briefcase" },
+        { id: "comm_explainer", name: "Taxation & Economic Model Explainer", desc: "Explains macroeconomics, corporate tax structures, stock markets, and banking laws.", icon: "TrendingUp" },
+        { id: "comm_notepad", name: "Business Ledger & Venture Notes", desc: "Draft business models, financial projections, and store in Document Vault.", icon: "FileSpreadsheet" }
       ],
       opportunities: [
         { id: "b1", title: "CA Foundation Registration Gate", date: "Sep 10, 2026", tag: "PROFESSIONAL", desc: "Direct enrollment for intermediate commerce graduates to begin accounting path.", badgeColor: "bg-cyber-amber/10 text-cyber-amber border-cyber-amber/30" },
@@ -502,8 +516,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹3.5 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "frame_editor", name: "VFX Frame Editor Node", desc: "Interact with render layers, masking, and visual frames.", icon: "Radio" },
-        { id: "script_tool", name: "SEO Headline Grader", desc: "Write headlines and calculate engagement reach metrics.", icon: "Sparkles" }
+        { id: "media_scanner", name: "VFX Frame & Headline Inspector", desc: "Evaluates video editing timelines, render layers, SEO headlines, and media scripts.", icon: "Radio" },
+        { id: "media_interview", name: "Journalism & Media Viva Simulator", desc: "Simulates news reporting viva, digital content interviews, and audio editing rounds.", icon: "Mic" },
+        { id: "media_explainer", name: "Broadcast Tech & Audio Engine Explainer", desc: "Explains soundboard frequencies, camera lighting ratios, noise gating, and video codecs.", icon: "Sparkles" },
+        { id: "media_notepad", name: "Broadcast Script & Content Pad", desc: "Draft video scripts, podcast outlines, and save to Document Vault.", icon: "Feather" }
       ],
       opportunities: [
         { id: "me1", title: "Prasad Labs VFX Trainee Program", date: "Sep 08, 2026", tag: "VFX REQUIRED", desc: "6-month on-site lab training on heavy visual effects rendering. Direct hiring path.", badgeColor: "bg-cyber-red/10 text-cyber-red border-cyber-red/30" },
@@ -547,8 +563,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹3.1 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "room_assigner", name: "Hotel PMS Simulator", desc: "Interact with virtual guest check-ins, room boards, and bills.", icon: "Coffee" },
-        { id: "safety_guide", name: "Aviation Safety Checklist", desc: "Verify cabin pressure sequences and airport security checklists.", icon: "Sparkles" }
+        { id: "hot_scanner", name: "Front Office & PMS Occupancy Inspector", desc: "Evaluates hotel occupancy ratios, PMS software ops, and guest service standards.", icon: "Hotel" },
+        { id: "hot_interview", name: "Hotel Manager & Culinary Viva Simulator", desc: "Simulates NCHMCT JEE interviews, resort management rounds, and culinary viva.", icon: "Utensils" },
+        { id: "hot_explainer", name: "Culinary Arts & FSSAI Safety Explainer", desc: "Explains FSSAI food safety, wine pairing, banquet ops, and kitchen hygiene.", icon: "Coffee" },
+        { id: "hot_notepad", name: "Hospitality Event & Service Notes", desc: "Record event plans, menu designs, and save to Document Vault.", icon: "Clipboard" }
       ],
       opportunities: [
         { id: "h1", title: "Taj Hotels Trainee Intake", date: "Sep 14, 2026", tag: "DIPLOMA TARGET", desc: "Hiring drive for front office and kitchen trainees. Direct interviews.", badgeColor: "bg-cyber-orange/10 text-cyber-orange border-cyber-orange/30" },
@@ -592,8 +610,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹2.9 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "soil_matrix", name: "Soil Ph & Nutrient Lab", desc: "Interact with nitrogen, phosphorus, and moisture values.", icon: "Sprout" },
-        { id: "crop_scheduler", name: "Drone Flight Planner", desc: "Draw crop grids and plan flight paths for fertilizer drone sprayers.", icon: "Sparkles" }
+        { id: "agri_scanner", name: "Agronomy & Soil Diagnostics Assessor", desc: "Analyzes soil NPK levels, crop pathology, irrigation telemetry, and fertilizer ratios.", icon: "Sprout" },
+        { id: "agri_interview", name: "Agri-Business & ICAR Viva Simulator", desc: "Simulates ICAR entrance viva, Agri-Officer interviews, and organic farm management.", icon: "Sun" },
+        { id: "agri_explainer", name: "Hydroponics & Drone Flight Explainer", desc: "Explains crop genetics, pest management, hydroponic setups, and drone spraying.", icon: "Leaf" },
+        { id: "agri_notepad", name: "Crop Yield & Harvest Log Pad", desc: "Record field observations, soil test results, and sync to Vault.", icon: "FileSpreadsheet" }
       ],
       opportunities: [
         { id: "a1", title: "State Soil Testing Labs Intake", date: "Sep 22, 2026", tag: "GOVT JOBS", desc: "Direct recruitment for Junior Soil Analysts. Written test details.", badgeColor: "bg-cyber-lime/10 text-cyber-lime border-cyber-lime/30" },
@@ -637,8 +657,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹3.6 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "engine_diagnostics", name: "EV Cell Thermal Monitor", desc: "Interact with cell battery temperature nodes and voltage meters.", icon: "Car" },
-        { id: "brake_calc", name: "Hydraulic Force Amortizer", desc: "Calculate vehicle stopping distance against road friction indices.", icon: "Sparkles" }
+        { id: "auto_scanner", name: "EV Battery & Chassis Inspector", desc: "Evaluates battery cell thermal management, ICE engines, and brake hydraulics.", icon: "Car" },
+        { id: "auto_interview", name: "Automotive & EV Tech Viva Simulator", desc: "Simulates OEM service technician interviews, EV assembly viva, and CAD modeling rounds.", icon: "Wrench" },
+        { id: "auto_explainer", name: "Powertrain & Torque Vectoring Explainer", desc: "Explains combustion stoichiometry, battery management systems (BMS), and transmission.", icon: "Sparkles" },
+        { id: "auto_notepad", name: "Vehicle Diagnostics & Tune-up Notes", desc: "Record engine diagnostic codes, battery voltages, and save to Vault.", icon: "BookOpen" }
       ],
       opportunities: [
         { id: "au1", title: "Maruti Suzuki Technical Trainees", date: "Sep 09, 2026", tag: "DIPLOMA ONLY", desc: "Recruitment drive for automobile and mechanical diploma students. Direct onboarding.", badgeColor: "bg-cyber-red/10 text-cyber-red border-cyber-red/30" },
@@ -682,8 +704,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹3.3 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "mix_designer", name: "Concrete Quality Assessor", desc: "Interact with ratios of water, cement, and sand.", icon: "Building2" },
-        { id: "survey_planner", name: "GPS Survey Plotter", desc: "Input GPS coordinates and calculate total area bounds.", icon: "Sparkles" }
+        { id: "con_scanner", name: "Concrete Mix & Survey Plotter", desc: "Evaluates concrete slump tests, structural CAD blueprints, and GPS surveying.", icon: "Building2" },
+        { id: "con_interview", name: "Civil Site Supervisor Viva Simulator", desc: "Simulates site engineering interviews, L&T trainee viva, and surveyor rounds.", icon: "HardHat" },
+        { id: "con_explainer", name: "Structural Stress & BIM Explainer", desc: "Explains beam load capacities, soil bearing pressure, BIM 3D models, and RCC ratios.", icon: "Compass" },
+        { id: "con_notepad", name: "Construction Site & Material Log", desc: "Record site material stock, concrete pour ratios, and save to Vault.", icon: "Clipboard" }
       ],
       opportunities: [
         { id: "co1", title: "L&T Construction Site Trainees", date: "Sep 28, 2026", tag: "DIPLOMA CIVIL", desc: "On-site apprenticeship program for civil diploma students. Direct project credits.", badgeColor: "bg-cyber-teal/10 text-cyber-teal border-cyber-teal/30" },
@@ -727,8 +751,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹2.6 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "skin_analyzer", name: "Dermal Treatment Matrix", desc: "Interact with skin pH ranges, hydration, and chemical formulas.", icon: "Sparkles" },
-        { id: "diet_planner", name: "Macronutrient Calculator", desc: "Balance ratios of protein, carbs, and fats against target weight.", icon: "Sparkles" }
+        { id: "beauty_scanner", name: "Cosmetology & Skin Diagnostics Inspector", desc: "Analyzes dermal pH levels, skin hydration, hair chemistry, and aesthetic formulas.", icon: "Sparkles" },
+        { id: "beauty_interview", name: "Wellness Specialist & Diet Viva Simulator", desc: "Simulates salon franchise interviews, nutritionist viva, and spa therapist rounds.", icon: "UserCheck" },
+        { id: "beauty_explainer", name: "Macronutrients & Dermal Science Explainer", desc: "Explains skin barrier repair, essential oils, calorie balance, and salon hygiene.", icon: "Heart" },
+        { id: "beauty_notepad", name: "Client Wellness & Dietetic Notes", desc: "Record client skin profiles, diet recommendations, and store in Vault.", icon: "BookOpen" }
       ],
       opportunities: [
         { id: "w1", title: "Lakme Academy Apprenticeship", date: "Sep 07, 2026", tag: "CERTIFICATE OPEN", desc: "Hands-on junior therapist training under Lakme franchise mentors.", badgeColor: "bg-cyber-pink/10 text-cyber-pink border-cyber-pink/30" },
@@ -771,8 +797,10 @@ export const SECTOR_TREES: Record<string, SectorTree> = {
         { label: "Avg Package", value: "₹3.4 LPA", color: "text-cyber-magenta" }
       ],
       tools: [
-        { id: "stock_ledgers", name: "Warehouse Stock Ledger", desc: "Interact with package IDs, weights, and transit codes.", icon: "Truck" },
-        { id: "route_finder", name: "Delivery Router Optimizer", desc: "Input delivery stops and calculate fuel efficiency ratings.", icon: "Sparkles" }
+        { id: "retail_scanner", name: "Warehouse Stock & Barcode Auditor", desc: "Analyzes package transit weights, barcode ledgers, and e-commerce inventory.", icon: "Truck" },
+        { id: "retail_interview", name: "Supply Chain & Retail Viva Simulator", desc: "Simulates warehouse operations interviews, Amazon logi-tech viva, and POS sales rounds.", icon: "Package" },
+        { id: "retail_explainer", name: "Delivery Routing & SCM Explainer", desc: "Explains automated sorting nodes, fleet fuel optimization, POS invoicing, and GDS.", icon: "MapPin" },
+        { id: "retail_notepad", name: "Inventory Dispatch & Cargo Notes", desc: "Draft shipment manifests, warehouse stock logs, and sync to Vault.", icon: "FileSpreadsheet" }
       ],
       opportunities: [
         { id: "r1", title: "Amazon Logi-Tech Internship", date: "Sep 18, 2026", tag: "SCM REQUIRED", desc: "Trainee program in automated sort centers. Learn barcode and scanner setups.", badgeColor: "bg-cyber-indigo/10 text-cyber-indigo border-cyber-indigo/30" },

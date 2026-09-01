@@ -366,9 +366,11 @@ export default function DashboardPage() {
     );
   }
 
-  // Active Tool mapping for Tool 1 and 2 based on SectorTrees metadata
-  const customTool1 = sectorConfig.dashboard.tools[0] || { name: 'Resume AI', desc: 'Scan and benchmark your technical credentials against placement gates.' };
-  const customTool2 = sectorConfig.dashboard.tools[1] || { name: 'Interview Prep', desc: 'Simulate technical engineering and behavioral interview questions with AI.' };
+  // Active Sector Tool mapping for all 4 dynamic toolkits based on SectorTrees metadata
+  const customTool1 = sectorConfig.dashboard.tools[0] || { name: 'ATS Resume & Portfolio Scanner', desc: 'Scan and benchmark your sector credentials against placement gates.' };
+  const customTool2 = sectorConfig.dashboard.tools[1] || { name: 'Sector Mock Interviewer', desc: 'Simulate specialized technical and behavioral interviews with AI.' };
+  const customTool3 = sectorConfig.dashboard.tools[2] || { name: 'Concept & Theorem Explainer', desc: 'Break down complex sector theorems and formulas into step-by-step guidance.' };
+  const customTool4 = sectorConfig.dashboard.tools[3] || { name: 'Smart Sector Note Pad', desc: 'Draft sector observations and instantly save notes to your Document Vault.' };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-8 relative">
@@ -670,8 +672,6 @@ export default function DashboardPage() {
             ))}
           </div>
 
-
-
           {/* INTERACTIVE SECTOR AI TOOLKITS */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -685,12 +685,12 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
               {/* Tool 1: Dynamic Sector Tool 1 */}
               <button
                 onClick={() => handleOpenTool(setResumeOpen)}
-                className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300"
+                className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300 flex flex-col justify-between"
                 style={{
                   boxShadow: hoveredCard === 'tool1' ? `0 0 25px ${primaryColor}15` : 'none',
                   borderColor: hoveredCard === 'tool1' ? `${primaryColor}30` : 'rgba(255,255,255,0.06)'
@@ -698,27 +698,29 @@ export default function DashboardPage() {
                 onMouseEnter={() => setHoveredCard('tool1')}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
-                  style={{
-                    backgroundColor: `${primaryColor}15`,
-                    borderColor: `${primaryColor}30`,
-                    color: primaryColor
-                  }}
-                >
-                  <FileText className="w-5 h-5" />
+                <div>
+                  <div 
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
+                    style={{
+                      backgroundColor: `${primaryColor}15`,
+                      borderColor: `${primaryColor}30`,
+                      color: primaryColor
+                    }}
+                  >
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white group-hover:text-white transition line-clamp-1">
+                    {customTool1.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed line-clamp-2">
+                    {customTool1.desc}
+                  </p>
                 </div>
-                <h3 className="font-black text-base text-slate-900 dark:text-white group-hover:text-white transition">
-                  {customTool1.name}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed">
-                  {customTool1.desc}
-                </p>
                 <div 
                   className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold"
                   style={{ color: primaryColor }}
                 >
-                  <span>Launch Scanner</span>
+                  <span>Launch Tool</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </button>
@@ -726,7 +728,7 @@ export default function DashboardPage() {
               {/* Tool 2: Dynamic Sector Tool 2 */}
               <button
                 onClick={() => handleOpenTool(setInterviewOpen)}
-                className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300"
+                className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300 flex flex-col justify-between"
                 style={{
                   boxShadow: hoveredCard === 'tool2' ? `0 0 25px ${secondaryColor}15` : 'none',
                   borderColor: hoveredCard === 'tool2' ? `${secondaryColor}30` : 'rgba(255,255,255,0.06)'
@@ -734,35 +736,37 @@ export default function DashboardPage() {
                 onMouseEnter={() => setHoveredCard('tool2')}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
-                  style={{
-                    backgroundColor: `${secondaryColor}15`,
-                    borderColor: `${secondaryColor}30`,
-                    color: secondaryColor
-                  }}
-                >
-                  <Mic className="w-5 h-5" />
+                <div>
+                  <div 
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
+                    style={{
+                      backgroundColor: `${secondaryColor}15`,
+                      borderColor: `${secondaryColor}30`,
+                      color: secondaryColor
+                    }}
+                  >
+                    <Mic className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white group-hover:text-white transition line-clamp-1">
+                    {customTool2.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed line-clamp-2">
+                    {customTool2.desc}
+                  </p>
                 </div>
-                <h3 className="font-black text-base text-slate-900 dark:text-white group-hover:text-white transition">
-                  {customTool2.name}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed">
-                  {customTool2.desc}
-                </p>
                 <div 
                   className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold"
                   style={{ color: secondaryColor }}
                 >
-                  <span>Start Mock Session</span>
+                  <span>Start Session</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
               </button>
 
-              {/* Tool 3: Concept Explainer */}
+              {/* Tool 3: Dynamic Sector Tool 3 */}
               <button
                 onClick={() => handleOpenTool(setExplainerOpen)}
-                className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300"
+                className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300 flex flex-col justify-between"
                 style={{
                   boxShadow: hoveredCard === 'tool3' ? `0 0 25px ${primaryColor}15` : 'none',
                   borderColor: hoveredCard === 'tool3' ? `${primaryColor}30` : 'rgba(255,255,255,0.06)'
@@ -770,22 +774,24 @@ export default function DashboardPage() {
                 onMouseEnter={() => setHoveredCard('tool3')}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
-                  style={{
-                    backgroundColor: `${primaryColor}15`,
-                    borderColor: `${primaryColor}30`,
-                    color: primaryColor
-                  }}
-                >
-                  <Lightbulb className="w-5 h-5" />
+                <div>
+                  <div 
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
+                    style={{
+                      backgroundColor: `${primaryColor}15`,
+                      borderColor: `${primaryColor}30`,
+                      color: primaryColor
+                    }}
+                  >
+                    <Lightbulb className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white group-hover:text-white transition line-clamp-1">
+                    {customTool3.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed line-clamp-2">
+                    {customTool3.desc}
+                  </p>
                 </div>
-                <h3 className="font-black text-base text-slate-900 dark:text-white group-hover:text-white transition">
-                  Concept Explainer
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed">
-                  Break down complex theorems, circuit logic, and formulas into step-by-step breakdowns.
-                </p>
                 <div 
                   className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold"
                   style={{ color: primaryColor }}
@@ -795,41 +801,45 @@ export default function DashboardPage() {
                 </div>
               </button>
 
-            </div>
-
-            {/* Smart Lecture Notes Banner */}
-            <button
-              onClick={() => handleOpenTool(setNotesOpen)}
-              className="w-full text-left glass-panel rounded-3xl p-5 sm:p-6 border border-white/[0.06] hover:border-white/20 transition-all flex items-center justify-between gap-4 group"
-              style={{
-                boxShadow: hoveredCard === 'notepad' ? `0 0 25px ${secondaryColor}15` : 'none',
-                borderColor: hoveredCard === 'notepad' ? `${secondaryColor}30` : 'rgba(255,255,255,0.06)'
-              }}
-              onMouseEnter={() => setHoveredCard('notepad')}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <div className="flex items-center gap-4">
-                <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm"
-                  style={{
-                    backgroundColor: `${secondaryColor}15`,
-                    borderColor: `${secondaryColor}30`,
-                    color: secondaryColor
-                  }}
-                >
-                  <BookOpen className="w-5 h-5" />
-                </div>
+              {/* Tool 4: Dynamic Sector Tool 4 */}
+              <button
+                onClick={() => handleOpenTool(setNotesOpen)}
+                className="text-left glass-card glass-card-hover rounded-3xl p-5 group relative overflow-hidden transition-all duration-300 flex flex-col justify-between"
+                style={{
+                  boxShadow: hoveredCard === 'tool4' ? `0 0 25px ${secondaryColor}15` : 'none',
+                  borderColor: hoveredCard === 'tool4' ? `${secondaryColor}30` : 'rgba(255,255,255,0.06)'
+                }}
+                onMouseEnter={() => setHoveredCard('tool4')}
+                onMouseLeave={() => setHoveredCard(null)}
+              >
                 <div>
-                  <h3 className="font-black text-base text-slate-900 dark:text-white transition">
-                    Smart Lecture Note Pad
+                  <div 
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border shadow-sm"
+                    style={{
+                      backgroundColor: `${secondaryColor}15`,
+                      borderColor: `${secondaryColor}30`,
+                      color: secondaryColor
+                    }}
+                  >
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-black text-sm text-slate-900 dark:text-white group-hover:text-white transition line-clamp-1">
+                    {customTool4.name}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-white/50 mt-0.5">
-                    Draft lecture take-aways and instantly save notes to your Document Vault.
+                  <p className="text-xs text-slate-500 dark:text-white/50 mt-1 leading-relaxed line-clamp-2">
+                    {customTool4.desc}
                   </p>
                 </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-slate-400 dark:text-white/40 group-hover:translate-x-1 transition-transform shrink-0" style={{ color: secondaryColor }} />
-            </button>
+                <div 
+                  className="mt-4 pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-bold"
+                  style={{ color: secondaryColor }}
+                >
+                  <span>Draft &amp; Vault Sync</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </div>
+              </button>
+
+            </div>
           </div>
 
           {/* SCHEDULE PLANNER ROW */}
@@ -842,9 +852,9 @@ export default function DashboardPage() {
           >
             <div className="flex items-center gap-3">
               <div 
-                className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm"
+                className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border"
                 style={{
-                  backgroundColor: `${primaryColor}10`,
+                  backgroundColor: `${primaryColor}15`,
                   borderColor: `${primaryColor}30`,
                   color: primaryColor
                 }}
@@ -961,12 +971,13 @@ export default function DashboardPage() {
       </footer>
 
       {/* MODAL DIALOGS */}
-      <ResumeModal isOpen={resumeOpen} onClose={() => setResumeOpen(false)} />
-      <InterviewModal isOpen={interviewOpen} onClose={() => setInterviewOpen(false)} />
-      <ExplainerModal isOpen={explainerOpen} onClose={() => setExplainerOpen(false)} />
-      <NotesModal isOpen={notesOpen} onClose={() => setNotesOpen(false)} />
+      <ResumeModal isOpen={resumeOpen} onClose={() => setResumeOpen(false)} toolTitle={customTool1.name} sectorName={profile.sector} />
+      <InterviewModal isOpen={interviewOpen} onClose={() => setInterviewOpen(false)} toolTitle={customTool2.name} sectorName={profile.sector} />
+      <ExplainerModal isOpen={explainerOpen} onClose={() => setExplainerOpen(false)} toolTitle={customTool3.name} sectorName={profile.sector} />
+      <NotesModal isOpen={notesOpen} onClose={() => setNotesOpen(false)} toolTitle={customTool4.name} sectorName={profile.sector} />
       <PlannerModal isOpen={plannerOpen} onClose={() => setPlannerOpen(false)} onAdd={handleAddScheduleEvent} />
 
     </div>
   );
 }
+
