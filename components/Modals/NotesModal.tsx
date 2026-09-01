@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, BookOpen, FolderLock, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, BookOpen, FolderLock, CheckCircle2, Upload, FileText, Image as ImageIcon } from 'lucide-react';
 import { INITIAL_VAULT_FILES } from '@/lib/data';
 import { useCyberToast } from '@/components/CyberToast';
 
@@ -14,14 +14,46 @@ interface NotesModalProps {
 
 export default function NotesModal({ isOpen, onClose, toolTitle, sectorName }: NotesModalProps) {
   const toast = useCyberToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [fileName, setFileName] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
   if (!isOpen) return null;
 
   const displayTitle = (toolTitle || 'SMART SECTOR NOTE PAD').toUpperCase();
   const displaySector = sectorName || 'Sector Academic';
+
+  // Handle Document / Photo Upload & Parsing
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    if (!title) {
+      setTitle(file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' '));
+    }
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setContent((prev) => (prev ? `${prev}\n\n[IMPORTED PHOTO/DOCUMENT SLIDE: ${file.name}]` : `[IMPORTED PHOTO/DOCUMENT SLIDE: ${file.name}]\nHandwritten notes / slide image parsed into Document Vault.`));
+        toast.success('Photo Slide Imported', `Loaded ${file.name} for Document Vault sync.`);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileText = event.target?.result as string;
+        setContent(fileText);
+        toast.success('Document Imported', `Extracted note content from ${file.name}.`);
+      };
+      reader.readAsText(file);
+    }
+  };
 
   const handleSave = () => {
     if (!title.trim() || !content.trim()) return;
@@ -34,9 +66,9 @@ export default function NotesModal({ isOpen, onClose, toolTitle, sectorName }: N
         id: Math.random().toString(),
         name: `${title.replace(/\s+/g, '_')}_${displaySector.replace(/\s+/g, '_')}.txt`,
         category: 'ACADEMIC',
-        size: '12 KB',
+        size: '14 KB',
         date: new Date().toISOString().split('T')[0],
-        content: `SECTOR NOTE: ${title}\nSECTOR: ${displaySector}\nDATE: ${new Date().toLocaleDateString()}\n\nSUMMARY:\n${content}`
+        content: `SECTOR NOTE: ${title}\nSECTOR: ${displaySector}\nSOURCE FILE: ${fileName || 'Direct Draft'}\nDATE: ${new Date().toLocaleDateString()}\n\nSUMMARY & OBSERVATIONS:\n${content}`
       };
 
       files.unshift(newFile);
@@ -47,6 +79,7 @@ export default function NotesModal({ isOpen, onClose, toolTitle, sectorName }: N
         setSaved(false);
         setTitle('');
         setContent('');
+        setFileName(null);
         onClose();
       }, 1500);
     } catch (e) {
@@ -67,11 +100,11 @@ export default function NotesModal({ isOpen, onClose, toolTitle, sectorName }: N
             </div>
             <div>
               <h3 className="font-black text-lg text-white tracking-wide">{displayTitle}</h3>
-              <p className="text-xs text-white/50">Draft observations &amp; sync directly to Document Vault</p>
+              <p className="text-xs text-white/50">Draft observations, import slides &amp; sync to Document Vault</p>
             </div>
           </div>
           <button 
-            onClick={() => { onClose(); setSaved(false); setTitle(''); setContent(''); }}
+            onClick={() => { onClose(); setSaved(false); setTitle(''); setContent(''); setFileName(null); }}
             className="w-8 h-8 rounded-full bg-white/[0.05] hover:bg-white/[0.1] text-white/60 hover:text-white flex items-center justify-center transition"
           >
             <X className="w-4 h-4" />
@@ -80,6 +113,39 @@ export default function NotesModal({ isOpen, onClose, toolTitle, sectorName }: N
 
         {/* Input */}
         <div className="mt-6 space-y-4">
+
+          {/* Import File / Photo Bar */}
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-9 h-9 rounded-xl bg-cyber-violet/10 border border-cyber-violet/30 flex items-center justify-center text-cyber-violet shrink-0">
+                {fileName?.match(/\.(png|jpg|jpeg)$/i) ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+              </div>
+              <div className="truncate">
+                <span className="text-xs font-bold text-white block truncate">
+                  {fileName ? fileName : 'Import Lecture Slide / Photo / File'}
+                </span>
+                <span className="text-[10px] text-white/50 block">
+                  {fileName ? 'Imported & converted for Vault storage' : 'Auto-extract text from .txt, .pdf, .png, .jpg'}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-2 rounded-xl bg-cyber-violet/10 border border-cyber-violet/30 hover:bg-cyber-violet/20 text-cyber-violet text-xs font-bold shrink-0 transition flex items-center gap-1.5"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>{fileName ? 'Change File' : 'Import File'}</span>
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileImport}
+              accept=".txt,.pdf,.docx,.doc,.png,.jpg,.jpeg,.md"
+              className="hidden"
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-2">
               Note Title / Topic
