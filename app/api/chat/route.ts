@@ -16,28 +16,28 @@ const ACRONYM_KNOWLEDGE: Record<string, string> = {
 const NEXUS_AI_SYSTEM_PROMPT = `You are Nexus AI, the official academic, business & career guidance copilot in the Nexora platform.
 
 YOUR MANDATE:
-1. SINGLE-WORD & ACRONYM QUERIES (CRITICAL):
-   - Recognize all Computer Science, IT, Engineering, Academic, and Business acronyms or single-word terms (e.g. "rag" -> Retrieval-Augmented Generation, "dsa" -> Data Structures & Algorithms, "dbms" -> Database Management Systems, "oops" -> Object-Oriented Programming, "sql" -> Structured Query Language, "c++" -> C++, "python" -> Python).
-   - NEVER say "I am not sure what you are referring to" or ask for context on single-word technical terms. Identify the term immediately and answer with its full title and point-wise bullet points!
-   - Also handle typos (e.g. "ptyhon" -> Python, "doploma" -> Polytechnic Diploma, "startp" -> Startup).
+1. VISION & HANDWRITTEN HUMAN TEXT OCR DECODING:
+   - You are equipped with Llama-3.2 Vision capabilities. When a user uploads an image of handwritten notes, assignment problems, timetables, formulas, circuit diagrams, or document scans, your FIRST step is to accurately transcribe/decode the human handwriting and text.
+   - Explain what is written on the document step-by-step and provide comprehensive academic or practical solutions.
 
-2. STANDARDIZED RESPONSE FORMAT (MUST FOLLOW):
-   Line 1: Capitalized Title (e.g., RAG - Retrieval-Augmented Generation or Python Programming Language)
+2. SINGLE-WORD & ACRONYM QUERIES:
+   - Recognize all Computer Science, IT, Engineering, Academic, and Business acronyms or single-word terms (e.g. "rag", "dsa", "dbms", "oops", "sql", "c++", "python").
+   - Answer with full title and point-wise bullet points.
+
+3. STANDARDIZED RESPONSE FORMAT:
+   Line 1: Capitalized Title (e.g., Handwritten Notes Solution or RAG - Retrieval-Augmented Generation)
    Line 2+: Point-wise list using format:
-   • Overview: Brief definition.
-   • Key Features: Main features or components list.
-   • Applications: Real-world usages or fields.
-   • Use Cases: Practical examples or project scenarios.
+   • Overview: Brief definition or transcription summary.
+   • Key Features: Main features, steps, or components list.
+   • Applications: Real-world usages or step-by-step resolution.
+   • Use Cases: Practical examples or formula derivations.
 
-3. MULTI-TURN LINE BREAK RULE:
+4. MULTI-TURN LINE BREAK RULE:
    - Every single bullet point MUST be on its OWN NEW LINE using \\n.
    - ALWAYS put a \\n line break before every • bullet point.
 
-4. NO MARKDOWN SYMBOLS:
-   - Do NOT output asterisks (*, **, ***) or hashtags (#). Use clean text.
-
-5. REFUSAL RULE (OFF-TOPIC ONLY):
-   - Refuse ONLY if off-topic/silly (movies, gaming, sports, gossip).`;
+5. NO MARKDOWN SYMBOLS:
+   - Do NOT output asterisks (*, **, ***) or hashtags (#). Use clean text.`;
 
 export async function POST(req: Request) {
   try {
@@ -50,18 +50,34 @@ export async function POST(req: Request) {
     const lastMessage = messages[messages.length - 1];
     const cleanUserQuery = (lastMessage?.text || lastMessage?.content || '').trim().toLowerCase();
 
-    // Check instant acronym knowledge map for single-word queries like "rag"
-    if (ACRONYM_KNOWLEDGE[cleanUserQuery]) {
+    // Check instant acronym knowledge map for single-word queries without images
+    if (!lastMessage?.imageUrl && ACRONYM_KNOWLEDGE[cleanUserQuery]) {
       return NextResponse.json({ reply: ACRONYM_KNOWLEDGE[cleanUserQuery] });
     }
 
-    // Format chat history and prepend system prompt
+    // Format chat history for NVIDIA Llama 3.2 Vision API
     const formattedMessages = [
       { role: 'system', content: NEXUS_AI_SYSTEM_PROMPT },
-      ...messages.map((m: any) => ({
-        role: m.sender === 'user' ? 'user' : m.role || 'assistant',
-        content: m.text || m.content || ''
-      }))
+      ...messages.map((m: any) => {
+        const role = m.sender === 'user' ? 'user' : m.role || 'assistant';
+        const textContent = m.text || m.content || '';
+        const imageUrl = m.imageUrl || m.image_url || m.image;
+
+        if (role === 'user' && imageUrl) {
+          return {
+            role: 'user',
+            content: [
+              { type: 'text', text: textContent || 'Decode and solve this handwritten image/document:' },
+              { type: 'image_url', image_url: { url: imageUrl } }
+            ]
+          };
+        }
+
+        return {
+          role,
+          content: textContent
+        };
+      })
     ];
 
     const response = await fetch(NVIDIA_API_URL, {
@@ -74,7 +90,7 @@ export async function POST(req: Request) {
         model: MODEL_NAME,
         messages: formattedMessages,
         temperature: 0.1,
-        max_tokens: 450
+        max_tokens: 600
       })
     });
 
