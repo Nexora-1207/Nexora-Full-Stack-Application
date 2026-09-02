@@ -13,16 +13,11 @@ import {
   CheckCircle2, 
   X, 
   HardDrive,
-  Sparkles,
   Lock,
-  ExternalLink,
-  Image as ImageIcon,
+  ImageIcon,
   Loader2,
-  Brain,
-  Download,
   Camera
 } from 'lucide-react';
-import { INITIAL_VAULT_FILES } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useCyberToast } from '@/components/CyberToast';
@@ -38,10 +33,9 @@ export interface VaultFile {
   size: string;
   date: string;
   content: string;
-  ai_classified?: boolean;
 }
 
-const CATEGORIES = ['ALL', 'TIMETABLE', 'ACADEMICS', 'NOTES', 'OTHERS'] as const;
+const CATEGORIES = ['ALL', 'ACADEMICS', 'TIMETABLE', 'NOTES', 'OTHERS'] as const;
 
 export default function VaultPage() {
   const router = useRouter();
@@ -61,14 +55,13 @@ export default function VaultPage() {
   const [selectedFile, setSelectedFile] = useState<VaultFile | null>(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   
-  // File Upload & AI Classification States
+  // File Upload States
   const [uploading, setUploading] = useState(false);
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(null);
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [extractedContent, setExtractedContent] = useState('');
   const [customFileName, setCustomFileName] = useState('');
   const [targetCategory, setTargetCategory] = useState<'TIMETABLE' | 'ACADEMICS' | 'NOTES' | 'OTHERS'>('NOTES');
-  const [aiClassifying, setAiClassifying] = useState(false);
 
   // Load files from Supabase database & check auth
   useEffect(() => {
@@ -106,8 +99,7 @@ export default function VaultPage() {
                 file_url: item.file_url || '',
                 size: item.size || '12 KB',
                 date: item.date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-                content: item.content || 'Encrypted Vault document.',
-                ai_classified: item.ai_classified ?? true
+                content: item.content || 'Vault document.'
               }));
               setFiles(dbFiles);
               localStorage.setItem('vault_files', JSON.stringify(dbFiles));
@@ -154,36 +146,59 @@ export default function VaultPage() {
     return [
       {
         id: 'v1',
-        name: 'Diploma_Lateral_Entry_Syllabus_2026.pdf',
+        name: 'NIT_Computer_Engineering_Syllabus.pdf',
         category: 'ACADEMICS',
         file_type: 'application/pdf',
         size: '2.4 MB',
-        date: '2026-08-28',
-        content: 'Official lateral entry B.Tech admission scheme syllabus for Mechanical, Civil, and Computer Science polytechnic diplomas.',
-        ai_classified: true
+        date: '2026-08-01',
+        content: 'Full academic curriculum including Data Structures, Algorithms, Microprocessors, and System Design.'
       },
       {
         id: 'v2',
-        name: 'Weekly_Campus_Routine_Sheet.png',
+        name: 'Weekly_Timetable_Diploma_Semester3.pdf',
         category: 'TIMETABLE',
-        file_type: 'image/png',
+        file_type: 'application/pdf',
         size: '1.1 MB',
-        date: '2026-08-30',
-        content: 'TIMETABLE SCHEDULE:\n08:30 AM - Calculus & Analytical Math\n10:45 AM - Circuit Schematics Lab\n02:15 PM - Telemetry Workshop',
-        ai_classified: true
+        date: '2026-08-04',
+        content: 'Updated Semester 3 timetable containing Labs, Machine Workshops, and Project hours.'
       },
       {
         id: 'v3',
-        name: 'Semester3_Lab_Observations_Notes.txt',
+        name: 'Admissions_Token_NEX-771823.txt',
         category: 'NOTES',
         file_type: 'text/plain',
-        size: '18 KB',
-        date: '2026-09-01',
-        content: 'LECTURE NOTE: Microprocessor Interfacing & Data Bus Calibration.\nSummary: Address lines 0-15 mapped with memory latch IC 74LS373.',
-        ai_classified: true
+        size: '14 KB',
+        date: '2026-08-07',
+        content: 'GATEWAY TOKEN: NEX-771823 College: Nexora Institute of Technology Verification: Verified.'
       }
     ];
   };
+
+  // Calculate dynamic memory footprint from actual files
+  const calculateMemoryUsed = (): { totalMB: number; percent: number } => {
+    let bytes = 0;
+    files.forEach((f) => {
+      if (f.file_url) {
+        // Approximate base64 payload size
+        bytes += Math.round(f.file_url.length * 0.75);
+      } else {
+        const sizeStr = f.size || '10 KB';
+        const num = parseFloat(sizeStr);
+        if (sizeStr.includes('MB')) {
+          bytes += num * 1024 * 1024;
+        } else {
+          bytes += num * 1024;
+        }
+      }
+    });
+
+    const totalMB = parseFloat((bytes / 1024 / 1024).toFixed(1));
+    const displayMB = totalMB > 0 ? totalMB : 45.8;
+    const percent = Math.min(100, Math.max(2, Math.round((displayMB / 512) * 100)));
+    return { totalMB: displayMB, percent };
+  };
+
+  const { totalMB, percent: memoryPercent } = calculateMemoryUsed();
 
   if (loading) {
     return (
@@ -192,7 +207,7 @@ export default function VaultPage() {
           <div className="w-full h-full bg-background rounded-[14px]"></div>
         </div>
         <span className="text-xs font-black tracking-widest text-cyber-cyan animate-pulse uppercase">
-          VERIFYING ENCRYPTED VAULT ACCESS...
+          VERIFYING VAULT ACCESS...
         </span>
       </div>
     );
@@ -232,33 +247,28 @@ export default function VaultPage() {
     );
   }
 
-  // Trigger Device Photo Gallery Picker directly
-  const handleOpenGalleryPicker = () => {
-    toast.info('Gallery Access Granted', 'Opening your device Photo Gallery...');
-    setUploadModalOpen(true);
-    setTimeout(() => {
-      galleryInputRef.current?.click();
-    }, 300);
-  };
-
-  // Handle local file selection & Smart AI Classification
+  // Handle file selection (Photo Gallery or File System)
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setSelectedUploadFile(file);
     setCustomFileName(file.name);
-    setAiClassifying(true);
+
+    // Default category based on filename keywords or target selection
+    const fname = file.name.toLowerCase();
+    if (fname.includes('timetable') || fname.includes('schedule') || fname.includes('routine')) {
+      setTargetCategory('TIMETABLE');
+    } else if (fname.includes('syllabus') || fname.includes('marks') || fname.includes('memo') || fname.includes('certificate')) {
+      setTargetCategory('ACADEMICS');
+    }
 
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64Url = event.target?.result as string;
         setPreviewDataUrl(base64Url);
-        setExtractedContent(`[GALLERY IMAGE DOCUMENT: ${file.name}]\nPhoto loaded from device gallery.`);
-        
-        // Smart AI Auto-Classifier for Image Content
-        classifyContentWithAI(file.name, `Gallery Image document file: ${file.name}`);
+        setExtractedContent(`[IMAGE DOCUMENT: ${file.name}]\nUploaded to student vault.`);
       };
       reader.readAsDataURL(file);
     } else {
@@ -267,70 +277,9 @@ export default function VaultPage() {
       reader.onload = (event) => {
         const textContent = event.target?.result as string;
         setExtractedContent(textContent || `Extracted document file: ${file.name}`);
-        
-        // Smart AI Auto-Classifier for Text Content
-        classifyContentWithAI(file.name, textContent);
       };
       reader.readAsText(file);
     }
-  };
-
-  // Smart AI Content Classifier via Nexus AI API
-  const classifyContentWithAI = async (filename: string, contentSnippet: string) => {
-    try {
-      const prompt = `Inspect this student document/photo and classify it into ONE of these 4 exact categories: "TIMETABLE", "ACADEMICS", "NOTES", or "OTHERS".
-
-FILE NAME: "${filename}"
-CONTENT SNIPPET:
-"""
-${contentSnippet.slice(0, 500)}
-"""
-
-RULES:
-- If it mentions schedules, days of week, class hours, routines, or timetables -> return "TIMETABLE"
-- If it mentions syllabus, marks, transcripts, diplomas, certificates, exam regulations, or subjects -> return "ACADEMICS"
-- If it contains lecture summaries, study notes, observations, formulas, or project notes -> return "NOTES"
-- Otherwise -> return "OTHERS"
-
-Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
-
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: prompt }]
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const rawCategory = (data.reply || '').trim().toUpperCase();
-        if (rawCategory.includes('TIMETABLE')) setTargetCategory('TIMETABLE');
-        else if (rawCategory.includes('ACADEMIC')) setTargetCategory('ACADEMICS');
-        else if (rawCategory.includes('NOTE')) setTargetCategory('NOTES');
-        else setTargetCategory('OTHERS');
-
-        toast.success('AI Auto-Classified', `Nexus AI categorized "${filename}" as ${rawCategory.includes('TIMETABLE') ? 'TIMETABLE' : rawCategory.includes('ACADEMIC') ? 'ACADEMICS' : rawCategory.includes('NOTE') ? 'NOTES' : 'OTHERS'}.`);
-      } else {
-        fallbackHeuristicClassification(filename, contentSnippet);
-      }
-    } catch (e) {
-      fallbackHeuristicClassification(filename, contentSnippet);
-    } finally {
-      setAiClassifying(false);
-    }
-  };
-
-  const fallbackHeuristicClassification = (filename: string, text: string) => {
-    const combined = `${filename} ${text}`.toLowerCase();
-    if (combined.includes('schedule') || combined.includes('routine') || combined.includes('timetable') || combined.includes('class')) {
-      setTargetCategory('TIMETABLE');
-    } else if (combined.includes('syllabus') || combined.includes('marks') || combined.includes('memo') || combined.includes('certificate') || combined.includes('b.tech')) {
-      setTargetCategory('ACADEMICS');
-    } else {
-      setTargetCategory('NOTES');
-    }
-    setAiClassifying(false);
   };
 
   // Upload file & save to Supabase database + local storage
@@ -340,7 +289,7 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
 
     setUploading(true);
     const dateStr = new Date().toISOString().split('T')[0];
-    const calcSize = selectedUploadFile ? `${(selectedUploadFile.size / 1024 / 1024).toFixed(1)} MB` : '12 KB';
+    const calcSize = selectedUploadFile ? `${(selectedUploadFile.size / 1024 / 1024).toFixed(1)} MB` : '1.2 MB';
     const fileType = selectedUploadFile?.type || (customFileName.match(/\.(png|jpg|jpeg)$/i) ? 'image/png' : 'text/plain');
 
     const newDoc: VaultFile = {
@@ -351,10 +300,9 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
       category: targetCategory,
       file_type: fileType,
       file_url: previewDataUrl || '',
-      size: selectedUploadFile?.size ? calcSize : '14 KB',
+      size: selectedUploadFile?.size ? calcSize : '1.4 MB',
       date: dateStr,
-      content: extractedContent.trim() || 'Verified student document stored in encrypted vault.',
-      ai_classified: true
+      content: extractedContent.trim() || 'Official student document stored in vault.'
     };
 
     // Save to Supabase public.vault_items database
@@ -369,8 +317,7 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
           file_url: newDoc.file_url,
           size: newDoc.size,
           date: newDoc.date,
-          content: newDoc.content,
-          ai_classified: true
+          content: newDoc.content
         }]);
       } catch (err) {
         console.error('Supabase Vault Insert Error:', err);
@@ -381,7 +328,7 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
     setFiles(updated);
     localStorage.setItem('vault_files', JSON.stringify(updated));
 
-    toast.success('Document Encrypted & Saved', `${newDoc.name} stored under ${newDoc.category} in Supabase Vault.`);
+    toast.success('Document Saved', `${newDoc.name} stored in your Vault under ${newDoc.category}.`);
     
     setCustomFileName('');
     setExtractedContent('');
@@ -421,9 +368,9 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-40 sm:pb-32 space-y-8">
       
-      {/* Hidden Inputs for Gallery & File System */}
+      {/* Hidden File Inputs for Photo Gallery & File System */}
       <input
         type="file"
         ref={galleryInputRef}
@@ -442,36 +389,21 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-amber/10 border border-cyber-amber/30 text-cyber-amber text-[11px] font-black uppercase tracking-widest mb-1.5">
-            <FolderLock className="w-3.5 h-3.5" />
-            <span>ENCRYPTED DATABASE VAULT</span>
-          </div>
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            DOCUMENT &amp; IMAGE VAULT
+            DOCUMENT VAULT
           </h1>
           <p className="text-xs text-slate-500 dark:text-white/50 font-medium mt-1">
-            Store timetables, academic documents, and smart notes securely synced to your Supabase locker.
+            Store syllabi, weekly timetables, and academic notes securely with WhatsApp export capability.
           </p>
         </div>
 
-        {/* Top Header Buttons with Photo Gallery Permission */}
-        <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
-          <button
-            onClick={handleOpenGalleryPicker}
-            className="px-4 py-3 rounded-2xl bg-cyber-cyan/15 hover:bg-cyber-cyan/25 border border-cyber-cyan/40 text-cyber-cyan text-xs font-black flex items-center justify-center gap-2 shadow-lg transition"
-          >
-            <Camera className="w-4 h-4" />
-            <span>OPEN DEVICE GALLERY</span>
-          </button>
-
-          <button
-            onClick={() => setUploadModalOpen(true)}
-            className="cyber-button-primary px-5 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-lg"
-          >
-            <Upload className="w-4 h-4" />
-            <span>UPLOAD FILE / DOC</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setUploadModalOpen(true)}
+          className="cyber-button-primary px-6 py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 self-start sm:self-auto shadow-lg"
+        >
+          <Upload className="w-4 h-4 text-background" />
+          <span>UPLOAD TO VAULT</span>
+        </button>
       </div>
 
       {/* STORAGE FOOTPRINT METER & SEARCH/FILTER BAR */}
@@ -483,26 +415,28 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
             <div className="flex items-center gap-2">
               <HardDrive className="w-4 h-4 text-cyber-cyan" />
               <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                SUPABASE VAULT ALLOCATION
+                VAULT ALLOCATION
               </span>
             </div>
-            <span className="text-xs font-bold text-cyber-emerald">ACTIVE &amp; SYNCED</span>
+            <span className="text-xs font-bold text-cyber-emerald">HEALTHY</span>
           </div>
 
           <div>
             <div className="flex items-baseline justify-between mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">52.4 MB</span>
-              <span className="text-xs font-bold text-slate-500 dark:text-white/40">of 1,024 MB Cloud Storage</span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white">{totalMB} MB</span>
+              <span className="text-xs font-bold text-slate-500 dark:text-white/40">of 512 MB Allocated</span>
             </div>
             {/* Progress bar */}
             <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/[0.06] overflow-hidden">
-              <div className="h-full w-[8%] bg-gradient-to-r from-cyber-cyan to-cyber-emerald rounded-full shadow-md"></div>
+              <div 
+                className="h-full bg-gradient-to-r from-cyber-cyan to-cyber-emerald rounded-full shadow-md transition-all duration-500"
+                style={{ width: `${memoryPercent}%` }}
+              ></div>
             </div>
           </div>
 
           <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-white/40 pt-2 border-t border-slate-200 dark:border-white/[0.06]">
-            <span>{files.length} Documents &amp; Photos Encrypted</span>
-            <span className="text-cyber-cyan font-mono">SUPABASE DB SAFE</span>
+            <span>{files.length} Documents &amp; Photos Saved</span>
           </div>
         </div>
 
@@ -514,7 +448,7 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search timetables, notes, or academic files by name or keyword..."
+              placeholder="Search documents by filename or keyword..."
               className="w-full bg-white dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl pl-11 pr-4 py-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
             />
           </div>
@@ -543,9 +477,9 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
       {filteredFiles.length === 0 ? (
         <div className="glass-panel rounded-3xl p-12 text-center space-y-4">
           <FolderLock className="w-12 h-12 text-slate-300 dark:text-white/20 mx-auto" />
-          <h3 className="text-base font-black text-slate-900 dark:text-white">No Documents in {activeCategory} Locker</h3>
+          <h3 className="text-base font-black text-slate-900 dark:text-white">No Vault Documents in {activeCategory}</h3>
           <p className="text-xs text-slate-500 dark:text-white/50 max-w-sm mx-auto">
-            Upload an image of your timetable, academic slides, or notes to populate this locker.
+            Your document locker is empty in this category. Upload files or timetables to store documents here.
           </p>
         </div>
       ) : (
@@ -632,23 +566,15 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
 
       {/* INSPECT DOCUMENT / FULL-RESOLUTION IMAGE MODAL */}
       {selectedFile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-2xl glass-panel rounded-3xl border border-white/[0.12] p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto space-y-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md pb-24 sm:pb-4">
+          <div className="relative w-full max-w-2xl glass-panel rounded-3xl border border-white/[0.12] p-5 sm:p-8 shadow-2xl max-h-[80vh] sm:max-h-[85vh] overflow-y-auto space-y-4 sm:space-y-6 z-[105]">
             
             <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-cyber-cyan px-2 py-0.5 rounded-md bg-cyber-cyan/10">
-                    {selectedFile.category} LOCKER
-                  </span>
-                  {selectedFile.ai_classified && (
-                    <span className="text-[9px] font-bold text-cyber-emerald flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyber-emerald/10 border border-cyber-emerald/30">
-                      <Brain className="w-3 h-3" />
-                      <span>AI Classified</span>
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white">{selectedFile.name}</h2>
+                <span className="text-[10px] font-black uppercase tracking-wider text-cyber-cyan px-2 py-0.5 rounded-md bg-cyber-cyan/10">
+                  {selectedFile.category} LOCKER
+                </span>
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{selectedFile.name}</h2>
                 <div className="text-xs text-slate-500 dark:text-white/50">
                   <span>Student: {selectedFile.student_name || studentName}</span> • <span>Size: {selectedFile.size}</span> • <span>Date: {selectedFile.date}</span>
                 </div>
@@ -656,7 +582,7 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
 
               <button
                 onClick={() => setSelectedFile(null)}
-                className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition"
+                className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -665,8 +591,8 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
             {/* FULL RESOLUTION IMAGE OR TEXT CONTENT VIEW */}
             {selectedFile.file_url ? (
               <div className="space-y-4">
-                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 flex items-center justify-center max-h-[50vh]">
-                  <img src={selectedFile.file_url} alt={selectedFile.name} className="max-h-[50vh] w-auto object-contain" />
+                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 flex items-center justify-center max-h-[45vh]">
+                  <img src={selectedFile.file_url} alt={selectedFile.name} className="max-h-[45vh] w-auto object-contain" />
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/[0.08] font-mono text-xs text-slate-800 dark:text-white/80 whitespace-pre-wrap">
                   {selectedFile.content}
@@ -699,24 +625,24 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
         </div>
       )}
 
-      {/* UPLOAD & SMART AI CLASSIFICATION MODAL */}
+      {/* UPLOAD DOCUMENT / PHOTO MODAL */}
       {uploadModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-lg glass-panel rounded-3xl border border-white/[0.12] p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto space-y-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md pb-24 sm:pb-4">
+          <div className="relative w-full max-w-lg glass-panel rounded-3xl border border-white/[0.12] p-5 sm:p-8 shadow-2xl max-h-[80vh] sm:max-h-[85vh] overflow-y-auto space-y-5 sm:space-y-6 z-[105]">
             
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center shrink-0">
                   <Upload className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg text-slate-900 dark:text-white">UPLOAD &amp; AI CLASSIFY</h3>
-                  <p className="text-xs text-slate-500 dark:text-white/50">Store photo or file directly into Supabase Vault</p>
+                  <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">UPLOAD DOCUMENT</h3>
+                  <p className="text-xs text-slate-500 dark:text-white/50">Store photo or file in your personal Vault</p>
                 </div>
               </div>
               <button
                 onClick={() => setUploadModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition"
+                className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -763,26 +689,8 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
 
               {/* Preview image if loaded */}
               {previewDataUrl && (
-                <div className="relative h-36 rounded-2xl overflow-hidden border border-white/10 bg-slate-950">
+                <div className="relative h-32 rounded-2xl overflow-hidden border border-white/10 bg-slate-950">
                   <img src={previewDataUrl} alt="Preview" className="w-full h-full object-contain" />
-                </div>
-              )}
-
-              {/* AI Auto-Classifier Status Bar */}
-              {aiClassifying ? (
-                <div className="p-3 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center gap-2 text-cyber-cyan text-xs font-bold animate-pulse">
-                  <Brain className="w-4 h-4 animate-spin" />
-                  <span>Nexus AI inspecting file content to classify category...</span>
-                </div>
-              ) : (
-                <div className="p-3 rounded-xl bg-cyber-emerald/10 border border-cyber-emerald/30 flex items-center justify-between text-xs font-bold text-cyber-emerald">
-                  <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-cyber-emerald" />
-                    <span>AI Target Category:</span>
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-md bg-cyber-emerald/20 text-white font-mono font-black">
-                    {targetCategory}
-                  </span>
                 </div>
               )}
             </div>
@@ -804,7 +712,7 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-                  Category Locker (AI Classified or Select Manually)
+                  Category Locker
                 </label>
                 <select
                   value={targetCategory}
@@ -820,13 +728,13 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-                  Extracted Content / Observations
+                  Extracted Content / Notes
                 </label>
                 <textarea
                   rows={3}
                   value={extractedContent}
                   onChange={(e) => setExtractedContent(e.target.value)}
-                  placeholder="Extracted file text or image description..."
+                  placeholder="Extracted text or file description..."
                   className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl p-4 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition resize-none font-mono"
                 />
               </div>
@@ -834,17 +742,17 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
               <button
                 type="submit"
                 disabled={uploading || !customFileName.trim()}
-                className="w-full cyber-button-primary py-3.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 mt-2 disabled:opacity-50"
+                className="w-full cyber-button-primary py-3.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 mt-2 disabled:opacity-50 shadow-lg"
               >
                 {uploading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-background" />
-                    <span>SAVING TO SUPABASE VAULT...</span>
+                    <span>SAVING DOCUMENT...</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4 text-background" />
-                    <span>SAVE TO SUPABASE VAULT ({targetCategory})</span>
+                    <span>SAVE</span>
                   </>
                 )}
               </button>
