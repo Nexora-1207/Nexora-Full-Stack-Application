@@ -19,7 +19,8 @@ import {
   Image as ImageIcon,
   Loader2,
   Brain,
-  Download
+  Download,
+  Camera
 } from 'lucide-react';
 import { INITIAL_VAULT_FILES } from '@/lib/data';
 import { useRouter } from 'next/navigation';
@@ -46,6 +47,7 @@ export default function VaultPage() {
   const router = useRouter();
   const toast = useCyberToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
@@ -94,7 +96,6 @@ export default function VaultPage() {
           .order('created_at', { ascending: false })
           .then(({ data, error }) => {
             if (data && data.length > 0) {
-              // Convert database entries to VaultFile format
               const dbFiles: VaultFile[] = data.map((item) => ({
                 id: item.id,
                 user_id: item.user_id,
@@ -111,7 +112,6 @@ export default function VaultPage() {
               setFiles(dbFiles);
               localStorage.setItem('vault_files', JSON.stringify(dbFiles));
             } else {
-              // Fallback to local storage or initial files if db empty
               const stored = localStorage.getItem('vault_files');
               if (stored) {
                 try {
@@ -232,6 +232,15 @@ export default function VaultPage() {
     );
   }
 
+  // Trigger Device Photo Gallery Picker directly
+  const handleOpenGalleryPicker = () => {
+    toast.info('Gallery Access Granted', 'Opening your device Photo Gallery...');
+    setUploadModalOpen(true);
+    setTimeout(() => {
+      galleryInputRef.current?.click();
+    }, 300);
+  };
+
   // Handle local file selection & Smart AI Classification
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -246,10 +255,10 @@ export default function VaultPage() {
       reader.onload = (event) => {
         const base64Url = event.target?.result as string;
         setPreviewDataUrl(base64Url);
-        setExtractedContent(`[IMAGE DOCUMENT: ${file.name}]\nImage uploaded to student vault.`);
+        setExtractedContent(`[GALLERY IMAGE DOCUMENT: ${file.name}]\nPhoto loaded from device gallery.`);
         
         // Smart AI Auto-Classifier for Image Content
-        classifyContentWithAI(file.name, `Image document file: ${file.name}`);
+        classifyContentWithAI(file.name, `Gallery Image document file: ${file.name}`);
       };
       reader.readAsDataURL(file);
     } else {
@@ -269,7 +278,7 @@ export default function VaultPage() {
   // Smart AI Content Classifier via Nexus AI API
   const classifyContentWithAI = async (filename: string, contentSnippet: string) => {
     try {
-      const prompt = `Inspect this student document/file and classify it into ONE of these 4 exact categories: "TIMETABLE", "ACADEMICS", "NOTES", or "OTHERS".
+      const prompt = `Inspect this student document/photo and classify it into ONE of these 4 exact categories: "TIMETABLE", "ACADEMICS", "NOTES", or "OTHERS".
 
 FILE NAME: "${filename}"
 CONTENT SNIPPET:
@@ -414,6 +423,22 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-8">
       
+      {/* Hidden Inputs for Gallery & File System */}
+      <input
+        type="file"
+        ref={galleryInputRef}
+        onChange={handleFileSelect}
+        accept="image/*"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept="image/*,.pdf,.txt,.docx,.doc,.md,.json"
+        className="hidden"
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
         <div>
@@ -429,13 +454,24 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
           </p>
         </div>
 
-        <button
-          onClick={() => setUploadModalOpen(true)}
-          className="cyber-button-primary px-5 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 self-start sm:self-auto shadow-lg"
-        >
-          <Upload className="w-4 h-4" />
-          <span>UPLOAD IMAGE / DOCUMENT</span>
-        </button>
+        {/* Top Header Buttons with Photo Gallery Permission */}
+        <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+          <button
+            onClick={handleOpenGalleryPicker}
+            className="px-4 py-3 rounded-2xl bg-cyber-cyan/15 hover:bg-cyber-cyan/25 border border-cyber-cyan/40 text-cyber-cyan text-xs font-black flex items-center justify-center gap-2 shadow-lg transition"
+          >
+            <Camera className="w-4 h-4" />
+            <span>OPEN DEVICE GALLERY</span>
+          </button>
+
+          <button
+            onClick={() => setUploadModalOpen(true)}
+            className="cyber-button-primary px-5 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-lg"
+          >
+            <Upload className="w-4 h-4" />
+            <span>UPLOAD FILE / DOC</span>
+          </button>
+        </div>
       </div>
 
       {/* STORAGE FOOTPRINT METER & SEARCH/FILTER BAR */}
@@ -675,7 +711,7 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
                 </div>
                 <div>
                   <h3 className="font-black text-lg text-slate-900 dark:text-white">UPLOAD &amp; AI CLASSIFY</h3>
-                  <p className="text-xs text-slate-500 dark:text-white/50">Store image or file directly into Supabase Vault</p>
+                  <p className="text-xs text-slate-500 dark:text-white/50">Store photo or file directly into Supabase Vault</p>
                 </div>
               </div>
               <button
@@ -686,32 +722,44 @@ Return ONLY the single category word (TIMETABLE, ACADEMICS, NOTES, or OTHERS).`;
               </button>
             </div>
 
-            {/* File Dropzone & Select */}
+            {/* Gallery Access & File Picker Options */}
             <div className="space-y-4">
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-cyber-cyan/30 hover:border-cyber-cyan rounded-3xl p-6 text-center cursor-pointer bg-cyber-cyan/5 hover:bg-cyber-cyan/10 transition-all space-y-2"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-cyber-cyan/20 text-cyber-cyan flex items-center justify-center mx-auto">
-                  {selectedUploadFile?.type.startsWith('image/') ? <ImageIcon className="w-6 h-6" /> : <Upload className="w-6 h-6" />}
-                </div>
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-white block">
-                    {selectedUploadFile ? selectedUploadFile.name : 'Click to Browse Image or Document File'}
-                  </span>
-                  <span className="text-[10px] text-white/50 block">
-                    Supports .png, .jpg, .jpeg, .pdf, .txt, .docx files
-                  </span>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="p-4 rounded-2xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-left transition space-y-2 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-cyber-cyan/20 text-cyber-cyan flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-black text-white block">OPEN PHOTO GALLERY</span>
+                    <span className="text-[10px] text-cyber-cyan block font-medium">Select photos &amp; screenshots</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-4 rounded-2xl bg-cyber-violet/10 hover:bg-cyber-violet/20 border border-cyber-violet/30 text-left transition space-y-2 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-cyber-violet/20 text-cyber-violet flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-black text-white block">BROWSE DOCUMENTS</span>
+                    <span className="text-[10px] text-cyber-violet block font-medium">Select .pdf, .txt, .docx files</span>
+                  </div>
+                </button>
               </div>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileSelect}
-                accept="image/*,.pdf,.txt,.docx,.doc,.md,.json"
-                className="hidden"
-              />
+              {selectedUploadFile && (
+                <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-between text-xs text-white">
+                  <span className="font-bold truncate">Selected: {selectedUploadFile.name}</span>
+                  <span className="text-[10px] text-white/50">{(selectedUploadFile.size / 1024).toFixed(0)} KB</span>
+                </div>
+              )}
 
               {/* Preview image if loaded */}
               {previewDataUrl && (
