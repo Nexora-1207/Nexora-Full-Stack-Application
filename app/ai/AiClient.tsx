@@ -7,19 +7,15 @@ import {
   Send, 
   Bot, 
   User, 
-  Lightbulb, 
   Loader2,
   Trash2,
   Copy,
   Check,
-  Lock,
   Plus,
   MessageSquare,
   Paperclip,
   Image as ImageIcon,
   X,
-  ChevronLeft,
-  ChevronRight,
   Brain
 } from 'lucide-react';
 import { AI_SUGGESTIONS } from '@/lib/data';
@@ -107,7 +103,7 @@ export default function AiClient() {
   const [isGuest, setIsGuest] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
 
-  // Chat History Sidebar State
+  // Chat History Left Side Panel State
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string>('');
@@ -363,21 +359,34 @@ export default function AiClient() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 pt-2 sm:pt-4 pb-28 sm:pb-24">
+    <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 pt-2 h-[calc(100vh-100px)] sm:h-[calc(100vh-110px)] overflow-hidden">
       
-      {/* FIXED HEIGHT CONTAINER — PREVENTS BROWSER SCREEN SCROLLING */}
-      <div className="h-[calc(100vh-140px)] sm:h-[calc(100vh-150px)] flex flex-col md:flex-row overflow-hidden rounded-3xl border border-slate-200 dark:border-white/[0.08] glass-panel relative shadow-2xl">
+      {/* 100% FIXED WORKSPACE CONTAINER — NO WINDOW SCROLLING */}
+      <div className="h-full flex flex-row overflow-hidden rounded-3xl border border-slate-200 dark:border-white/[0.08] glass-panel relative shadow-2xl">
         
-        {/* LEFT CHATGPT-STYLE CHAT HISTORY SIDEBAR */}
-        <div 
-          className={`w-full md:w-64 bg-slate-900/95 dark:bg-slate-950/95 border-r border-slate-700/50 dark:border-white/[0.08] flex flex-col transition-all duration-300 z-30 shrink-0 ${
-            sidebarOpen ? 'block' : 'hidden md:flex'
+        {/* MOBILE BACKDROP OVERLAY WHEN SIDEBAR IS OPEN */}
+        {sidebarOpen && (
+          <div 
+            onClick={() => setSidebarOpen(false)}
+            className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-30"
+          />
+        )}
+
+        {/* LEFT CHATGPT-STYLE SIDE PANEL (ALWAYS FLEX-ROW POSITIONED) */}
+        <aside 
+          className={`fixed md:relative inset-y-0 left-0 z-40 w-64 bg-slate-950 border-r border-slate-700/50 dark:border-white/[0.08] flex flex-col transition-transform duration-300 ease-in-out shrink-0 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           }`}
         >
           {/* New Chat Button */}
-          <div className="p-3 border-b border-slate-700/50 dark:border-white/[0.08] flex items-center gap-2">
+          <div className="p-3 border-b border-slate-700/50 dark:border-white/[0.08] flex items-center gap-2 shrink-0">
             <button
-              onClick={createNewThread}
+              onClick={() => {
+                createNewThread();
+                if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                  setSidebarOpen(false);
+                }
+              }}
               className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-cyber-cyan/20 to-cyber-violet/20 border border-cyber-cyan/30 hover:border-cyber-cyan text-xs font-black text-white flex items-center justify-center gap-2 transition shadow-sm"
             >
               <Plus className="w-4 h-4 text-cyber-cyan" />
@@ -392,7 +401,7 @@ export default function AiClient() {
             </button>
           </div>
 
-          {/* History List */}
+          {/* History Thread List */}
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             <span className="px-3 py-1.5 text-[10px] font-black uppercase text-slate-400 dark:text-white/40 tracking-wider block">
               CHAT HISTORY
@@ -401,7 +410,12 @@ export default function AiClient() {
             {threads.map((t) => (
               <div
                 key={t.id}
-                onClick={() => switchThread(t.id)}
+                onClick={() => {
+                  switchThread(t.id);
+                  if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                    setSidebarOpen(false);
+                  }
+                }}
                 className={`group flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs font-bold transition-all ${
                   activeThreadId === t.id
                     ? 'bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30'
@@ -409,7 +423,7 @@ export default function AiClient() {
                 }`}
               >
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+                  <MessageSquare className="w-3.5 h-3.5 shrink-0 text-cyber-cyan" />
                   <span className="truncate">{t.title}</span>
                 </div>
 
@@ -426,24 +440,24 @@ export default function AiClient() {
 
           {/* Guest Limit Badge */}
           {isGuest && (
-            <div className="p-3 border-t border-slate-700/50 dark:border-white/[0.08] bg-amber-500/10 text-amber-300 text-[10px] font-bold">
+            <div className="p-3 border-t border-slate-700/50 dark:border-white/[0.08] bg-amber-500/10 text-amber-300 text-[10px] font-bold shrink-0">
               <span>Guest Queries: {guestCount} / 3 used</span>
             </div>
           )}
-        </div>
+        </aside>
 
-        {/* MAIN CHAT AREA — INSIDE SCROLL ONLY */}
-        <div className="flex-1 flex flex-col h-full min-w-0 bg-slate-900/40 dark:bg-slate-950/40 relative">
+        {/* RIGHT MAIN CHAT WORKSPACE — FIXED HEIGHT, ONLY MESSAGES CONTAINER SCROLLS */}
+        <main className="flex-1 flex flex-col h-full min-w-0 bg-slate-900/40 dark:bg-slate-950/40 relative overflow-hidden">
           
           {/* Header Bar inside Chat */}
-          <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between bg-white/5 backdrop-blur-md shrink-0">
+          <header className="p-3 sm:p-4 border-b border-slate-200 dark:border-white/[0.08] flex items-center justify-between bg-white/5 backdrop-blur-md shrink-0">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/80 hover:text-white transition"
-                title="Toggle Chat History"
+                title="Toggle Left Side Panel"
               >
-                <MessageSquare className="w-4 h-4" />
+                <MessageSquare className="w-4 h-4 text-cyber-cyan" />
               </button>
 
               <div className="flex items-center gap-2">
@@ -467,9 +481,9 @@ export default function AiClient() {
                 GUEST LOCK ({3 - guestCount} LEFT)
               </span>
             )}
-          </div>
+          </header>
 
-          {/* INTERNAL MESSAGES SCROLL CONTAINER ONLY */}
+          {/* INSIDE CHAT MESSAGES SCROLL CONTAINER ONLY */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {messages.map((m) => (
               <div
@@ -495,7 +509,6 @@ export default function AiClient() {
                       : 'glass-card border border-white/[0.08] text-slate-800 dark:text-white/90 rounded-tl-none'
                   }`}
                 >
-                  {/* Attached Image if present */}
                   {m.imageUrl && (
                     <div className="mb-3 max-w-xs rounded-xl overflow-hidden border border-white/20 shadow-md">
                       <img src={m.imageUrl} alt="Attached" className="w-full h-auto object-cover max-h-48" />
@@ -508,7 +521,6 @@ export default function AiClient() {
                     <div>{renderFormattedText(m.text)}</div>
                   )}
 
-                  {/* Timestamp & Copy button */}
                   <div className="mt-2 pt-1 border-t border-black/10 dark:border-white/10 flex items-center justify-between text-[10px] opacity-70">
                     <span>{m.timestamp}</span>
                     {m.sender === 'ai' && (
@@ -539,8 +551,8 @@ export default function AiClient() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* INPUT BAR WITH ATTACHMENT BUTTON */}
-          <div className="p-3 sm:p-4 border-t border-slate-200 dark:border-white/[0.08] bg-white/5 backdrop-blur-md shrink-0 space-y-2">
+          {/* CHAT INPUT BAR — FIXED AT BOTTOM OF CHAT WORKSPACE */}
+          <footer className="p-3 sm:p-4 border-t border-slate-200 dark:border-white/[0.08] bg-white/5 backdrop-blur-md shrink-0 space-y-2">
             
             {/* Image Preview Badge */}
             {attachedImage && (
@@ -569,7 +581,6 @@ export default function AiClient() {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Attachment Button */}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -604,9 +615,9 @@ export default function AiClient() {
                 <Send className="w-4 h-4" />
               </button>
             </div>
-          </div>
+          </footer>
 
-        </div>
+        </main>
 
       </div>
 
