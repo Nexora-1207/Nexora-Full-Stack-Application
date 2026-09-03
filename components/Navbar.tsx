@@ -27,6 +27,7 @@ export default function Navbar() {
 
   const [activeSector, setActiveSector] = useState<string>('ENGINEERING');
   const [isGuest, setIsGuest] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const guestMode = typeof window !== 'undefined' && localStorage.getItem('nexoraGuestMode') === 'true';
@@ -56,6 +57,49 @@ export default function Navbar() {
     return () => subscription.unsubscribe();
   }, [pathname]);
 
+  // Detect when mobile keyboard is open or an input is focused to hide bottom floating navbar
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        setIsKeyboardOpen(true);
+      }
+    };
+
+    const handleFocusOut = () => {
+      setIsKeyboardOpen(false);
+    };
+
+    window.addEventListener('focusin', handleFocusIn);
+    window.addEventListener('focusout', handleFocusOut);
+
+    if (window.visualViewport) {
+      const initialHeight = window.visualViewport.height;
+      const handleResize = () => {
+        if (window.visualViewport) {
+          if (window.visualViewport.height < initialHeight * 0.82) {
+            setIsKeyboardOpen(true);
+          } else {
+            setIsKeyboardOpen(false);
+          }
+        }
+      };
+      window.visualViewport.addEventListener('resize', handleResize);
+      return () => {
+        window.removeEventListener('focusin', handleFocusIn);
+        window.removeEventListener('focusout', handleFocusOut);
+        window.visualViewport?.removeEventListener('resize', handleResize);
+      };
+    }
+
+    return () => {
+      window.removeEventListener('focusin', handleFocusIn);
+      window.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     if (typeof window !== 'undefined') {
@@ -68,7 +112,6 @@ export default function Navbar() {
 
   // ONLY display taskbar and student header on the student portal pages:
   // /dashboard, /colleges, /ai, /vault, /profile
-  // Hidden completely on Landing (/), Auth (/auth), Sector grid (/sectors), and Decision trees (/sectors/*)
   const dashboardRoutes = ['/dashboard', '/colleges', '/ai', '/vault', '/profile'];
   const showNav = dashboardRoutes.includes(pathname);
 
@@ -87,7 +130,7 @@ export default function Navbar() {
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Colleges', href: '/colleges', icon: GraduationCap },
-    { name: 'Nexus AI', href: '/ai', icon: Sparkles, isAi: true },
+    { name: 'Nexora AI', href: '/ai', icon: Sparkles, isAi: true },
     { name: 'Vault', href: '/vault', icon: FolderLock },
     { name: 'Profile', href: '/profile', icon: User },
   ];
@@ -150,7 +193,7 @@ export default function Navbar() {
             {user || isGuest ? (
               <button
                 onClick={handleLogout}
-                className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:bg-red-500/10 hover:border-red-500/30 text-slate-500 dark:text-white/60 hover:text-red-500 flex items-center justify-center transition"
+                className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] hover:border-red-500/40 hover:bg-red-500/10 flex items-center justify-center text-slate-600 dark:text-white/70 hover:text-red-400 transition"
                 title="Sign Out"
               >
                 <LogOut className="w-4 h-4" />
@@ -158,10 +201,13 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth"
-                className="cyber-button-primary px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5"
+                className="px-3.5 py-1.5 rounded-xl text-xs font-black tracking-wider uppercase transition shadow-md"
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`,
+                  color: '#0A0E1A'
+                }}
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>SIGN IN</span>
+                Sign In
               </Link>
             )}
           </div>
@@ -170,7 +216,12 @@ export default function Navbar() {
       </header>
 
       {/* STREAMLINED SYMMETRICAL FLOATING GLASS DOCK (BOTTOM) */}
-      <div className="fixed bottom-3 sm:bottom-5 left-0 right-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none">
+      {/* HIDES AUTOMATICALLY WHEN MOBILE KEYBOARD IS OPEN OR INPUT IS FOCUSED */}
+      <div 
+        className={`fixed bottom-3 sm:bottom-5 left-0 right-0 z-50 flex justify-center px-3 sm:px-4 pointer-events-none transition-all duration-300 ${
+          isKeyboardOpen ? 'opacity-0 translate-y-12 pointer-events-none' : 'opacity-100 translate-y-0'
+        }`}
+      >
         <nav 
           className="liquid-glass-dock pointer-events-auto w-full max-w-md px-2 py-2 grid grid-cols-5 items-center gap-1 shadow-2xl"
           style={{
