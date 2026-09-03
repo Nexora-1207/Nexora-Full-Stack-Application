@@ -20,7 +20,11 @@ import {
   Trash2,
   Lock,
   ImageIcon,
-  Loader2
+  Loader2,
+  RotateCw,
+  ZoomIn,
+  Move,
+  Scissors
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -88,9 +92,18 @@ export default function ProfilePage() {
   const [sector, setSector] = useState('ENGINEERING');
   const [stream, setStream] = useState('MPC');
 
-  // Custom Banner state
+  // Custom Banner state & Theme
   const [bannerTheme, setBannerTheme] = useState('cyber-neon');
   const [bannerUrl, setBannerUrl] = useState('');
+
+  // Interactive Banner Cropper States (Ratio 4:1)
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  const [cropZoom, setCropZoom] = useState<number>(1);
+  const [cropPanX, setCropPanX] = useState<number>(0);
+  const [cropPanY, setCropPanY] = useState<number>(0);
+  const [cropRotation, setCropRotation] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   // Skillsets
   const [skills, setSkills] = useState<string[]>(['Python', 'Robotics', 'C++', 'Circuit Design']);
@@ -126,7 +139,6 @@ export default function ProfilePage() {
             setLoading(false);
           });
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
-        // Guest mode — lock profile completely!
         setIsGuest(true);
         setLoading(false);
       } else {
@@ -180,6 +192,7 @@ export default function ProfilePage() {
     );
   }
 
+  // Handle local image file selection for interactive cropping
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -189,19 +202,91 @@ export default function ProfilePage() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.info('File Too Large', 'Please select an image smaller than 5MB.');
+    if (file.size > 8 * 1024 * 1024) {
+      toast.info('File Too Large', 'Please select an image smaller than 8MB.');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
-        setBannerUrl(event.target.result as string);
-        toast.success('Image Loaded', 'Custom banner preview updated!');
+        setRawImageSrc(event.target.result as string);
+        setCropZoom(1);
+        setCropPanX(0);
+        setCropPanY(0);
+        setCropRotation(0);
+        toast.info('Image Editor Active', 'Adjust zoom and drag image position to fit the 4:1 banner template.');
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  // Drag-to-pan handlers inside cropper viewport
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - cropPanX, y: e.clientY - cropPanY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setCropPanX(e.clientX - dragStart.x);
+    setCropPanY(e.clientY - dragStart.y);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX - cropPanX, y: e.touches[0].clientY - cropPanY });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    setCropPanX(e.touches[0].clientX - dragStart.x);
+    setCropPanY(e.touches[0].clientY - dragStart.y);
+  };
+
+  // HTML5 Canvas Crop Execution (Locks to Banner Template 4:1 Ratio)
+  const handleCropAndApply = () => {
+    if (!rawImageSrc) return;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const targetWidth = 1200;
+      const targetHeight = 300; // Exact 4:1 Banner Ratio
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Dark neutral background fill
+      ctx.fillStyle = '#0B0F19';
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+      ctx.save();
+      // Move to center of canvas for scaling and rotation
+      ctx.translate(targetWidth / 2 + cropPanX * 2.5, targetHeight / 2 + cropPanY * 2.5);
+      ctx.rotate((cropRotation * Math.PI) / 180);
+      ctx.scale(cropZoom, cropZoom);
+
+      // Draw image centered
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      ctx.restore();
+
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      setBannerUrl(croppedDataUrl);
+      setRawImageSrc(null);
+      setShowBannerModal(false);
+      toast.success('Banner Cropped & Applied!', 'Template aspect ratio 4:1 updated. Click Save & Sync to persist to database.');
+    };
+    img.src = rawImageSrc;
   };
 
   const handleAddSkill = () => {
@@ -294,224 +379,258 @@ export default function ProfilePage() {
               type="button"
               onClick={() => setShowBannerModal(true)}
               className="w-9 h-9 rounded-xl bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition shadow-lg group"
-              title="Edit Profile Banner (LinkedIn Style)"
+              title="Edit Profile Banner Template"
             >
               <Camera className="w-4 h-4 group-hover:scale-110 text-cyber-cyan transition-transform" />
             </button>
           </div>
+
+          {/* Profile Avatar Badge */}
+          <div className="absolute -bottom-10 left-6 sm:left-8">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-900 p-1 border-2 border-cyber-cyan/50 shadow-2xl relative">
+              <div className="w-full h-full rounded-xl bg-gradient-to-tr from-cyber-cyan/30 to-cyber-violet/30 flex items-center justify-center text-cyber-cyan font-black text-2xl sm:text-3xl uppercase">
+                {fullName ? fullName.charAt(0) : 'S'}
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-cyber-emerald border-2 border-slate-900 flex items-center justify-center" title="Verified Student Profile">
+                <CheckCircle2 className="w-3.5 h-3.5 text-background font-bold" />
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        {/* Profile Avatar & Info Overlay */}
-        <div className="px-6 sm:px-8 pb-8 pt-0 relative">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-4">
-            
-            {/* Avatar */}
-            <div className="relative">
-              <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-white dark:bg-surface border-4 border-white dark:border-background p-1 shadow-2xl overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-tr from-cyber-cyan to-cyber-violet rounded-2xl flex items-center justify-center text-3xl sm:text-4xl font-black text-background">
-                  {fullName ? fullName.charAt(0).toUpperCase() : 'S'}
-                </div>
-              </div>
-              <span className="absolute bottom-2 right-2 w-5 h-5 rounded-full bg-cyber-emerald border-2 border-white dark:border-background shadow-md"></span>
-            </div>
-
-          </div>
-
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {fullName || 'Nexora Student'}
+        {/* Profile Info Summary */}
+        <div className="pt-12 sm:pt-14 px-6 sm:px-8 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <span>{fullName || 'Student Name'}</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
+                VERIFIED
+              </span>
             </h1>
-            <p className="text-xs font-bold text-cyber-cyan uppercase tracking-wider">
-              {college || 'Nexora Academy'}
+            <p className="text-xs text-slate-500 dark:text-white/50 font-medium mt-1">
+              {college || 'Nexora Academy Member'} • {stream} Track
             </p>
           </div>
+
+          <button
+            onClick={handleSaveProfile}
+            disabled={saving}
+            className="cyber-button-primary px-6 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-2 self-start sm:self-auto shadow-xl"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <Save className="w-4 h-4 text-background" />}
+            <span>{saving ? 'SAVING DOSSIER...' : 'SAVE & SYNC DOSSIER'}</span>
+          </button>
         </div>
 
       </div>
 
-      {/* EDITABLE DOSSIER FORM */}
-      <form onSubmit={handleSaveProfile} className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+      {/* FORM INPUTS FOR DOSSIER EDITING */}
+      <form onSubmit={handleSaveProfile} className="space-y-6">
         
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08]">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-cyber-cyan" />
-            <h3 className="font-black text-base uppercase tracking-wider text-slate-900 dark:text-white">
-              STUDENT IDENTITY DOSSIER
-            </h3>
+        {/* ACADEMIC & SECTOR SPECIFICATION */}
+        <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-200 dark:border-white/[0.08]">
+            <GraduationCap className="w-5 h-5 text-cyber-cyan" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-wide uppercase">
+              ACADEMIC &amp; SECTOR SPECIFICATION
+            </h2>
           </div>
 
-          {saveSuccess && (
-            <span className="text-xs font-bold text-cyber-emerald flex items-center gap-1">
-              <CheckCircle2 className="w-4 h-4" /> Cloud Synchronized!
-            </span>
-          )}
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
+                Full Legal Name
+              </label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter full name..."
+                className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+                required
+              />
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-              Target College / Institute
-            </label>
-            <input
-              type="text"
-              value={college}
-              onChange={(e) => setCollege(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-              Secondary / Junior School
-            </label>
-            <input
-              type="text"
-              value={school}
-              onChange={(e) => setSchool(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-              Phone Number
-            </label>
-            <input
-              type="text"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-              Campus Location / City
-            </label>
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-              LinkedIn / Portfolio URL
-            </label>
-            <input
-              type="text"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
-            />
-          </div>
-
-        </div>
-
-        {/* Career Skills Chips */}
-        <div className="space-y-3 pt-2">
-          <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider">
-            Verified Technical Skillsets
-          </label>
-          
-          <div className="flex flex-wrap gap-2 mb-3">
-            {skills.map((skill, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-xs font-bold text-cyber-cyan"
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
+                Target Sector Track
+              </label>
+              <select
+                value={sector}
+                onChange={(e) => setSector(e.target.value)}
+                className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition font-bold"
               >
-                <span>{skill}</span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSkill(skill)}
-                  className="hover:text-cyber-pink transition"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-          </div>
+                <option value="ENGINEERING">ENGINEERING &amp; TECH</option>
+                <option value="MEDICAL">MEDICAL &amp; BIO-RESEARCH</option>
+                <option value="COMPUTERS">COMPUTERS &amp; IT</option>
+                <option value="SKILLED_TRADES">SKILLED TRADES (ITI)</option>
+                <option value="MERCHANT_NAVY">MERCHANT NAVY</option>
+                <option value="BUSINESS">COMMERCE &amp; FINTECH</option>
+                <option value="LAW">LAW &amp; LEGAL</option>
+              </select>
+            </div>
 
-          {/* Add skill input */}
-          <div className="flex items-center gap-2 max-w-md">
-            <input
-              type="text"
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
-              placeholder="e.g. Microprocessors, CAD, React..."
-              className="flex-1 bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddSkill();
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={handleAddSkill}
-              className="px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] border border-slate-300 dark:border-white/[0.1] text-xs font-bold text-slate-800 dark:text-white transition flex items-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add</span>
-            </button>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
+                Current School / Intermediate College
+              </label>
+              <input
+                type="text"
+                value={school}
+                onChange={(e) => setSchool(e.target.value)}
+                placeholder="e.g. St. Xavier Polytechnic Academy..."
+                className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
+                Target / Current Institute
+              </label>
+              <input
+                type="text"
+                value={college}
+                onChange={(e) => setCollege(e.target.value)}
+                placeholder="e.g. Nexora Institute of Technology..."
+                className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Submit */}
-        <div className="pt-4 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-end">
+        {/* CONTACT DETAILS & LINKEDIN */}
+        <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-200 dark:border-white/[0.08]">
+            <Linkedin className="w-5 h-5 text-cyber-cyan" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-wide uppercase">
+              CONTACT &amp; CAREER NETWORKING
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
+                Phone Number
+              </label>
+              <input
+                type="text"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91 98765 43210"
+                className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
+                LinkedIn Profile URL
+              </label>
+              <input
+                type="text"
+                value={linkedin}
+                onChange={(e) => setLinkedin(e.target.value)}
+                placeholder="https://linkedin.com/in/username"
+                className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
+                Home Address / Location
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="City, State, Country..."
+                className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* VERIFIED COMPETENCIES & SKILLS */}
+        <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-200 dark:border-white/[0.08]">
+            <Sparkles className="w-5 h-5 text-cyber-cyan" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-wide uppercase">
+              VERIFIED SKILLS &amp; COMPETENCIES
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newSkill}
+                onChange={(e) => setNewSkill(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSkill())}
+                placeholder="Add skill (e.g. AutoCAD, Python, Clinical Viva)..."
+                className="flex-1 bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition font-bold"
+              />
+              <button
+                type="button"
+                onClick={handleAddSkill}
+                className="cyber-button-primary px-5 rounded-2xl text-xs font-black flex items-center gap-1 shrink-0"
+              >
+                <Plus className="w-4 h-4 text-background" />
+                <span>ADD</span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-2">
+              {skills.map((sk, idx) => (
+                <span
+                  key={idx}
+                  className="px-3.5 py-1.5 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan text-xs font-bold flex items-center gap-2 shadow-sm"
+                >
+                  <span>{sk}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSkill(sk)}
+                    className="hover:text-red-400 transition"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* SUBMIT BUTTON */}
+        <div className="pt-2">
           <button
             type="submit"
             disabled={saving}
-            className="cyber-button-primary px-8 py-3.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-lg"
+            className="w-full cyber-button-primary py-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-2xl"
           >
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>SAVING TO CLOUD...</span>
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                <span>SAVE & SYNC DOSSIER</span>
-              </>
-            )}
+            {saving ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <Save className="w-4 h-4 text-background" />}
+            <span>{saving ? 'SYNCING DOSSIER TO DATABASE...' : 'SAVE & SYNC STUDENT DOSSIER'}</span>
           </button>
         </div>
 
       </form>
 
-      {/* LINKEDIN-STYLE BANNER EDITOR MODAL */}
+      {/* BANNER TEMPLATE & INTERACTIVE 4:1 ASPECT RATIO CROPPER MODAL */}
       {showBannerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="glass-panel w-full max-w-lg rounded-3xl border border-white/10 p-6 space-y-6 shadow-2xl relative bg-[#030712]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in pb-20 sm:pb-4">
+          <div className="glass-panel w-full max-w-2xl rounded-3xl border border-white/10 p-5 sm:p-8 space-y-6 shadow-2xl relative bg-[#030712] max-h-[85vh] overflow-y-auto z-[60]">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <Camera className="w-5 h-5 text-cyber-cyan" />
-                <h3 className="font-black text-base uppercase tracking-wider text-white">
-                  EDIT PROFILE BANNER
+                <h3 className="font-black text-sm sm:text-base uppercase tracking-wider text-white">
+                  {rawImageSrc ? 'EDIT & CROP BANNER (4:1 RATIO)' : 'EDIT PROFILE BANNER TEMPLATE'}
                 </h3>
               </div>
               <button
-                onClick={() => setShowBannerModal(false)}
+                onClick={() => {
+                  setShowBannerModal(false);
+                  setRawImageSrc(null);
+                }}
                 className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/10 text-white/60 hover:text-white flex items-center justify-center transition"
               >
                 <X className="w-4 h-4" />
@@ -527,88 +646,216 @@ export default function ProfilePage() {
               className="hidden"
             />
 
-            {/* Upload File Button */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
-                Upload Image File
-              </label>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full py-4 rounded-2xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md"
-              >
-                <Upload className="w-4 h-4" />
-                <span>Choose Image from Device</span>
-              </button>
-            </div>
-
-            {/* Preset Themes Grid */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
-                Or Select Preset Cyber Theme
-              </label>
-              <div className="grid grid-cols-5 gap-2">
-                {BANNER_TEMPLATES.map((tmpl) => (
+            {/* INTERACTIVE CROPPER VIEWPORT (IF IMAGE IS LOADED) */}
+            {rawImageSrc ? (
+              <div className="space-y-4">
+                <div className="text-xs text-white/70 font-medium flex items-center justify-between">
+                  <span className="flex items-center gap-1 text-cyber-cyan font-bold">
+                    <Move className="w-3.5 h-3.5" />
+                    <span>Drag image to position • Locked 4:1 Template Ratio</span>
+                  </span>
                   <button
-                    key={tmpl.id}
+                    onClick={() => { setCropZoom(1); setCropPanX(0); setCropPanY(0); setCropRotation(0); }}
+                    className="text-[11px] text-white/50 hover:text-white transition underline"
+                  >
+                    Reset Adjustments
+                  </button>
+                </div>
+
+                {/* 4:1 ASPECT RATIO VIEWPORT CONTAINER */}
+                <div 
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleMouseUp}
+                  className="w-full h-40 sm:h-52 relative overflow-hidden rounded-2xl border-2 border-cyber-cyan/60 bg-slate-950 cursor-grab active:cursor-grabbing shadow-inner flex items-center justify-center select-none"
+                >
+                  <img
+                    src={rawImageSrc}
+                    alt="Crop Preview"
+                    draggable={false}
+                    className="max-w-none transition-transform duration-75"
+                    style={{
+                      transform: `translate(${cropPanX}px, ${cropPanY}px) scale(${cropZoom}) rotate(${cropRotation}deg)`
+                    }}
+                  />
+                  {/* Grid Lines overlay */}
+                  <div className="absolute inset-0 border border-white/20 pointer-events-none grid grid-cols-3 grid-rows-3">
+                    <div className="border-r border-b border-white/10"></div>
+                    <div className="border-r border-b border-white/10"></div>
+                    <div className="border-b border-white/10"></div>
+                    <div className="border-r border-b border-white/10"></div>
+                    <div className="border-r border-b border-white/10"></div>
+                    <div className="border-b border-white/10"></div>
+                  </div>
+                </div>
+
+                {/* CONTROLS BAR: ZOOM, Y-OFFSET, ROTATE */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                  {/* Zoom Slider */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <ZoomIn className="w-3.5 h-3.5 text-cyber-cyan" />
+                        <span>Zoom</span>
+                      </span>
+                      <span className="text-cyber-cyan font-mono">{cropZoom.toFixed(2)}x</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="3"
+                      step="0.05"
+                      value={cropZoom}
+                      onChange={(e) => setCropZoom(parseFloat(e.target.value))}
+                      className="w-full accent-cyber-cyan cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Vertical Shift (Pan Y) */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Move className="w-3.5 h-3.5 text-cyber-violet" />
+                        <span>Vertical Shift</span>
+                      </span>
+                      <span className="text-cyber-violet font-mono">{cropPanY}px</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="-120"
+                      max="120"
+                      value={cropPanY}
+                      onChange={(e) => setCropPanY(parseFloat(e.target.value))}
+                      className="w-full accent-cyber-violet cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Rotate button */}
+                  <div className="flex items-end">
+                    <button
+                      type="button"
+                      onClick={() => setCropRotation((prev) => (prev + 90) % 360)}
+                      className="w-full py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-bold text-white flex items-center justify-center gap-2 transition"
+                    >
+                      <RotateCw className="w-3.5 h-3.5 text-cyber-cyan" />
+                      <span>Rotate ({cropRotation}°)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Crop Actions */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/10 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRawImageSrc(null)}
+                    className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/10 text-xs font-bold text-white/70 transition"
+                  >
+                    Cancel / Choose Preset
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCropAndApply}
+                    className="cyber-button-primary px-6 py-3 rounded-xl text-xs font-black flex items-center gap-2 shadow-xl"
+                  >
+                    <Scissors className="w-4 h-4 text-background" />
+                    <span>CROP &amp; APPLY BANNER (4:1 RATIO)</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* PRE-SELECTION VIEW: CHOOSE IMAGE FILE OR PRESET THEME */
+              <div className="space-y-6">
+                {/* Upload File Button */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
+                    Upload Custom Image File
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full py-4 rounded-2xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md group"
+                  >
+                    <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Choose Image from Device to Edit &amp; Crop</span>
+                  </button>
+                </div>
+
+                {/* Preset Themes Grid */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
+                    Or Select Preset Cyber Theme
+                  </label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {BANNER_TEMPLATES.map((tmpl) => (
+                      <button
+                        key={tmpl.id}
+                        type="button"
+                        onClick={() => {
+                          setBannerTheme(tmpl.id);
+                          setBannerUrl('');
+                          setShowBannerModal(false);
+                          toast.success('Preset Theme Applied', `Switched banner to ${tmpl.name}!`);
+                        }}
+                        className={`h-12 rounded-xl p-1 relative border transition-all flex flex-col justify-end overflow-hidden ${tmpl.gradientClass} ${
+                          bannerTheme === tmpl.id && !bannerUrl
+                            ? 'ring-2 ring-cyber-cyan scale-105 border-cyber-cyan'
+                            : 'border-white/10 opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <span className="text-[9px] font-black uppercase text-white truncate drop-shadow">
+                          {tmpl.name.split(' ')[0]}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom URL Input */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-cyber-cyan" />
+                    <span>Or Paste Banner Image Web URL</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={bannerUrl}
+                    onChange={(e) => setBannerUrl(e.target.value)}
+                    placeholder="https://images.unsplash.com/photo-..."
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
+                  />
+                </div>
+
+                {/* Modal Actions */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                  {bannerUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setBannerUrl('')}
+                      className="text-xs font-bold text-red-400 hover:text-red-300 transition flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Reset to Template</span>
+                    </button>
+                  )}
+
+                  <button
                     type="button"
                     onClick={() => {
-                      setBannerTheme(tmpl.id);
-                      setBannerUrl('');
+                      setShowBannerModal(false);
+                      toast.success('Banner Updated', 'Profile banner updated! Click Save & Sync to persist to database.');
                     }}
-                    className={`h-12 rounded-xl p-1 relative border transition-all flex flex-col justify-end overflow-hidden ${tmpl.gradientClass} ${
-                      bannerTheme === tmpl.id && !bannerUrl
-                        ? 'ring-2 ring-cyber-cyan scale-105 border-cyber-cyan'
-                        : 'border-white/10 opacity-70 hover:opacity-100'
-                    }`}
+                    className="cyber-button-primary px-6 py-2.5 rounded-xl text-xs font-black ml-auto"
                   >
-                    <span className="text-[9px] font-black uppercase text-white truncate drop-shadow">
-                      {tmpl.name.split(' ')[0]}
-                    </span>
+                    APPLY &amp; CLOSE
                   </button>
-                ))}
+                </div>
               </div>
-            </div>
-
-            {/* Custom URL Input */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
-                <ImageIcon className="w-3.5 h-3.5 text-cyber-cyan" />
-                <span>Or Paste Banner Image Web URL</span>
-              </label>
-              <input
-                type="text"
-                value={bannerUrl}
-                onChange={(e) => setBannerUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/photo-..."
-                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition"
-              />
-            </div>
-
-            {/* Modal Actions */}
-            <div className="flex items-center justify-between pt-3 border-t border-white/10">
-              {bannerUrl && (
-                <button
-                  type="button"
-                  onClick={() => setBannerUrl('')}
-                  className="text-xs font-bold text-red-400 hover:text-red-300 transition flex items-center gap-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Reset to Template</span>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowBannerModal(false);
-                  toast.success('Banner Updated', 'Profile banner updated! Click Save & Sync to persist to database.');
-                }}
-                className="cyber-button-primary px-6 py-2.5 rounded-xl text-xs font-black ml-auto"
-              >
-                APPLY & CLOSE
-              </button>
-            </div>
+            )}
 
           </div>
         </div>
