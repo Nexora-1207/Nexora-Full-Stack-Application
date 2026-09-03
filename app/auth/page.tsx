@@ -187,6 +187,16 @@ export default function AuthPage() {
 
         if (error) throw error;
 
+        // Trigger Admin Alert Email & Student Official Welcome Email
+        fetch('/api/notify/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: cleanEmail,
+            name: name.trim() || 'Nexora Student'
+          })
+        }).catch((e) => console.error('Notification dispatch error:', e));
+
         // Auto-confirmed via database trigger - sign in immediately
         const { data: loginData, error: loginErr } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
