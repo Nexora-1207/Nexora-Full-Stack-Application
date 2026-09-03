@@ -781,7 +781,7 @@ export default function ProfilePage() {
                     className="w-full py-4 rounded-2xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md group"
                   >
                     <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                    <span>Choose Image from Device to Edit &amp; Crop</span>
+                    <span>Choose Image from Device</span>
                   </button>
                 </div>
 
