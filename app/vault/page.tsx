@@ -82,10 +82,12 @@ export default function VaultPage() {
             }
           });
 
-        // Fetch vault items from Supabase database
+        // Fetch user-isolated vault items from Supabase database
+        const userVaultStorageKey = `vault_files_${user.id}`;
         supabase
           .from('vault_items')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .then(({ data, error }) => {
             if (data && data.length > 0) {
@@ -102,9 +104,9 @@ export default function VaultPage() {
                 content: item.content || 'Vault document.'
               }));
               setFiles(dbFiles);
-              localStorage.setItem('vault_files', JSON.stringify(dbFiles));
+              localStorage.setItem(userVaultStorageKey, JSON.stringify(dbFiles));
             } else {
-              const stored = localStorage.getItem('vault_files');
+              const stored = localStorage.getItem(userVaultStorageKey);
               if (stored) {
                 try {
                   const parsed = JSON.parse(stored).map((f: any) => ({
@@ -113,12 +115,11 @@ export default function VaultPage() {
                   }));
                   setFiles(parsed);
                 } catch (e) {
-                  setFiles(getCleanInitialFiles());
+                  setFiles([]);
                 }
               } else {
-                const initial = getCleanInitialFiles();
-                setFiles(initial);
-                localStorage.setItem('vault_files', JSON.stringify(initial));
+                setFiles([]);
+                localStorage.setItem(userVaultStorageKey, JSON.stringify([]));
               }
             }
             setLoading(false);
@@ -326,7 +327,8 @@ export default function VaultPage() {
 
     const updated = [newDoc, ...files];
     setFiles(updated);
-    localStorage.setItem('vault_files', JSON.stringify(updated));
+    const storageKey = currentUser?.id ? `vault_files_${currentUser.id}` : 'vault_files';
+    localStorage.setItem(storageKey, JSON.stringify(updated));
 
     toast.success('Document Saved', `${newDoc.name} stored in your Vault under ${newDoc.category}.`);
     
@@ -342,7 +344,8 @@ export default function VaultPage() {
     if (confirm('Are you sure you want to delete this document from your vault?')) {
       const updated = files.filter((f) => f.id !== id);
       setFiles(updated);
-      localStorage.setItem('vault_files', JSON.stringify(updated));
+      const storageKey = currentUser?.id ? `vault_files_${currentUser.id}` : 'vault_files';
+      localStorage.setItem(storageKey, JSON.stringify(updated));
 
       if (currentUser) {
         try {
