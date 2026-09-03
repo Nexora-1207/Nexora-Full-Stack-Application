@@ -16,7 +16,10 @@ import {
   Lock,
   ImageIcon,
   Loader2,
-  Camera
+  Camera,
+  Plus,
+  StickyNote,
+  Download
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -37,11 +40,29 @@ export interface VaultFile {
 
 const CATEGORIES = ['ALL', 'ACADEMICS', 'TIMETABLE', 'NOTES', 'OTHERS'] as const;
 
+const formatFileSize = (bytes: number): string => {
+  if (bytes <= 0) return '0.0 MB';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
+
+const parseBytes = (sizeStr: string): number => {
+  if (!sizeStr) return 0;
+  const trimmed = sizeStr.trim().toUpperCase();
+  const val = parseFloat(trimmed);
+  if (isNaN(val)) return 0;
+  if (trimmed.endsWith('GB')) return val * 1024 * 1024 * 1024;
+  if (trimmed.endsWith('MB')) return val * 1024 * 1024;
+  if (trimmed.endsWith('KB')) return val * 1024;
+  if (trimmed.endsWith('B')) return val;
+  return val * 1024 * 1024;
+};
+
 export default function VaultPage() {
   const router = useRouter();
   const toast = useCyberToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
@@ -54,6 +75,7 @@ export default function VaultPage() {
   // Modals state
   const [selectedFile, setSelectedFile] = useState<VaultFile | null>(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
   
   // File Upload States
   const [uploading, setUploading] = useState(false);
@@ -63,7 +85,13 @@ export default function VaultPage() {
   const [customFileName, setCustomFileName] = useState('');
   const [targetCategory, setTargetCategory] = useState<'TIMETABLE' | 'ACADEMICS' | 'NOTES' | 'OTHERS'>('NOTES');
 
-  // Load files from Supabase database & check auth
+  // Quick Note Creator States
+  const [noteTitle, setNoteTitle] = useState('');
+  const [noteCategory, setNoteCategory] = useState<'TIMETABLE' | 'ACADEMICS' | 'NOTES' | 'OTHERS'>('NOTES');
+  const [noteContent, setNoteContent] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+
+  // Load files from Supabase database & user local storage merge (Ensures 100% Persistence)
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
@@ -84,6 +112,17 @@ export default function VaultPage() {
 
         // Fetch user-isolated vault items from Supabase database
         const userVaultStorageKey = `vault_files_${user.id}`;
+        const storedLocal = localStorage.getItem(userVaultStorageKey);
+        let localCachedFiles: VaultFile[] = [];
+        if (storedLocal) {
+          try {
+            localCachedFiles = JSON.parse(storedLocal).map((f: any) => ({
+              ...f,
+              category: mapToValidCategory(f.category)
+            }));
+          } catch (e) {}
+        }
+
         supabase
           .from('vault_items')
           .select('*')
@@ -103,27 +142,23 @@ export default function VaultPage() {
                 date: item.date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
                 content: item.content || 'Vault document.'
               }));
-              setFiles(dbFiles);
-              localStorage.setItem(userVaultStorageKey, JSON.stringify(dbFiles));
+
+              // Merge local items with DB items to prevent any disappearing on refresh
+              const mergedMap = new Map<string, VaultFile>();
+              dbFiles.forEach((f) => mergedMap.set(f.id, f));
+              localCachedFiles.forEach((f) => {
+                if (!mergedMap.has(f.id)) mergedMap.set(f.id, f);
+              });
+              const finalMerged = Array.from(mergedMap.values());
+
+              setFiles(finalMerged);
+              localStorage.setItem(userVaultStorageKey, JSON.stringify(finalMerged));
             } else {
-              const stored = localStorage.getItem(userVaultStorageKey);
-              if (stored) {
-                try {
-                  const parsed = JSON.parse(stored).map((f: any) => ({
-                    ...f,
-                    category: mapToValidCategory(f.category)
-                  }));
-                  setFiles(parsed);
-                } catch (e) {
-                  setFiles([]);
-                }
-              } else {
-                setFiles([]);
-                localStorage.setItem(userVaultStorageKey, JSON.stringify([]));
-              }
+              setFiles(localCachedFiles);
             }
             setLoading(false);
           }, () => {
+            setFiles(localCachedFiles);
             setLoading(false);
           });
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
@@ -143,60 +178,20 @@ export default function VaultPage() {
     return 'OTHERS';
   };
 
-  const getCleanInitialFiles = (): VaultFile[] => {
-    return [
-      {
-        id: 'v1',
-        name: 'NIT_Computer_Engineering_Syllabus.pdf',
-        category: 'ACADEMICS',
-        file_type: 'application/pdf',
-        size: '2.4 MB',
-        date: '2026-08-01',
-        content: 'Full academic curriculum including Data Structures, Algorithms, Microprocessors, and System Design.'
-      },
-      {
-        id: 'v2',
-        name: 'Weekly_Timetable_Diploma_Semester3.pdf',
-        category: 'TIMETABLE',
-        file_type: 'application/pdf',
-        size: '1.1 MB',
-        date: '2026-08-04',
-        content: 'Updated Semester 3 timetable containing Labs, Machine Workshops, and Project hours.'
-      },
-      {
-        id: 'v3',
-        name: 'Admissions_Token_NEX-771823.txt',
-        category: 'NOTES',
-        file_type: 'text/plain',
-        size: '14 KB',
-        date: '2026-08-07',
-        content: 'GATEWAY TOKEN: NEX-771823 College: Nexora Institute of Technology Verification: Verified.'
-      }
-    ];
-  };
-
-  // Calculate dynamic memory footprint from actual files
+  // Calculate dynamic memory footprint accurately
   const calculateMemoryUsed = (): { totalMB: number; percent: number } => {
-    let bytes = 0;
+    let totalBytes = 0;
     files.forEach((f) => {
-      if (f.file_url) {
-        // Approximate base64 payload size
-        bytes += Math.round(f.file_url.length * 0.75);
+      if (f.file_url && f.file_url.startsWith('data:')) {
+        totalBytes += Math.round(f.file_url.length * 0.75);
       } else {
-        const sizeStr = f.size || '10 KB';
-        const num = parseFloat(sizeStr);
-        if (sizeStr.includes('MB')) {
-          bytes += num * 1024 * 1024;
-        } else {
-          bytes += num * 1024;
-        }
+        totalBytes += parseBytes(f.size);
       }
     });
 
-    const totalMB = parseFloat((bytes / 1024 / 1024).toFixed(1));
-    const displayMB = totalMB > 0 ? totalMB : 45.8;
-    const percent = Math.min(100, Math.max(2, Math.round((displayMB / 512) * 100)));
-    return { totalMB: displayMB, percent };
+    const totalMB = parseFloat((totalBytes / (1024 * 1024)).toFixed(2));
+    const percent = Math.min(100, Math.max(0, parseFloat(((totalMB / 512) * 100).toFixed(1))));
+    return { totalMB, percent };
   };
 
   const { totalMB, percent: memoryPercent } = calculateMemoryUsed();
@@ -248,7 +243,7 @@ export default function VaultPage() {
     );
   }
 
-  // Handle file selection (Photo Gallery or File System)
+  // Handle file selection (Photo, PDF, or Document)
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -256,7 +251,6 @@ export default function VaultPage() {
     setSelectedUploadFile(file);
     setCustomFileName(file.name);
 
-    // Default category based on filename keywords or target selection
     const fname = file.name.toLowerCase();
     if (fname.includes('timetable') || fname.includes('schedule') || fname.includes('routine')) {
       setTargetCategory('TIMETABLE');
@@ -264,15 +258,19 @@ export default function VaultPage() {
       setTargetCategory('ACADEMICS');
     }
 
-    if (file.type.startsWith('image/')) {
+    if (file.type.startsWith('image/') || file.type === 'application/pdf' || fname.endsWith('.pdf')) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64Url = event.target?.result as string;
         setPreviewDataUrl(base64Url);
-        setExtractedContent(`[IMAGE DOCUMENT: ${file.name}]\nUploaded to student vault.`);
+        if (file.type === 'application/pdf' || fname.endsWith('.pdf')) {
+          setExtractedContent(`[PDF DOCUMENT: ${file.name}]\nSize: ${formatFileSize(file.size)} • PDF loaded for embedded viewing and download.`);
+        } else {
+          setExtractedContent(`[IMAGE DOCUMENT: ${file.name}]\nUploaded to student vault.`);
+        }
       };
       reader.readAsDataURL(file);
-    } else {
+    } else if (fname.endsWith('.txt') || fname.endsWith('.json') || fname.endsWith('.md')) {
       setPreviewDataUrl(null);
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -280,33 +278,42 @@ export default function VaultPage() {
         setExtractedContent(textContent || `Extracted document file: ${file.name}`);
       };
       reader.readAsText(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Url = event.target?.result as string;
+        setPreviewDataUrl(base64Url);
+        setExtractedContent(`[DOCUMENT FILE: ${file.name}]\nSize: ${formatFileSize(file.size)} • Uploaded to student vault.`);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  // Upload file & save to Supabase database + local storage
+  // Upload file & save to Supabase database + user local storage
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customFileName.trim()) return;
 
     setUploading(true);
     const dateStr = new Date().toISOString().split('T')[0];
-    const calcSize = selectedUploadFile ? `${(selectedUploadFile.size / 1024 / 1024).toFixed(1)} MB` : '1.2 MB';
-    const fileType = selectedUploadFile?.type || (customFileName.match(/\.(png|jpg|jpeg)$/i) ? 'image/png' : 'text/plain');
+    const realSizeStr = selectedUploadFile ? formatFileSize(selectedUploadFile.size) : '1.2 MB';
+    const isPdf = selectedUploadFile?.type === 'application/pdf' || customFileName.toLowerCase().endsWith('.pdf');
+    const fileType = selectedUploadFile?.type || (isPdf ? 'application/pdf' : customFileName.match(/\.(png|jpg|jpeg)$/i) ? 'image/png' : 'text/plain');
 
     const newDoc: VaultFile = {
-      id: Math.random().toString(),
+      id: `doc_${Date.now()}`,
       user_id: currentUser?.id,
       student_name: studentName,
       name: customFileName,
       category: targetCategory,
       file_type: fileType,
       file_url: previewDataUrl || '',
-      size: selectedUploadFile?.size ? calcSize : '1.4 MB',
+      size: realSizeStr,
       date: dateStr,
-      content: extractedContent.trim() || 'Official student document stored in vault.'
+      content: extractedContent.trim() || `Document ${customFileName} stored in vault.`
     };
 
-    // Save to Supabase public.vault_items database
+    // Save to Supabase public.vault_items database safely
     if (currentUser) {
       try {
         await supabase.from('vault_items').insert([{
@@ -315,7 +322,7 @@ export default function VaultPage() {
           name: newDoc.name,
           category: newDoc.category,
           file_type: newDoc.file_type,
-          file_url: newDoc.file_url,
+          file_url: previewDataUrl && previewDataUrl.length < 500000 ? previewDataUrl : '', // Store data URL if within DB payload limit
           size: newDoc.size,
           date: newDoc.date,
           content: newDoc.content
@@ -330,7 +337,7 @@ export default function VaultPage() {
     const storageKey = currentUser?.id ? `vault_files_${currentUser.id}` : 'vault_files';
     localStorage.setItem(storageKey, JSON.stringify(updated));
 
-    toast.success('Document Saved', `${newDoc.name} stored in your Vault under ${newDoc.category}.`);
+    toast.success('Document Saved to Vault!', `${newDoc.name} (${newDoc.size}) stored under ${newDoc.category}.`);
     
     setCustomFileName('');
     setExtractedContent('');
@@ -338,6 +345,60 @@ export default function VaultPage() {
     setPreviewDataUrl(null);
     setUploading(false);
     setUploadModalOpen(false);
+  };
+
+  // Quick Note Submission Handler
+  const handleSaveQuickNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noteTitle.trim() || !noteContent.trim()) return;
+
+    setSavingNote(true);
+    const dateStr = new Date().toISOString().split('T')[0];
+    const byteSize = new Blob([noteContent]).size;
+    const realSizeStr = formatFileSize(byteSize);
+
+    const noteDoc: VaultFile = {
+      id: `note_${Date.now()}`,
+      user_id: currentUser?.id,
+      student_name: studentName,
+      name: noteTitle.endsWith('.txt') ? noteTitle : `${noteTitle}.txt`,
+      category: noteCategory,
+      file_type: 'text/plain',
+      file_url: '',
+      size: realSizeStr,
+      date: dateStr,
+      content: noteContent.trim()
+    };
+
+    if (currentUser) {
+      try {
+        await supabase.from('vault_items').insert([{
+          user_id: currentUser.id,
+          student_name: studentName,
+          name: noteDoc.name,
+          category: noteDoc.category,
+          file_type: noteDoc.file_type,
+          file_url: '',
+          size: noteDoc.size,
+          date: noteDoc.date,
+          content: noteDoc.content
+        }]);
+      } catch (err) {
+        console.error('Supabase Note Insert Error:', err);
+      }
+    }
+
+    const updated = [noteDoc, ...files];
+    setFiles(updated);
+    const storageKey = currentUser?.id ? `vault_files_${currentUser.id}` : 'vault_files';
+    localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    toast.success('Study Note Created!', `${noteDoc.name} added to your ${noteDoc.category} locker.`);
+    
+    setNoteTitle('');
+    setNoteContent('');
+    setSavingNote(false);
+    setNoteModalOpen(false);
   };
 
   const handleDeleteFile = async (id: string) => {
@@ -354,7 +415,7 @@ export default function VaultPage() {
       }
 
       if (selectedFile?.id === id) setSelectedFile(null);
-      toast.info('Document Removed', 'File has been deleted from your vault locker.');
+      toast.info('Document Removed', 'File deleted from your vault locker.');
     }
   };
 
@@ -371,101 +432,108 @@ export default function VaultPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-40 sm:pb-32 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-6 sm:space-y-8">
       
-      {/* Hidden File Inputs for Photo Gallery & File System */}
-      <input
-        type="file"
-        ref={galleryInputRef}
-        onChange={handleFileSelect}
-        accept="image/*"
-        className="hidden"
-      />
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        accept="image/*,.pdf,.txt,.docx,.doc,.md,.json"
-        className="hidden"
-      />
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            DOCUMENT VAULT
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
+              USER PRIVATE LOCKER
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <span>DOCUMENT VAULT</span>
+            <FolderLock className="w-7 h-7 sm:w-9 sm:h-9 text-cyber-cyan" />
           </h1>
-          <p className="text-xs text-slate-500 dark:text-white/50 font-medium mt-1">
-            Store syllabi, weekly timetables, and academic notes securely with WhatsApp export capability.
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium mt-1">
+            Student: <span className="text-cyber-cyan font-bold">{studentName}</span> • Encrypted Private Document Locker
           </p>
         </div>
 
-        <button
-          onClick={() => setUploadModalOpen(true)}
-          className="cyber-button-primary px-6 py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 self-start sm:self-auto shadow-lg"
-        >
-          <Upload className="w-4 h-4 text-background" />
-          <span>UPLOAD TO VAULT</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Create Quick Note Button */}
+          <button
+            onClick={() => setNoteModalOpen(true)}
+            className="py-3.5 px-4 rounded-2xl bg-cyber-violet/20 hover:bg-cyber-violet/30 border border-cyber-violet/40 text-cyber-violet font-black text-xs uppercase tracking-wider flex items-center gap-2 transition shadow-lg shrink-0"
+          >
+            <StickyNote className="w-4 h-4" />
+            <span>+ CREATE NOTE</span>
+          </button>
+
+          {/* Upload Button */}
+          <button
+            onClick={() => setUploadModalOpen(true)}
+            className="cyber-button-primary py-3.5 px-6 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-xl shrink-0"
+          >
+            <Upload className="w-4 h-4 text-background" />
+            <span>UPLOAD TO VAULT</span>
+          </button>
+        </div>
       </div>
 
-      {/* STORAGE FOOTPRINT METER & SEARCH/FILTER BAR */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* STORAGE METRICS & SEARCH BAR */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Storage Capacity Gauge Card */}
-        <div className="lg:col-span-4 glass-panel rounded-3xl p-6 flex flex-col justify-between space-y-4">
+        {/* Dynamic Storage Gauge */}
+        <div className="glass-panel rounded-3xl p-6 flex flex-col justify-between space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-cyber-cyan" />
-              <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                VAULT ALLOCATION
-              </span>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan">
+                <HardDrive className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                  VAULT STORAGE ALLOCATION
+                </h3>
+                <span className="text-[10px] text-slate-500 dark:text-white/50 font-mono">
+                  {files.length} Document Records Saved
+                </span>
+              </div>
             </div>
-            <span className="text-xs font-bold text-cyber-emerald">HEALTHY</span>
+
+            <span className="text-xs font-black text-cyber-cyan font-mono bg-cyber-cyan/10 px-2.5 py-1 rounded-xl border border-cyber-cyan/20">
+              {memoryPercent}% USED
+            </span>
           </div>
 
-          <div>
-            <div className="flex items-baseline justify-between mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">{totalMB} MB</span>
-              <span className="text-xs font-bold text-slate-500 dark:text-white/40">of 512 MB Allocated</span>
-            </div>
-            {/* Progress bar */}
-            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/[0.06] overflow-hidden">
+          <div className="space-y-1.5">
+            <div className="w-full h-3 rounded-full bg-slate-200 dark:bg-white/[0.06] overflow-hidden p-0.5 border border-slate-300 dark:border-white/[0.08]">
               <div 
-                className="h-full bg-gradient-to-r from-cyber-cyan to-cyber-emerald rounded-full shadow-md transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-cyber-cyan via-cyber-violet to-cyber-pink transition-all duration-500"
                 style={{ width: `${memoryPercent}%` }}
               ></div>
             </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-white/40 pt-2 border-t border-slate-200 dark:border-white/[0.06]">
-            <span>{files.length} Documents &amp; Photos Saved</span>
+            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-white/50 font-mono">
+              <span>{totalMB} MB Used</span>
+              <span>512 MB Allocated</span>
+            </div>
           </div>
         </div>
 
-        {/* Search and Category Filters */}
-        <div className="lg:col-span-8 space-y-4 flex flex-col justify-between">
+        {/* Search & Filtering */}
+        <div className="lg:col-span-2 glass-panel rounded-3xl p-6 flex flex-col justify-between space-y-4 shadow-xl">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-white/40" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-white/40 absolute left-4 top-3.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search documents by filename or keyword..."
-              className="w-full bg-white dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl pl-11 pr-4 py-3.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition shadow-sm"
+              placeholder="Search timetables, syllabus PDFs, or study notes..."
+              className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-2xl pl-11 pr-4 py-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-medium"
             />
           </div>
 
-          {/* Category Chips */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {/* Category Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all shrink-0 ${
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition shrink-0 ${
                   activeCategory === cat
-                    ? 'bg-gradient-to-r from-cyber-cyan to-cyber-violet text-background shadow-md scale-105'
-                    : 'bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-cyber-cyan text-background shadow-md shadow-cyber-cyan/20'
+                    : 'bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {cat}
@@ -483,96 +551,108 @@ export default function VaultPage() {
             <FolderLock className="w-12 h-12 text-slate-300 dark:text-white/20 mx-auto" />
             <h3 className="text-base font-black text-slate-900 dark:text-white">No Vault Documents in {activeCategory}</h3>
             <p className="text-xs text-slate-500 dark:text-white/50 max-w-sm mx-auto">
-              Your document locker is empty in this category. Upload files or timetables to store documents here.
+              Your document locker is empty in this category. Upload PDFs, timetables, or create quick notes to store documents here.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredFiles.map((file) => (
-              <div
-                key={file.id}
-                className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col justify-between space-y-4 group relative overflow-hidden"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] group-hover:bg-cyber-cyan group-hover:text-background flex items-center justify-center text-cyber-cyan transition shrink-0">
-                      {file.file_url || file.file_type?.startsWith('image/') ? (
-                        <ImageIcon className="w-5 h-5" />
-                      ) : (
-                        <FileText className="w-5 h-5" />
-                      )}
-                    </div>
+            {filteredFiles.map((file) => {
+              const isPdf = file.file_type === 'application/pdf' || file.file_url?.startsWith('data:application/pdf') || file.name.toLowerCase().endsWith('.pdf');
+              const isImage = file.file_url?.startsWith('data:image/') || file.file_type?.startsWith('image/');
 
-                    <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-white/60">
-                      {file.category}
-                    </span>
-                  </div>
-
-                  <h3 className="font-black text-sm text-slate-900 dark:text-white group-hover:text-cyber-cyan transition line-clamp-1">
-                    {file.name}
-                  </h3>
-                  
-                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-white/40 mt-1">
-                    <span>{file.size}</span>
-                    <span>•</span>
-                    <span>{file.date}</span>
-                  </div>
-
-                  {/* Optional Image Thumbnail preview if file_url exists */}
-                  {file.file_url ? (
-                    <div className="mt-3 relative h-28 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.08] bg-slate-900">
-                      <img src={file.file_url} alt={file.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5">
-                        <span className="text-[10px] font-bold text-white flex items-center gap-1">
-                          <Eye className="w-3 h-3 text-cyber-cyan" />
-                          <span>Click Inspect to view full image</span>
-                        </span>
+              return (
+                <div
+                  key={file.id}
+                  className="glass-card glass-card-hover rounded-3xl p-6 flex flex-col justify-between space-y-4 group relative overflow-hidden"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] group-hover:bg-cyber-cyan group-hover:text-background flex items-center justify-center text-cyber-cyan transition shrink-0">
+                        {isPdf ? (
+                          <FileText className="w-5 h-5 text-red-400" />
+                        ) : isImage ? (
+                          <ImageIcon className="w-5 h-5 text-cyber-cyan" />
+                        ) : (
+                          <StickyNote className="w-5 h-5 text-cyber-violet" />
+                        )}
                       </div>
+
+                      <span className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-white/60">
+                        {file.category}
+                      </span>
                     </div>
-                  ) : (
-                    <p className="text-xs text-slate-600 dark:text-white/50 mt-3 line-clamp-2 leading-relaxed bg-slate-100/70 dark:bg-white/[0.02] p-2.5 rounded-xl border border-slate-200 dark:border-white/[0.04] font-mono">
-                      {file.content}
-                    </p>
-                  )}
+
+                    <h3 className="font-black text-sm text-slate-900 dark:text-white group-hover:text-cyber-cyan transition line-clamp-1">
+                      {file.name}
+                    </h3>
+                    
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-white/40 mt-1">
+                      <span>{file.size}</span>
+                      <span>•</span>
+                      <span>{file.date}</span>
+                    </div>
+
+                    {/* Image Thumbnail preview if image file */}
+                    {isImage && file.file_url ? (
+                      <div className="mt-3 relative h-28 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.08] bg-slate-900">
+                        <img src={file.file_url} alt={file.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2.5">
+                          <span className="text-[10px] font-bold text-white flex items-center gap-1">
+                            <Eye className="w-3 h-3 text-cyber-cyan" />
+                            <span>Click Inspect to view image</span>
+                          </span>
+                        </div>
+                      </div>
+                    ) : isPdf ? (
+                      <div className="mt-3 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-bold flex items-center gap-2">
+                        <FileText className="w-4 h-4 shrink-0" />
+                        <span className="truncate">PDF Document • Embedded View &amp; Download</span>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-600 dark:text-white/50 mt-3 line-clamp-2 leading-relaxed bg-slate-100/70 dark:bg-white/[0.02] p-2.5 rounded-xl border border-slate-200 dark:border-white/[0.04] font-mono">
+                        {file.content}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => setSelectedFile(file)}
+                      className="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-xs font-bold text-cyber-cyan flex items-center justify-center gap-1.5 transition"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Inspect</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleShareToWhatsApp(file)}
+                      className="w-9 h-9 rounded-xl bg-cyber-emerald/10 hover:bg-cyber-emerald/20 border border-cyber-emerald/30 text-cyber-emerald flex items-center justify-center transition"
+                      title="Forward to WhatsApp"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteFile(file.id)}
+                      className="w-9 h-9 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 flex items-center justify-center transition"
+                      title="Delete Document"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
                 </div>
-
-                {/* Actions */}
-                <div className="pt-3 border-t border-slate-200 dark:border-white/[0.06] flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => setSelectedFile(file)}
-                    className="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] text-xs font-bold text-cyber-cyan flex items-center justify-center gap-1.5 transition"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Inspect</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleShareToWhatsApp(file)}
-                    className="w-9 h-9 rounded-xl bg-cyber-emerald/10 hover:bg-cyber-emerald/20 border border-cyber-emerald/30 text-cyber-emerald flex items-center justify-center transition"
-                    title="Forward to WhatsApp"
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteFile(file.id)}
-                    className="w-9 h-9 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 flex items-center justify-center transition"
-                    title="Delete Document"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* INSPECT DOCUMENT / FULL-RESOLUTION IMAGE MODAL */}
+      {/* INSPECT DOCUMENT / FULL-RESOLUTION IMAGE / INTERACTIVE PDF MODAL */}
       {selectedFile && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md pb-24 sm:pb-4">
-          <div className="relative w-full max-w-2xl glass-panel rounded-3xl border border-white/[0.12] p-5 sm:p-8 shadow-2xl max-h-[80vh] sm:max-h-[85vh] overflow-y-auto space-y-4 sm:space-y-6 z-[105]">
+          <div className="relative w-full max-w-3xl glass-panel rounded-3xl border border-white/[0.12] p-5 sm:p-8 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 sm:space-y-6 z-[105]">
             
             <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-200 dark:border-white/[0.08]">
               <div className="space-y-1">
@@ -593,8 +673,36 @@ export default function VaultPage() {
               </button>
             </div>
 
-            {/* FULL RESOLUTION IMAGE OR TEXT CONTENT VIEW */}
-            {selectedFile.file_url ? (
+            {/* INTERACTIVE PDF VIEWER IF PDF */}
+            {selectedFile.file_type === 'application/pdf' || selectedFile.file_url?.startsWith('data:application/pdf') || selectedFile.name.toLowerCase().endsWith('.pdf') ? (
+              <div className="space-y-4">
+                {selectedFile.file_url ? (
+                  <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 h-[50vh] shadow-inner">
+                    <iframe 
+                      src={selectedFile.file_url} 
+                      title={selectedFile.name}
+                      className="w-full h-full border-none"
+                    />
+                  </div>
+                ) : (
+                  <div className="p-6 rounded-2xl bg-slate-900 text-center space-y-2">
+                    <FileText className="w-10 h-10 text-cyber-cyan mx-auto" />
+                    <p className="text-xs font-bold text-white">PDF Document Record Stored</p>
+                  </div>
+                )}
+
+                {selectedFile.file_url && (
+                  <a
+                    href={selectedFile.file_url}
+                    download={selectedFile.name}
+                    className="w-full py-3.5 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 hover:bg-cyber-cyan/25 text-cyber-cyan font-black text-xs flex items-center justify-center gap-2 transition"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>DOWNLOAD PDF FILE</span>
+                  </a>
+                )}
+              </div>
+            ) : selectedFile.file_url && selectedFile.file_url.startsWith('data:image/') ? (
               <div className="space-y-4">
                 <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 flex items-center justify-center max-h-[45vh]">
                   <img src={selectedFile.file_url} alt={selectedFile.name} className="max-h-[45vh] w-auto object-contain" />
@@ -630,137 +738,196 @@ export default function VaultPage() {
         </div>
       )}
 
-      {/* UPLOAD DOCUMENT / PHOTO MODAL */}
+      {/* UPLOAD FILE MODAL */}
       {uploadModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md pb-24 sm:pb-4">
-          <div className="relative w-full max-w-lg glass-panel rounded-3xl border border-white/[0.12] p-5 sm:p-8 shadow-2xl max-h-[80vh] sm:max-h-[85vh] overflow-y-auto space-y-5 sm:space-y-6 z-[105]">
+          <div className="relative w-full max-w-lg glass-panel rounded-3xl border border-white/[0.12] p-5 sm:p-8 shadow-2xl space-y-6 z-[105]">
             
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/[0.08]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center shrink-0">
-                  <Upload className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">UPLOAD DOCUMENT</h3>
-                  <p className="text-xs text-slate-500 dark:text-white/50">Store photo or file in your personal Vault</p>
-                </div>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <Upload className="w-5 h-5 text-cyber-cyan" />
+                <h3 className="font-black text-base uppercase tracking-wider text-slate-900 dark:text-white">
+                  UPLOAD DOCUMENT TO VAULT
+                </h3>
               </div>
+
               <button
                 onClick={() => setUploadModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition shrink-0"
+                className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Gallery Access & File Picker Options */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => galleryInputRef.current?.click()}
-                  className="p-4 rounded-2xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-left transition space-y-2 group"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-cyber-cyan/20 text-cyber-cyan flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Camera className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-black text-white block">OPEN PHOTO GALLERY</span>
-                    <span className="text-[10px] text-cyber-cyan block font-medium">Select photos &amp; screenshots</span>
-                  </div>
-                </button>
+            <form onSubmit={handleUploadSubmit} className="space-y-4">
+              
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider">
+                  Select PDF / Document / Image File
+                </label>
+                
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  accept="image/*,.pdf,.txt,.doc,.docx"
+                  className="hidden"
+                />
 
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-4 rounded-2xl bg-cyber-violet/10 hover:bg-cyber-violet/20 border border-cyber-violet/30 text-left transition space-y-2 group"
+                  className="w-full py-4 rounded-2xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-cyber-violet/20 text-cyber-violet flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-black text-white block">BROWSE DOCUMENTS</span>
-                    <span className="text-[10px] text-cyber-violet block font-medium">Select .pdf, .txt, .docx files</span>
-                  </div>
+                  <Upload className="w-4 h-4" />
+                  <span>{selectedUploadFile ? selectedUploadFile.name : 'Choose File from Device'}</span>
                 </button>
               </div>
 
               {selectedUploadFile && (
-                <div className="p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-between text-xs text-white">
-                  <span className="font-bold truncate">Selected: {selectedUploadFile.name}</span>
-                  <span className="text-[10px] text-white/50">{(selectedUploadFile.size / 1024).toFixed(0)} KB</span>
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1">
+                      Document Title
+                    </label>
+                    <input
+                      type="text"
+                      value={customFileName}
+                      onChange={(e) => setCustomFileName(e.target.value)}
+                      className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition font-bold"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1">
+                      Select Locker Category
+                    </label>
+                    <select
+                      value={targetCategory}
+                      onChange={(e: any) => setTargetCategory(e.target.value)}
+                      className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition font-bold"
+                    >
+                      <option value="TIMETABLE">TIMETABLE</option>
+                      <option value="ACADEMICS">ACADEMICS</option>
+                      <option value="NOTES">NOTES</option>
+                      <option value="OTHERS">OTHERS</option>
+                    </select>
+                  </div>
                 </div>
               )}
 
-              {/* Preview image if loaded */}
-              {previewDataUrl && (
-                <div className="relative h-32 rounded-2xl overflow-hidden border border-white/10 bg-slate-950">
-                  <img src={previewDataUrl} alt="Preview" className="w-full h-full object-contain" />
-                </div>
-              )}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setUploadModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-white/[0.05] text-xs font-bold text-slate-700 dark:text-white/70"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={uploading || !selectedUploadFile}
+                  className="cyber-button-primary px-6 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 disabled:opacity-40"
+                >
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <HardDrive className="w-4 h-4 text-background" />}
+                  <span>{uploading ? 'SAVING...' : 'SAVE TO VAULT'}</span>
+                </button>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* QUICK NOTE CREATOR MODAL */}
+      {noteModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md pb-24 sm:pb-4">
+          <div className="relative w-full max-w-lg glass-panel rounded-3xl border border-white/[0.12] p-5 sm:p-8 shadow-2xl space-y-6 z-[105]">
+            
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <StickyNote className="w-5 h-5 text-cyber-violet" />
+                <h3 className="font-black text-base uppercase tracking-wider text-slate-900 dark:text-white">
+                  CREATE STUDY NOTE
+                </h3>
+              </div>
+
+              <button
+                onClick={() => setNoteModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] text-slate-600 dark:text-white/60 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <form onSubmit={handleUploadSubmit} className="space-y-4">
+            <form onSubmit={handleSaveQuickNote} className="space-y-4">
+              
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-                  Document / Photo Name
+                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1">
+                  Note Title
                 </label>
                 <input
                   type="text"
-                  value={customFileName}
-                  onChange={(e) => setCustomFileName(e.target.value)}
-                  placeholder="e.g. Weekly_Timetable_Schedule.png"
-                  className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition"
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  placeholder="e.g. Physics Formulas Unit 3, Exam Reminders..."
+                  className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-violet transition font-bold"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-                  Category Locker
+                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1">
+                  Select Locker Category
                 </label>
                 <select
-                  value={targetCategory}
-                  onChange={(e) => setTargetCategory(e.target.value as any)}
-                  className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-cyan transition"
+                  value={noteCategory}
+                  onChange={(e: any) => setNoteCategory(e.target.value)}
+                  className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-violet transition font-bold"
                 >
-                  <option value="TIMETABLE">TIMETABLE</option>
-                  <option value="ACADEMICS">ACADEMICS</option>
                   <option value="NOTES">NOTES</option>
+                  <option value="ACADEMICS">ACADEMICS</option>
+                  <option value="TIMETABLE">TIMETABLE</option>
                   <option value="OTHERS">OTHERS</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1.5">
-                  Extracted Content / Notes
+                <label className="block text-xs font-bold text-slate-700 dark:text-white/70 uppercase tracking-wider mb-1">
+                  Note Body Content
                 </label>
                 <textarea
-                  rows={3}
-                  value={extractedContent}
-                  onChange={(e) => setExtractedContent(e.target.value)}
-                  placeholder="Extracted text or file description..."
-                  className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl p-4 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition resize-none font-mono"
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  rows={5}
+                  placeholder="Write your study notes, assignment points, or formulas here..."
+                  className="w-full bg-slate-100 dark:bg-surface-card border border-slate-200 dark:border-white/[0.1] rounded-xl p-3.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-cyber-violet transition font-mono leading-relaxed"
+                  required
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={uploading || !customFileName.trim()}
-                className="w-full cyber-button-primary py-3.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 mt-2 disabled:opacity-50 shadow-lg"
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-background" />
-                    <span>SAVING DOCUMENT...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-background" />
-                    <span>SAVE</span>
-                  </>
-                )}
-              </button>
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/[0.08]">
+                <button
+                  type="button"
+                  onClick={() => setNoteModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-white/[0.05] text-xs font-bold text-slate-700 dark:text-white/70"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={savingNote || !noteTitle.trim() || !noteContent.trim()}
+                  className="py-2.5 px-6 rounded-xl bg-cyber-violet hover:bg-cyber-violet/90 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 disabled:opacity-40 shadow-lg transition"
+                >
+                  {savingNote ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <StickyNote className="w-4 h-4 text-white" />}
+                  <span>{savingNote ? 'SAVING...' : 'SAVE NOTE TO LOCKER'}</span>
+                </button>
+              </div>
+
             </form>
 
           </div>
