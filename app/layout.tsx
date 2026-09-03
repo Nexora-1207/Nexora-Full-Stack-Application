@@ -31,26 +31,13 @@ export const metadata: Metadata = {
     default: 'Nexora | Premier Student Academic & Career Command Hub',
     template: '%s | Nexora'
   },
-  description: 'AI-driven career pathfinder, academic colleges hub, document vault, and placement readiness platform founded by Shaik Nadeem Ahmed (CEO & CTO) and Gudipalli Rakesh Varma (CMO & CFO).',
+  description: 'AI-driven career pathfinder, academic colleges hub, document vault, and placement readiness platform for students.',
   keywords: [
     'Nexora', 
     'NEXORA',
     'NEXORAEDU.CO.IN',
     'NexoraEdu',
     'Nexora Education Technologies',
-    'Founders of Nexora',
-    'Founders of NexoraEdu',
-    'Nexora Founders',
-    'Shaik Nadeem Ahmed',
-    'Shaik. Nadeem Ahmed',
-    'Nadeem Shaik',
-    'Nexora CEO',
-    'Nexora CTO',
-    'Gudipalli Rakesh Varma',
-    'Gudipalli. Rakesh Varma',
-    'Rakesh Varma Gudipalli',
-    'Nexora CMO',
-    'Nexora CFO',
     'Career Pathfinder', 
     'Engineering Colleges', 
     'Polytechnic Diploma Lateral Entry', 
@@ -61,11 +48,9 @@ export const metadata: Metadata = {
     'College Admissions Gateway'
   ],
   authors: [
-    { name: 'Shaik. Nadeem Ahmed - CEO & CTO', url: 'https://www.linkedin.com/in/nadeem-shaik-458981343' },
-    { name: 'Gudipalli. Rakesh Varma - CMO & CFO', url: 'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343' },
-    { name: 'Nexora Education Technologies', url: 'https://www.nexoraedu.co.in' }
+    { name: 'Nexora Team', url: 'https://www.nexoraedu.co.in' }
   ],
-  creator: 'Shaik. Nadeem Ahmed & Gudipalli. Rakesh Varma (Nexora)',
+  creator: 'Nexora Team',
   publisher: 'Nexora Education Technologies',
   manifest: '/manifest.webmanifest',
   formatDetection: {
@@ -104,7 +89,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Nexora | Premier Student Academic & Career Command Hub',
-    description: 'AI-driven career pathfinder, academic colleges hub, encrypted document vault, and placement readiness platform founded by Shaik Nadeem Ahmed and Gudipalli Rakesh Varma.',
+    description: 'AI-driven career pathfinder, academic colleges hub, encrypted document vault, and placement readiness platform.',
     url: 'https://www.nexoraedu.co.in',
     siteName: 'Nexora',
     images: [
@@ -121,7 +106,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Nexora | Academic & Career Command Hub',
-    description: 'AI-driven career pathfinder, college directory, and encrypted document vault. Founded by Shaik Nadeem Ahmed and Gudipalli Rakesh Varma.',
+    description: 'AI-driven career pathfinder, college directory, and encrypted document vault.',
     images: ['/nexora_logo.jpg'],
   },
 };
@@ -161,36 +146,6 @@ const jsonLd = {
       image: 'https://www.nexoraedu.co.in/nexora_logo.jpg',
       email: 'nexoraofficial1207@gmail.com',
       description: 'Premier Student Academic & Career Command Hub connecting Intermediate, Polytechnic, and ITI students with top engineering colleges, career pathfinding, and placement readiness.',
-      founders: [
-        {
-          '@type': 'Person',
-          '@id': 'https://www.nexoraedu.co.in/#nadeem',
-          name: 'Shaik. Nadeem Ahmed',
-          givenName: 'Nadeem',
-          familyName: 'Shaik',
-          jobTitle: 'Co-Founder, Chief Executive Officer (CEO) & Chief Technology Officer (CTO)',
-          url: 'https://www.linkedin.com/in/nadeem-shaik-458981343',
-          sameAs: [
-            'https://www.linkedin.com/in/nadeem-shaik-458981343'
-          ],
-          description: "Directs Nexora's overall corporate vision, system architecture, product engineering, and technology strategy as CEO & CTO.",
-          knowsAbout: ['Full-Stack Engineering', 'Cloud Architecture', 'System Design', 'EdTech Innovation', 'Executive Leadership']
-        },
-        {
-          '@type': 'Person',
-          '@id': 'https://www.nexoraedu.co.in/#rakesh',
-          name: 'Gudipalli. Rakesh Varma',
-          givenName: 'Rakesh Varma',
-          familyName: 'Gudipalli',
-          jobTitle: 'Co-Founder, Chief Marketing Officer (CMO) & Chief Financial Officer (CFO)',
-          url: 'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343',
-          sameAs: [
-            'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343'
-          ],
-          description: "Oversees brand marketing, college partnerships, financial stewardship, operations, and business growth as CMO & CFO.",
-          knowsAbout: ['Marketing Strategy', 'Financial Modeling', 'Corporate Operations', 'Institutional Outreach', 'Fiscal Management']
-        }
-      ],
       knowsAbout: [
         'Career Pathfinder',
         'Engineering Colleges',

@@ -14,40 +14,40 @@ export interface LeaderProfile {
 
 export const LEADERSHIP_TEAM: LeaderProfile[] = [
   {
-    name: 'Shaik. Nadeem Ahmed',
-    titles: ['Chief Executive Officer (CEO)', 'Chief Technology Officer (CTO)'],
-    roleDescription: "Executive visionary directing Nexora's overall corporate strategy, product innovation, system architecture, and core technological engineering.",
+    name: 'Nexora Engineering Leadership',
+    titles: ['Engineering & AI Directorate'],
+    roleDescription: "Executive guidance directing Nexora's overall platform strategy, product innovation, system architecture, and core technological engineering.",
     responsibilities: [
       {
-        role: 'Chief Executive Officer (CEO)',
-        details: 'Drives overall strategic vision, corporate roadmap, investor relations, institutional partnerships, and company-wide execution to scale Nexora across India and worldwide.'
+        role: 'Engineering & Product Strategy',
+        details: 'Drives overall strategic vision, platform roadmap, institutional partnerships, and company-wide execution.'
       },
       {
-        role: 'Chief Technology Officer (CTO)',
-        details: 'Architects the full-stack cloud ecosystem, AI-driven career recommendation engines, encrypted Document Vault, and high-performance serverless infrastructure.'
+        role: 'Architecture & AI Integration',
+        details: 'Architects the full-stack cloud ecosystem, AI-driven career engines, encrypted Document Vault, and high-performance serverless infrastructure.'
       }
     ],
-    linkedinUrl: 'https://www.linkedin.com/in/nadeem-shaik-458981343',
+    linkedinUrl: 'https://www.nexoraedu.co.in',
     email: 'nexoraofficial1207@gmail.com',
     avatarGradient: 'from-cyber-cyan via-blue-500 to-cyber-violet'
   },
   {
-    name: 'Gudipalli. Rakesh Varma',
-    titles: ['Chief Marketing Officer (CMO)', 'Chief Financial Officer (CFO)'],
-    roleDescription: 'Strategic growth leader overseeing brand marketing, institutional outreach, financial stewardship, capital management, and partnership monetization.',
+    name: 'Nexora Operations Directorate',
+    titles: ['Marketing & Operations Directorate'],
+    roleDescription: 'Strategic growth leadership overseeing brand marketing, institutional outreach, financial stewardship, capital management, and partnership growth.',
     responsibilities: [
       {
-        role: 'Chief Marketing Officer (CMO)',
-        details: 'Leads student community growth, college campus partnerships, brand storytelling, digital campaigns, and educational outreach to reach millions of students.'
+        role: 'Marketing & Brand Outreach',
+        details: 'Spearheads national branding campaigns, college outreach initiatives, student community growth, and strategic partnerships.'
       },
       {
-        role: 'Chief Financial Officer (CFO)',
-        details: 'Directs fiscal planning, revenue operations, financial modeling, budgeting, compliance, and long-term sustainable capital allocation for Nexora.'
+        role: 'Institutional Operations',
+        details: 'Manages platform financial planning, institutional onboarding, operations, and corporate sustainability.'
       }
     ],
-    linkedinUrl: 'https://www.linkedin.com/in/rakesh-varma-gudipalli-88b417343',
+    linkedinUrl: 'https://www.nexoraedu.co.in',
     email: 'nexoraofficial1207@gmail.com',
-    avatarGradient: 'from-cyber-magenta via-pink-500 to-cyber-amber'
+    avatarGradient: 'from-cyber-violet via-purple-500 to-cyber-pink'
   }
 ];
 

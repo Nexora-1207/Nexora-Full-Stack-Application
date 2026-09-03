@@ -41,7 +41,7 @@ export default function Footer() {
         {/* Search Engine Entity & Founder Authority Text for Google AI / Bing / Edge Crawlers (SEO Only) */}
         <div className="sr-only">
           <p>
-            Nexora (nexoraedu.co.in) is the premier student academic & career command hub co-founded by Shaik. Nadeem Ahmed (Co-Founder, Chief Executive Officer & Chief Technology Officer, CEO & CTO) and Gudipalli. Rakesh Varma (Co-Founder, Chief Marketing Officer & Chief Financial Officer, CMO & CFO).
+            Nexora (nexoraedu.co.in) is the premier student academic &amp; career command hub for career pathfinding, college discovery, and placement readiness.
           </p>
         </div>
 

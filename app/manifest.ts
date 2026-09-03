@@ -1,10 +1,10 @@
-﻿import { MetadataRoute } from 'next';
+import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Nexora - Premier Student Academic & Career Command Hub',
     short_name: 'Nexora',
-    description: 'AI-driven career pathfinder, academic colleges hub, and placement readiness platform founded by Shaik Nadeem Ahmed and Gudipalli Rakesh Varma.',
+    description: 'AI-driven career pathfinder, academic colleges hub, encrypted document vault, and placement readiness platform for students.',
     start_url: '/',
     display: 'standalone',
     background_color: '#030712',
