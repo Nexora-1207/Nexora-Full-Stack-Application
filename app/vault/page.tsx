@@ -75,35 +75,58 @@ const openVaultDB = (): Promise<IDBDatabase> => {
   });
 };
 
-const saveLargeFileBlob = async (id: string, dataUrl: string) => {
+const saveLargeFileBlob = async (id: string, name: string, dataUrl: string) => {
   try {
     const db = await openVaultDB();
     const tx = db.transaction('large_files', 'readwrite');
-    tx.objectStore('large_files').put({ id, dataUrl });
+    const store = tx.objectStore('large_files');
+    store.put({ id, name, dataUrl });
+    if (name) {
+      store.put({ id: `name_${name.toLowerCase()}`, name, dataUrl });
+    }
   } catch (e) {
     console.error('IndexedDB Save Error:', e);
   }
 };
 
-const getLargeFileBlob = async (id: string): Promise<string | null> => {
+const getLargeFileBlob = async (id: string, name?: string): Promise<string | null> => {
   try {
     const db = await openVaultDB();
     const tx = db.transaction('large_files', 'readonly');
-    const req = tx.objectStore('large_files').get(id);
-    return new Promise((resolve) => {
-      req.onsuccess = () => resolve(req.result?.dataUrl || null);
-      req.onerror = () => resolve(null);
+    const store = tx.objectStore('large_files');
+    
+    // Attempt 1: Search by primary ID
+    const req1 = store.get(id);
+    const res1 = await new Promise<any>((resolve) => {
+      req1.onsuccess = () => resolve(req1.result);
+      req1.onerror = () => resolve(null);
     });
+
+    if (res1?.dataUrl) return res1.dataUrl;
+
+    // Attempt 2: Search by filename key
+    if (name) {
+      const req2 = store.get(`name_${name.toLowerCase()}`);
+      const res2 = await new Promise<any>((resolve) => {
+        req2.onsuccess = () => resolve(req2.result);
+        req2.onerror = () => resolve(null);
+      });
+      if (res2?.dataUrl) return res2.dataUrl;
+    }
+
+    return null;
   } catch (e) {
     return null;
   }
 };
 
-const deleteLargeFileBlob = async (id: string) => {
+const deleteLargeFileBlob = async (id: string, name?: string) => {
   try {
     const db = await openVaultDB();
     const tx = db.transaction('large_files', 'readwrite');
-    tx.objectStore('large_files').delete(id);
+    const store = tx.objectStore('large_files');
+    store.delete(id);
+    if (name) store.delete(`name_${name.toLowerCase()}`);
   } catch (e) {}
 };
 
@@ -122,6 +145,25 @@ export default function VaultPage() {
   
   // Modals state
   const [selectedFile, setSelectedFile] = useState<VaultFile | null>(null);
+  const [activeInspectUrl, setActiveInspectUrl] = useState<string | null>(null);
+
+  // Asynchronously resolve large file Blob URLs from IndexedDB for files of ANY size
+  useEffect(() => {
+    if (selectedFile) {
+      if (selectedFile.file_url) {
+        setActiveInspectUrl(selectedFile.file_url);
+      } else {
+        setActiveInspectUrl(null);
+        getLargeFileBlob(selectedFile.id, selectedFile.name).then((blobDataUrl) => {
+          if (blobDataUrl) {
+            setActiveInspectUrl(blobDataUrl);
+          }
+        });
+      }
+    } else {
+      setActiveInspectUrl(null);
+    }
+  }, [selectedFile]);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [noteModalOpen, setNoteModalOpen] = useState(false);
   
@@ -363,7 +405,7 @@ export default function VaultPage() {
 
     // Save large file blob to IndexedDB for 100% reliable opening of files of ANY size
     if (previewDataUrl) {
-      await saveLargeFileBlob(newDoc.id, previewDataUrl);
+      await saveLargeFileBlob(newDoc.id, newDoc.name, previewDataUrl);
     }
 
     // Save to Supabase public.vault_items database safely
@@ -754,36 +796,36 @@ export default function VaultPage() {
             {/* INTERACTIVE PDF VIEWER IF PDF */}
             {selectedFile.file_type === 'application/pdf' || selectedFile.file_url?.startsWith('data:application/pdf') || selectedFile.name.toLowerCase().endsWith('.pdf') ? (
               <div className="space-y-4">
-                {selectedFile.file_url ? (
-                  <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 h-[50vh] shadow-inner">
+                {activeInspectUrl ? (
+                  <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 h-[55vh] shadow-inner">
                     <iframe 
-                      src={selectedFile.file_url} 
+                      src={activeInspectUrl} 
                       title={selectedFile.name}
                       className="w-full h-full border-none"
                     />
                   </div>
                 ) : (
-                  <div className="p-6 rounded-2xl bg-slate-900 text-center space-y-2">
-                    <FileText className="w-10 h-10 text-cyber-cyan mx-auto" />
-                    <p className="text-xs font-bold text-white">PDF Document Record Stored</p>
+                  <div className="p-8 rounded-2xl bg-slate-900 border border-cyber-cyan/20 text-center space-y-3">
+                    <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin mx-auto" />
+                    <p className="text-xs font-bold text-white">Loading Interactive Document Viewer ({selectedFile.size})...</p>
                   </div>
                 )}
 
-                {selectedFile.file_url && (
+                {activeInspectUrl && (
                   <a
-                    href={selectedFile.file_url}
+                    href={activeInspectUrl}
                     download={selectedFile.name}
-                    className="w-full py-3.5 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 hover:bg-cyber-cyan/25 text-cyber-cyan font-black text-xs flex items-center justify-center gap-2 transition"
+                    className="w-full py-3.5 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 hover:bg-cyber-cyan/25 text-cyber-cyan font-black text-xs flex items-center justify-center gap-2 transition shadow-md"
                   >
                     <Download className="w-4 h-4" />
-                    <span>DOWNLOAD PDF FILE</span>
+                    <span>DOWNLOAD PDF FILE ({selectedFile.size})</span>
                   </a>
                 )}
               </div>
-            ) : selectedFile.file_url && selectedFile.file_url.startsWith('data:image/') ? (
+            ) : (activeInspectUrl || selectedFile.file_url) && ((activeInspectUrl || selectedFile.file_url)?.startsWith('data:image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(selectedFile.name)) ? (
               <div className="space-y-4">
                 <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 flex items-center justify-center max-h-[45vh]">
-                  <img src={selectedFile.file_url} alt={selectedFile.name} className="max-h-[45vh] w-auto object-contain" />
+                  <img src={activeInspectUrl || selectedFile.file_url || ''} alt={selectedFile.name} className="max-h-[45vh] w-auto object-contain" />
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/[0.08] font-mono text-xs text-slate-800 dark:text-white/80 whitespace-pre-wrap">
                   {selectedFile.content}
