@@ -103,30 +103,14 @@ export default function CollegesListClient() {
   // Guest Account Limit: display maximum 3 colleges
   const displayedColleges = isGuest ? allFilteredColleges.slice(0, 3) : allFilteredColleges;
 
-  // Apply Gateway
+  // Apply Gateway - Navigate directly to dedicated admission page
   const handleApply = (college: College) => {
     if (isGuest) {
       toast.info('Registration Required', '🔒 Login or Register to submit college applications!');
       router.push('/auth');
       return;
     }
-
-    setApplyingId(college.id);
-    setTimeout(() => {
-      setApplyingId(null);
-      const generatedToken = `NEX-${Math.floor(100000 + Math.random() * 900000)}`;
-      setAppliedTokens((prev) => ({ ...prev, [college.id]: generatedToken }));
-      setTokenAlert({
-        collegeName: college.name,
-        token: generatedToken,
-        collegeId: college.id
-      });
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.6 }
-      });
-    }, 1500);
+    router.push(`/colleges/${college.id}/apply`);
   };
 
   const handleInspectCollege = (collegeId: string) => {

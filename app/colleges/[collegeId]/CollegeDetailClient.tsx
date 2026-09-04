@@ -239,7 +239,7 @@ export default function CollegeDetailClient({ college }: Props) {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
             <button
-              onClick={() => setApplyModalOpen(true)}
+              onClick={() => router.push(`/colleges/${college.id}/apply`)}
               className="cyber-button-primary px-8 py-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-xl"
             >
               <Send className="w-4 h-4 text-background" />

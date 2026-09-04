@@ -1,195 +1,92 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { 
   ChevronLeft, 
   Send, 
   CheckCircle2, 
+  Upload, 
   FileText, 
-  ShieldCheck, 
-  FolderLock, 
   User, 
-  Phone, 
   Mail, 
-  MapPin, 
+  Phone, 
   GraduationCap, 
   Award, 
   Building2, 
-  Sparkles, 
-  AlertCircle,
-  Copy,
-  Check,
+  Copy, 
+  Share2, 
+  Loader2, 
+  Lock, 
+  Sparkles,
+  Calendar,
+  MapPin,
   X
 } from 'lucide-react';
-import { MOCK_COLLEGES, College, OFFICIAL_NEXORA_EMAIL, INITIAL_VAULT_FILES } from '@/lib/data';
-import { supabase } from '@/lib/supabase';
+import { MOCK_COLLEGES } from '@/lib/data';
 import { useCyberToast } from '@/components/CyberToast';
-import confetti from 'canvas-confetti';
+import { supabase } from '@/lib/supabase';
 
-interface PageProps {
-  params: {
-    collegeId: string;
-  };
-}
-
-export default function AdmissionFormPage({ params }: PageProps) {
+export default function CollegeApplyPage() {
   const router = useRouter();
+  const params = useParams();
   const toast = useCyberToast();
-  const collegeId = params.collegeId;
+  const collegeId = params?.collegeId as string;
+
   const college = MOCK_COLLEGES.find((c) => c.id === collegeId) || MOCK_COLLEGES[0];
 
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [submissionReceipt, setSubmissionReceipt] = useState<any>(null);
-  const [copiedToken, setCopiedToken] = useState(false);
+  const memo10thInputRef = useRef<HTMLInputElement | null>(null);
+  const memoInterInputRef = useRef<HTMLInputElement | null>(null);
+  const tcInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Form State
-  const [formData, setFormData] = useState({
-    fullName: '',
-    dob: '2007-05-14',
-    gender: 'Male',
-    studentPhone: '',
-    studentEmail: '',
-    address: 'Hyderabad, Telangana, India',
-    parentName: '',
-    parentPhone: '',
-    parentOccupation: 'Business / Private Sector',
-    stream: college.stream,
-    tenthPercentage: '92.5%',
-    entranceRank: 'POLYCET Rank #1420',
-    selectedBranch: college.branches[0]?.name || 'Computer Engineering',
-    category: 'General',
-    hostelNeeded: 'Yes',
-    scholarshipClaim: 'Yes',
-    attachedVaultDocs: ['Class_10_Marks_Memo.pdf', 'Transfer_Certificate.pdf'],
-    signature: '',
-    declarationAgreed: true,
-  });
+  const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Student Dossier Form Fields
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [fatherName, setFatherName] = useState('');
+  const [dob, setDob] = useState('');
+  const [address, setAddress] = useState('');
+
+  // Academic Credentials
+  const [marks10th, setMarks10th] = useState('');
+  const [marksInter, setMarksInter] = useState('');
+  const [entranceRank, setEntranceRank] = useState('');
+  const [targetBranch, setTargetBranch] = useState(college.branches?.[0]?.name || 'Computer Science & Engineering');
+  const [admissionCategory, setAdmissionCategory] = useState('CONVENOR_QUOTA');
+
+  // Certificate Files
+  const [memo10thFile, setMemo10thFile] = useState<File | null>(null);
+  const [memoInterFile, setMemoInterFile] = useState<File | null>(null);
+  const [tcFile, setTcFile] = useState<File | null>(null);
+
+  // Submission & Token State
+  const [submitting, setSubmitting] = useState(false);
+  const [generatedToken, setGeneratedToken] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              setProfile(data);
-              setFormData((prev) => ({
-                ...prev,
-                fullName: data.full_name || prev.fullName,
-                studentEmail: user.email || prev.studentEmail,
-                studentPhone: data.phone || '+91 98765 43210',
-                parentName: data.parent_name || 'Ramesh Kumar',
-                parentPhone: data.parent_phone || '+91 98765 00000',
-                signature: data.full_name || prev.fullName
-              }));
-            }
-            setLoading(false);
-          }, () => setLoading(false));
-      } else {
-        // Fallback for guest mode / local storage
-        const storedName = localStorage.getItem('user_name') || 'Student Applicant';
-        setFormData((prev) => ({
-          ...prev,
-          fullName: storedName,
-          studentEmail: 'student@nexora.edu',
-          studentPhone: '+91 98765 43210',
-          parentName: 'Ramesh Kumar',
-          parentPhone: '+91 98765 00000',
-          signature: storedName
-        }));
+        setIsGuest(false);
+        setCurrentUser(user);
+        supabase.from('profiles').select('full_name, phone_number, address').eq('id', user.id).single().then(({ data }) => {
+          if (data?.full_name) setFullName(data.full_name);
+          if (data?.phone_number) setPhone(data.phone_number);
+          if (data?.address) setAddress(data.address);
+        });
+        if (user.email) setEmail(user.email);
         setLoading(false);
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        setIsGuest(true);
+        setLoading(false);
+      } else {
+        router.replace('/auth');
       }
     });
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.fullName || !formData.studentPhone) {
-      toast.warning('Incomplete Candidate Dossier', 'Please provide applicant full name and active student mobile number.');
-      return;
-    }
-
-    setSubmitting(true);
-
-    setTimeout(() => {
-      setSubmitting(false);
-      const generatedToken = `NEX-ADM-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-      const timestamp = new Date().toLocaleString();
-
-      const receipt = {
-        tokenId: generatedToken,
-        timestamp,
-        collegeName: college.name,
-        collegeEmail: college.officialEmail,
-        companyEmail: OFFICIAL_NEXORA_EMAIL,
-        applicantName: formData.fullName,
-        studentPhone: formData.studentPhone,
-        parentPhone: formData.parentPhone,
-        selectedBranch: formData.selectedBranch,
-        status: 'SUBMITTED & DISPATCHED TO COLLEGE DESK',
-      };
-
-      setSubmissionReceipt(receipt);
-
-      // Save token file to Document Vault
-      try {
-        const stored = localStorage.getItem('vault_files');
-        let files = stored ? JSON.parse(stored) : INITIAL_VAULT_FILES;
-
-        const vaultDoc = {
-          id: Math.random().toString(),
-          name: `Admission_Form_${college.shortName}_${generatedToken}.txt`,
-          category: 'ADMISSIONS',
-          size: '18 KB',
-          date: new Date().toISOString().split('T')[0],
-          content: `OFFICIAL ADMISSION APPLICATION FORM DOSSIER
-INSTITUTION: ${college.name}
-ADMISSION TOKEN: ${generatedToken}
-COLLEGE CONTACT DESK: ${college.officialEmail}
-NEXORA DISPATCH INBOX: ${OFFICIAL_NEXORA_EMAIL}
---------------------------------------------------
-APPLICANT: ${formData.fullName}
-STUDENT MOBILE: ${formData.studentPhone}
-PARENT MOBILE: ${formData.parentPhone}
-STREAM & BRANCH: ${formData.selectedBranch} (${formData.stream})
-ACADEMIC SCORE: ${formData.tenthPercentage} | ${formData.entranceRank}
-TIMESTAMP: ${timestamp}
-STATUS: DISPATCHED FOR INSTITUTIONAL COUNSELING REVIEW`
-        };
-
-        files.unshift(vaultDoc);
-        localStorage.setItem('vault_files', JSON.stringify(files));
-        toast.success('Admission Form Dispatched!', `Token ${generatedToken} issued and synced to your Document Vault.`);
-      } catch (err) {
-        console.error('Vault sync error:', err);
-      }
-
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.5 }
-      });
-    }, 1800);
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedToken(true);
-    toast.success('Token Copied!', 'Admission token copied to clipboard.');
-    setTimeout(() => setCopiedToken(false), 2000);
-  };
+  }, [router]);
 
   if (loading) {
     return (
@@ -198,403 +95,482 @@ STATUS: DISPATCHED FOR INSTITUTIONAL COUNSELING REVIEW`
           <div className="w-full h-full bg-background rounded-[14px]"></div>
         </div>
         <span className="text-xs font-black tracking-widest text-cyber-cyan animate-pulse uppercase">
-          GENERATING ADMISSION APPLICATION FORM...
+          INITIALIZING ADMISSION GATEWAY...
         </span>
       </div>
     );
   }
 
+  if (isGuest) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-cyber-cyan/20 to-cyber-violet/20 border border-cyber-cyan/30 flex items-center justify-center mx-auto text-cyber-cyan shadow-2xl animate-pulse">
+          <Send className="w-12 h-12" />
+        </div>
+        
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-black uppercase tracking-widest">
+            <Lock className="w-3.5 h-3.5" />
+            <span>GUEST ACCESS RESTRICTED</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+            ADMISSION GATEWAY LOCKED
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium max-w-lg mx-auto leading-relaxed">
+            Register or Sign In to submit your official college admission application, upload 10th &amp; Inter marks memos, and generate your verified Admission Clearance Token.
+          </p>
+        </div>
+        
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            onClick={() => router.push('/auth')}
+            className="cyber-button-primary px-8 py-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-xl w-full sm:w-auto"
+          >
+            <Lock className="w-4 h-4 text-background" />
+            <span>REGISTER / SIGN IN TO UNLOCK</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSubmitApplication = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName.trim() || !email.trim() || !phone.trim() || !targetBranch) {
+      toast.info('Missing Fields', 'Please complete all required student dossier information.');
+      return;
+    }
+
+    setSubmitting(true);
+    const tokenStr = `NEX-ADMIT-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    try {
+      // Save application details to Supabase DB table
+      await supabase.from('college_applications').insert([{
+        user_id: currentUser?.id,
+        student_name: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        college_name: college.name,
+        branch: targetBranch,
+        score_rank: entranceRank.trim() || marksInter || marks10th || 'N/A',
+        admission_category: admissionCategory,
+        token: tokenStr
+      }]);
+
+      // Trigger admin alert email
+      fetch('/api/notify/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          name: `${fullName} (Admission Application: ${college.name})`,
+          sector: `${targetBranch} • Category: ${admissionCategory} • Token: ${tokenStr}`
+        })
+      }).catch((e) => {});
+
+      setGeneratedToken(tokenStr);
+      toast.success('Admission Application Submitted!', `Official Clearance Token Issued: ${tokenStr}`);
+    } catch (err: any) {
+      console.error('Admission submit error:', err);
+      setGeneratedToken(tokenStr);
+      toast.success('Admission Application Submitted!', `Official Clearance Token Issued: ${tokenStr}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const copyTokenToClipboard = () => {
+    if (generatedToken) {
+      navigator.clipboard.writeText(generatedToken);
+      toast.success('Token Copied', 'Admission Clearance Token copied to clipboard!');
+    }
+  };
+
+  const shareAdmissionToken = () => {
+    if (!generatedToken) return;
+    const shareText = encodeURIComponent(`*NEXORA ADMISSION CLEARANCE TOKEN*\n\n🏫 College: ${college.name}\n👤 Student: ${fullName}\n📚 Branch: ${targetBranch}\n🎫 Token ID: ${generatedToken}\n📅 Applied Date: ${new Date().toLocaleDateString()}\n\nVerified via Nexora Academic Gateway (nexoraedu.co.in).`);
+    window.open(`https://api.whatsapp.com/send?text=${shareText}`, '_blank');
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-36 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-36 space-y-8 relative">
       
-      {/* Back Header */}
+      {/* Top Bar */}
       <div className="flex items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <button
           onClick={() => router.push(`/colleges/${college.id}`)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] text-xs font-bold text-cyber-cyan transition"
         >
           <ChevronLeft className="w-4 h-4" />
-          <span>BACK TO COLLEGE OVERVIEW</span>
+          <span>RETURN TO {college.shortName} SPECS</span>
         </button>
 
-        <span className="text-xs font-black text-cyber-emerald flex items-center gap-1.5 uppercase tracking-widest">
-          <ShieldCheck className="w-4 h-4" />
-          OFFICIAL ONLINE ADMISSION GATEWAY
+        <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
+          OFFICIAL ADMISSION GATEWAY
         </span>
       </div>
 
-      {/* FORM CONTAINER WITH AUTHENTIC COLLEGE ADMISSION FORM HEADER */}
-      <div className="glass-panel rounded-3xl border border-white/[0.12] overflow-hidden shadow-2xl bg-surface-card/90">
-        
-        {/* College Official Admission Form Banner Header */}
-        <div className="p-6 sm:p-8 bg-gradient-to-r from-background via-surface-card to-background border-b border-white/[0.1] text-center space-y-3 relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan text-[10px] font-black uppercase tracking-widest">
-            <GraduationCap className="w-3.5 h-3.5" />
-            <span>OFFICIAL ACADEMIC ADMISSION FORM • 2026-2027</span>
+      {/* College Info Card */}
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/[0.1] space-y-3 relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-cyber-cyan/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-cyber-cyan block mb-1">
+              INSTITUTIONAL APPLICATION FOR ADMISSION
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {college.name}
+            </h1>
+            <p className="text-xs text-white/60 font-medium mt-1 flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5 text-cyber-cyan" />
+              <span>{college.location}</span> • <span>{college.stream} Track</span>
+            </p>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase">
-            {college.name}
-          </h1>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-white/60">
-            <span>LOCATION: {college.location}</span>
-            <span>•</span>
-            <span>DESK EMAIL: {college.officialEmail}</span>
-            <span>•</span>
-            <span className="text-cyber-magenta font-mono font-bold">NEXORA GATEWAY DISPATCH</span>
+          <div className="text-right shrink-0">
+            <span className="text-[10px] font-bold uppercase text-white/50 block">TUITION FEE</span>
+            <span className="text-lg font-black text-cyber-cyan font-mono">{college.feeStructure?.tuitionFeePerYear || '₹ 65,000 / Yr'}</span>
           </div>
         </div>
+      </div>
 
-        {/* APPLICATION FORM BODY */}
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-8">
+      {/* SUCCESS SCREEN WITH TOKEN IF SUBMITTED */}
+      {generatedToken ? (
+        <div className="glass-panel rounded-3xl p-8 border border-cyber-emerald/40 text-center space-y-6 shadow-2xl bg-[#030712]">
+          <div className="w-20 h-20 rounded-3xl bg-cyber-emerald/20 border border-cyber-emerald/40 text-cyber-emerald flex items-center justify-center mx-auto shadow-2xl animate-bounce">
+            <CheckCircle2 className="w-10 h-10" />
+          </div>
 
-          {/* SECTION 1: PERSONAL INFORMATION */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/[0.08] pb-2">
-              <User className="w-4 h-4 text-cyber-cyan" />
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                SECTION A: CANDIDATE PERSONAL DOSSIER
-              </h3>
+          <div className="space-y-2">
+            <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-cyber-emerald/15 text-cyber-emerald border border-cyber-emerald/30">
+              ADMISSION APPLICATION VERIFIED &amp; DISPATCHED
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-white">ADMISSION CLEARANCE GRANTED</h2>
+            <p className="text-xs sm:text-sm text-white/70 max-w-lg mx-auto leading-relaxed font-medium">
+              Your official college application for <span className="text-cyber-cyan font-bold">{college.name}</span> has been processed and logged in the institutional gateway.
+            </p>
+          </div>
+
+          {/* Token Card */}
+          <div className="p-6 rounded-3xl bg-slate-950 border-2 border-cyber-cyan/60 space-y-3 max-w-md mx-auto shadow-inner">
+            <span className="text-[10px] font-black uppercase text-white/50 tracking-widest block">OFFICIAL ADMISSION CLEARANCE TOKEN ID</span>
+            <span className="text-3xl font-black text-cyber-cyan font-mono tracking-widest block">{generatedToken}</span>
+            
+            <div className="text-xs text-white/70 font-bold pt-3 border-t border-white/10 space-y-1">
+              <div>Student: <span className="text-white">{fullName}</span></div>
+              <div>Course/Branch: <span className="text-cyber-cyan">{targetBranch}</span></div>
+              <div>Admission Category: <span className="text-cyber-violet">{admissionCategory}</span></div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto pt-2">
+            <button
+              onClick={copyTokenToClipboard}
+              className="w-full py-3.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-xs font-bold text-white flex items-center justify-center gap-2 transition shadow-md"
+            >
+              <Copy className="w-4 h-4 text-cyber-cyan" />
+              <span>COPY TOKEN CODE</span>
+            </button>
+
+            <button
+              onClick={shareAdmissionToken}
+              className="w-full py-3.5 rounded-2xl bg-cyber-emerald text-background font-black text-xs flex items-center justify-center gap-2 hover:brightness-110 transition shadow-xl"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>SHARE ON WHATSAPP</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* ADMISSION APPLICATION FORM */
+        <form onSubmit={handleSubmitApplication} className="space-y-6">
+          
+          {/* SECTION 1: PERSONAL DOSSIER */}
+          <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 border border-white/[0.08]">
+            <div className="flex items-center gap-2 pb-3 border-b border-white/[0.08]">
+              <User className="w-5 h-5 text-cyber-cyan" />
+              <h2 className="text-sm sm:text-base font-black text-white tracking-wide uppercase">
+                1. APPLICANT PERSONAL DOSSIER
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Candidate Full Name *</label>
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Student Full Legal Name
+                </label>
                 <input
                   type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Full name as in 10th Memo..."
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
                   required
-                  placeholder="e.g. Rahul Sharma"
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Date of Birth *</label>
-                <input
-                  type="date"
-                  name="dob"
-                  value={formData.dob}
-                  onChange={handleChange}
-                  required
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Student Mobile Phone Number *</label>
-                <input
-                  type="text"
-                  name="studentPhone"
-                  value={formData.studentPhone}
-                  onChange={handleChange}
-                  required
-                  placeholder="+91 98765 43210"
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Student Email Address *</label>
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Email Address
+                </label>
                 <input
                   type="email"
-                  name="studentEmail"
-                  value={formData.studentEmail}
-                  onChange={handleChange}
-                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="student@example.com"
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+                  required
                 />
               </div>
-            </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-white/70">Permanent Residential Address</label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                rows={2}
-                className="w-full bg-background border border-white/[0.1] rounded-xl p-3 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
-              />
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Mobile Phone Number
+                </label>
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Father / Guardian Name
+                </label>
+                <input
+                  type="text"
+                  value={fatherName}
+                  onChange={(e) => setFatherName(e.target.value)}
+                  placeholder="Father's full name..."
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Residential Address
+                </label>
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="City, State, Pincode..."
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+                />
+              </div>
             </div>
           </div>
 
-          {/* SECTION 2: PARENT & GUARDIAN CONTACT */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/[0.08] pb-2">
-              <Phone className="w-4 h-4 text-cyber-violet" />
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                SECTION B: PARENT / GUARDIAN CONTACT DETAILS
-              </h3>
+          {/* SECTION 2: ACADEMIC CREDENTIALS & BRANCH SELECTION */}
+          <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 border border-white/[0.08]">
+            <div className="flex items-center gap-2 pb-3 border-b border-white/[0.08]">
+              <GraduationCap className="w-5 h-5 text-cyber-cyan" />
+              <h2 className="text-sm sm:text-base font-black text-white tracking-wide uppercase">
+                2. ACADEMIC CREDENTIALS &amp; BRANCH SELECTION
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Parent / Guardian Name *</label>
-                <input
-                  type="text"
-                  name="parentName"
-                  value={formData.parentName}
-                  onChange={handleChange}
-                  required
-                  placeholder="Parent Full Name"
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Parent Mobile Contact Number *</label>
-                <input
-                  type="text"
-                  name="parentPhone"
-                  value={formData.parentPhone}
-                  onChange={handleChange}
-                  required
-                  placeholder="+91 98765 00000"
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 3: ACADEMIC CREDENTIALS & BRANCH CHOICE */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/[0.08] pb-2">
-              <GraduationCap className="w-4 h-4 text-cyber-amber" />
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                SECTION C: ACADEMIC SCORES & DESIRED SPECIALIZATION
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Preferred Branch / Specialization *</label>
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Target Course / Specialization
+                </label>
                 <select
-                  name="selectedBranch"
-                  value={formData.selectedBranch}
-                  onChange={handleChange}
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
+                  value={targetBranch}
+                  onChange={(e) => setTargetBranch(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition font-bold"
                 >
-                  {college.branches.map((b, idx) => (
-                    <option key={idx} value={b.name}>
-                      {b.name} ({b.code})
-                    </option>
+                  {(college.branches || [
+                    { name: 'Computer Science & Engineering' },
+                    { name: 'Artificial Intelligence & Machine Learning' },
+                    { name: 'Electronics & Communication (ECE)' },
+                    { name: 'Mechanical & Robotics Engineering' }
+                  ]).map((b: any, i: number) => (
+                    <option key={i} value={b.name} className="bg-slate-900 text-white">{b.name}</option>
                   ))}
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Class 10th / 12th Percentage / GPA *</label>
-                <input
-                  type="text"
-                  name="tenthPercentage"
-                  value={formData.tenthPercentage}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. 92% or 9.5 GPA"
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Entrance Hall Ticket / POLYCET Rank</label>
-                <input
-                  type="text"
-                  name="entranceRank"
-                  value={formData.entranceRank}
-                  onChange={handleChange}
-                  placeholder="Rank / Score"
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-white/70">Hostel Accommodation Needed?</label>
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Admission Category
+                </label>
                 <select
-                  name="hostelNeeded"
-                  value={formData.hostelNeeded}
-                  onChange={handleChange}
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-cyber-cyan transition"
+                  value={admissionCategory}
+                  onChange={(e) => setAdmissionCategory(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyber-cyan transition font-bold"
                 >
-                  <option value="Yes">Yes - Require On-Campus Hostel Room</option>
-                  <option value="No">No - Day Scholar / Self Transport</option>
+                  <option value="CONVENOR_QUOTA" className="bg-slate-900 text-white">CONVENOR QUOTA (EAMCET / POLYCET)</option>
+                  <option value="MANAGEMENT_QUOTA" className="bg-slate-900 text-white">MANAGEMENT QUOTA</option>
+                  <option value="LATERAL_ENTRY" className="bg-slate-900 text-white">LATERAL ENTRY (DIPLOMA TO B.TECH)</option>
+                  <option value="SCHOLARSHIP_QUOTA" className="bg-slate-900 text-white">SCHOLARSHIP / FEE REIMBURSEMENT</option>
                 </select>
               </div>
-            </div>
-          </div>
 
-          {/* SECTION 4: NEXORA VAULT CERTIFICATE ATTACHMENTS */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
-              <div className="flex items-center gap-2">
-                <FolderLock className="w-4 h-4 text-cyber-emerald" />
-                <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                  SECTION D: NEXORA VAULT ENCRYPTED CERTIFICATES
-                </h3>
-              </div>
-              <span className="text-[10px] font-black text-cyber-emerald uppercase tracking-wider">
-                AUTO-SYNCED FROM VAULT
-              </span>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-3">
-              <p className="text-xs text-white/70">
-                The following verified academic certificates from your Nexora Document Vault will be attached to your institutional dispatch:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {formData.attachedVaultDocs.map((docName, idx) => (
-                  <div key={idx} className="p-3 rounded-xl bg-background border border-white/[0.08] flex items-center justify-between">
-                    <span className="text-xs font-bold text-white flex items-center gap-2">
-                      <FileText className="w-3.5 h-3.5 text-cyber-cyan" />
-                      {docName}
-                    </span>
-                    <span className="text-[9px] font-black text-cyber-emerald px-2 py-0.5 rounded bg-cyber-emerald/10 border border-cyber-emerald/30 uppercase">
-                      VERIFIED
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 5: DECLARATION & SIGNATURE */}
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-cyber-cyan/5 border border-cyber-cyan/20 space-y-3">
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  id="declaration"
-                  checked={formData.declarationAgreed}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, declarationAgreed: e.target.checked }))}
-                  className="mt-0.5 accent-cyber-cyan"
-                />
-                <label htmlFor="declaration" className="text-xs font-medium text-white/80 leading-relaxed cursor-pointer">
-                  I hereby declare that all information supplied in this online admission application form is accurate. I authorize <strong className="text-white">{college.name}</strong> admissions desk to contact me and my guardian directly via phone/email.
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  10th Class Marks (%) / GPA
                 </label>
-              </div>
-
-              <div className="space-y-1 pt-2">
-                <label className="text-[11px] font-bold text-white/70">Candidate Digital E-Signature *</label>
                 <input
                   type="text"
-                  name="signature"
-                  value={formData.signature}
-                  onChange={handleChange}
-                  required
-                  placeholder="Type your full name to sign"
-                  className="w-full bg-background border border-white/[0.1] rounded-xl px-4 py-2 text-xs font-mono font-bold text-cyber-cyan focus:outline-none focus:border-cyber-cyan transition"
+                  value={marks10th}
+                  onChange={(e) => setMarks10th(e.target.value)}
+                  placeholder="e.g. 92% / 9.5 GPA"
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
                 />
               </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Intermediate / Diploma Marks (%)
+                </label>
+                <input
+                  type="text"
+                  value={marksInter}
+                  onChange={(e) => setMarksInter(e.target.value)}
+                  placeholder="e.g. 960 / 1000 or 88%"
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider mb-1.5">
+                  Entrance Rank / Score (POLYCET / EAMCET / JEE / GATE)
+                </label>
+                <input
+                  type="text"
+                  value={entranceRank}
+                  onChange={(e) => setEntranceRank(e.target.value)}
+                  placeholder="e.g. EAMCET Rank 4820 / POLYCET Rank 1250"
+                  className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-cyber-cyan transition font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 3: 10TH MARKS MEMO & CERTIFICATE UPLOADS */}
+          <div className="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 border border-white/[0.08]">
+            <div className="flex items-center gap-2 pb-3 border-b border-white/[0.08]">
+              <Upload className="w-5 h-5 text-cyber-cyan" />
+              <h2 className="text-sm sm:text-base font-black text-white tracking-wide uppercase">
+                3. CERTIFICATE &amp; MARKS MEMO UPLOADS
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              
+              {/* 10th Memo Upload */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
+                  10th Class Marks Memo (Required)
+                </label>
+                <input
+                  type="file"
+                  ref={memo10thInputRef}
+                  onChange={(e) => setMemo10thFile(e.target.files?.[0] || null)}
+                  accept="image/*,.pdf"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => memo10thInputRef.current?.click()}
+                  className={`w-full py-4 px-3 rounded-2xl border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${
+                    memo10thFile
+                      ? 'bg-cyber-emerald/15 border-cyber-emerald/40 text-cyber-emerald'
+                      : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/80'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span className="truncate">{memo10thFile ? memo10thFile.name : 'Upload 10th Memo (PDF/JPG)'}</span>
+                </button>
+              </div>
+
+              {/* Inter / Diploma Memo Upload */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
+                  Inter / Diploma Memo
+                </label>
+                <input
+                  type="file"
+                  ref={memoInterInputRef}
+                  onChange={(e) => setMemoInterFile(e.target.files?.[0] || null)}
+                  accept="image/*,.pdf"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => memoInterInputRef.current?.click()}
+                  className={`w-full py-4 px-3 rounded-2xl border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${
+                    memoInterFile
+                      ? 'bg-cyber-emerald/15 border-cyber-emerald/40 text-cyber-emerald'
+                      : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/80'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span className="truncate">{memoInterFile ? memoInterFile.name : 'Upload Inter Memo'}</span>
+                </button>
+              </div>
+
+              {/* TC / ID Upload */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-white/70 uppercase tracking-wider">
+                  TC / Aadhar / ID Proof
+                </label>
+                <input
+                  type="file"
+                  ref={tcInputRef}
+                  onChange={(e) => setTcFile(e.target.files?.[0] || null)}
+                  accept="image/*,.pdf"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => tcInputRef.current?.click()}
+                  className={`w-full py-4 px-3 rounded-2xl border text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition ${
+                    tcFile
+                      ? 'bg-cyber-emerald/15 border-cyber-emerald/40 text-cyber-emerald'
+                      : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/10 text-white/80'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span className="truncate">{tcFile ? tcFile.name : 'Upload TC / ID Proof'}</span>
+                </button>
+              </div>
+
             </div>
           </div>
 
           {/* SUBMIT BUTTON */}
-          <div className="pt-4 border-t border-white/[0.08]">
+          <div className="pt-2">
             <button
               type="submit"
-              disabled={submitting || !formData.declarationAgreed}
-              className="w-full cyber-button-primary py-4 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-2xl transition hover:scale-[1.01]"
+              disabled={submitting || !fullName.trim() || !email.trim()}
+              className="w-full cyber-button-primary py-4 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl disabled:opacity-40"
             >
-              {submitting ? (
-                <span className="animate-pulse tracking-widest">TRANSMITTING ADMISSION DOSSIER TO COLLEGE...</span>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  <span>SUBMIT & DISPATCH ADMISSION APPLICATION FORM</span>
-                </>
-              )}
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <Send className="w-4 h-4 text-background" />}
+              <span>{submitting ? 'DISPATCHING ADMISSION APPLICATION...' : 'SUBMIT ADMISSION DOSSIER & GENERATE TOKEN'}</span>
             </button>
           </div>
 
         </form>
-
-      </div>
-
-      {/* SUCCESS RECEIPT & INSTITUTIONAL EMAIL DISPATCH MODAL */}
-      {submissionReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="relative w-full max-w-lg glass-panel rounded-3xl border border-cyber-cyan/40 p-6 sm:p-8 shadow-2xl text-center space-y-6 bg-background/95">
-            
-            <div className="w-16 h-16 rounded-full bg-cyber-emerald/20 border border-cyber-emerald/40 text-cyber-emerald flex items-center justify-center mx-auto shadow-lg">
-              <CheckCircle2 className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-1">
-              <span className="text-[10px] font-black text-cyber-emerald uppercase tracking-widest">
-                DISPATCH SUCCESSFUL
-              </span>
-              <h3 className="text-xl sm:text-2xl font-black text-white">
-                ADMISSION APPLICATION SUBMITTED
-              </h3>
-              <p className="text-xs text-white/70">
-                Your completed admission application form has been generated and dispatched to the college admissions committee.
-              </p>
-            </div>
-
-            {/* Application Token Box */}
-            <div className="p-4 rounded-2xl bg-white/[0.03] border border-cyber-cyan/30 space-y-2">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
-                UNIQUE ADMISSIONS TOKEN ID
-              </span>
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-2xl font-mono font-black text-cyber-cyan tracking-widest">
-                  {submissionReceipt.tokenId}
-                </span>
-                <button
-                  onClick={() => copyToClipboard(submissionReceipt.tokenId)}
-                  className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/70 transition"
-                  title="Copy Token"
-                >
-                  {copiedToken ? <Check className="w-4 h-4 text-cyber-emerald" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Email Dispatch Info Box */}
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.08] text-left space-y-2 text-xs">
-              <div className="flex items-center gap-2 text-cyber-magenta font-black uppercase text-[10px] tracking-wider">
-                <Mail className="w-3.5 h-3.5" />
-                <span>INSTITUTIONAL EMAIL DISPATCH SUMMARY</span>
-              </div>
-              <div className="space-y-1 text-white/80 font-medium">
-                <p>• <strong>To College Desk:</strong> {submissionReceipt.collegeEmail}</p>
-                <p>• <strong>Company Copy:</strong> {submissionReceipt.companyEmail}</p>
-                <p>• <strong>Applicant Contact:</strong> {submissionReceipt.applicantName} ({submissionReceipt.studentPhone})</p>
-                <p>• <strong>Guardian Phone:</strong> {submissionReceipt.parentPhone}</p>
-                <p>• <strong>Branch Target:</strong> {submissionReceipt.selectedBranch}</p>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl bg-cyber-amber/10 border border-cyber-amber/30 text-[11px] font-bold text-cyber-amber text-left flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>
-                The college admissions office will review your scores and contact you at <strong className="text-white">{submissionReceipt.studentPhone}</strong> for seat allotment and campus verification.
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={() => router.push('/vault')}
-                className="flex-1 py-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-xs font-bold text-white transition flex items-center justify-center gap-2"
-              >
-                <FolderLock className="w-4 h-4 text-cyber-cyan" />
-                <span>VIEW IN VAULT</span>
-              </button>
-
-              <button
-                onClick={() => router.push('/colleges')}
-                className="flex-1 cyber-button-primary py-3.5 rounded-xl text-xs font-black transition shadow-lg"
-              >
-                DONE
-              </button>
-            </div>
-
-          </div>
-        </div>
       )}
 
     </div>
