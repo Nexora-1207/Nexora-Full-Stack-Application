@@ -322,7 +322,7 @@ export default function VaultPage() {
           name: newDoc.name,
           category: newDoc.category,
           file_type: newDoc.file_type,
-          file_url: previewDataUrl && previewDataUrl.length < 500000 ? previewDataUrl : '', // Store data URL if within DB payload limit
+          file_url: previewDataUrl || '',
           size: newDoc.size,
           date: newDoc.date,
           content: newDoc.content
@@ -558,7 +558,10 @@ export default function VaultPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredFiles.map((file) => {
               const isPdf = file.file_type === 'application/pdf' || file.file_url?.startsWith('data:application/pdf') || file.name.toLowerCase().endsWith('.pdf');
-              const isImage = file.file_url?.startsWith('data:image/') || file.file_type?.startsWith('image/');
+              const isImage = file.file_url?.startsWith('data:image/') || 
+                file.file_type?.startsWith('image/') || 
+                /\.(jpg|jpeg|png|webp|gif)$/i.test(file.name) ||
+                file.content?.startsWith('[IMAGE DOCUMENT:');
 
               return (
                 <div
