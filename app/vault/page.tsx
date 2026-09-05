@@ -570,45 +570,48 @@ export default function VaultPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-32 space-y-6 sm:space-y-8">
+    <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 pt-2 h-[calc(100vh-100px)] sm:h-[calc(100vh-110px)] overflow-hidden">
       
-      {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
-              USER PRIVATE LOCKER
-            </span>
+      {/* 100% FIXED WORKSPACE CONTAINER — NO WINDOW SCROLLING */}
+      <div className="h-full flex flex-col overflow-hidden rounded-3xl border border-slate-200 dark:border-white/[0.08] glass-panel relative shadow-2xl p-4 sm:p-6 space-y-4">
+        
+        {/* FIXED HEADER SECTION */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 pb-3 border-b border-slate-200 dark:border-white/[0.08]">
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
+                USER PRIVATE LOCKER
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <span>DOCUMENT VAULT</span>
+              <FolderLock className="w-6 h-6 sm:w-7 sm:h-7 text-cyber-cyan" />
+            </h1>
+            <p className="text-[11px] sm:text-xs text-slate-600 dark:text-white/60 font-medium">
+              Student: <span className="text-cyber-cyan font-bold">{studentName}</span> • Encrypted Private Document Locker
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <span>DOCUMENT VAULT</span>
-            <FolderLock className="w-7 h-7 sm:w-9 sm:h-9 text-cyber-cyan" />
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-white/60 font-medium mt-1">
-            Student: <span className="text-cyber-cyan font-bold">{studentName}</span> • Encrypted Private Document Locker
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
-          {/* Create Quick Note Button */}
-          <button
-            onClick={() => setNoteModalOpen(true)}
-            className="py-3.5 px-4 rounded-2xl bg-cyber-violet/20 hover:bg-cyber-violet/30 border border-cyber-violet/40 text-cyber-violet font-black text-xs uppercase tracking-wider flex items-center gap-2 transition shadow-lg shrink-0"
-          >
-            <StickyNote className="w-4 h-4" />
-            <span>+ CREATE NOTE</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Create Quick Note Button */}
+            <button
+              onClick={() => setNoteModalOpen(true)}
+              className="py-2.5 px-3 rounded-xl bg-cyber-violet/20 hover:bg-cyber-violet/30 border border-cyber-violet/40 text-cyber-violet font-black text-xs uppercase tracking-wider flex items-center gap-2 transition shadow-md shrink-0"
+            >
+              <StickyNote className="w-4 h-4" />
+              <span>+ CREATE NOTE</span>
+            </button>
 
-          {/* Upload Button */}
-          <button
-            onClick={() => setUploadModalOpen(true)}
-            className="cyber-button-primary py-3.5 px-6 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-xl shrink-0"
-          >
-            <Upload className="w-4 h-4 text-background" />
-            <span>UPLOAD TO VAULT</span>
-          </button>
+            {/* Upload Button */}
+            <button
+              onClick={() => setUploadModalOpen(true)}
+              className="cyber-button-primary py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg shrink-0"
+            >
+              <Upload className="w-4 h-4 text-background" />
+              <span>+ UPLOAD DOCUMENT</span>
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* STORAGE METRICS & SEARCH BAR */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -682,8 +685,8 @@ export default function VaultPage() {
 
       </div>
 
-      {/* FILES GRID WITH INTERNAL SCROLL ONLY */}
-      <div className="max-h-[calc(100vh-340px)] sm:max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+      {/* FILES GRID WITH INTERNAL SCROLL ONLY — STATIONARY LAYOUT */}
+      <div className="flex-1 overflow-y-auto pr-1 pb-14 scrollbar-thin scrollbar-thumb-cyber-cyan/20">
         {filteredFiles.length === 0 ? (
           <div className="glass-panel rounded-3xl p-12 text-center space-y-4">
             <FolderLock className="w-12 h-12 text-slate-300 dark:text-white/20 mx-auto" />
@@ -788,6 +791,8 @@ export default function VaultPage() {
             })}
           </div>
         )}
+      </div>
+
       </div>
 
       {/* INSPECT DOCUMENT / FULL-RESOLUTION IMAGE / INTERACTIVE PDF MODAL */}
