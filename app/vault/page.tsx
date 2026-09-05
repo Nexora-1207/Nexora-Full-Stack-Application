@@ -909,20 +909,20 @@ export default function VaultPage() {
               </div>
             )}
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3 border-t border-slate-200 dark:border-white/[0.08]">
               <button
                 onClick={() => handleShareToWhatsApp(selectedFile)}
-                className="flex-1 py-3 rounded-xl bg-cyber-emerald text-background font-black text-xs flex items-center justify-center gap-2 hover:brightness-110 transition"
+                className="w-full sm:flex-1 min-h-[48px] py-3.5 rounded-2xl bg-cyber-emerald text-background font-black text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-lg"
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-4 h-4 shrink-0" />
                 <span>FORWARD TO WHATSAPP</span>
               </button>
 
               <button
                 onClick={() => setSelectedFile(null)}
-                className="px-6 py-3 rounded-xl bg-slate-200 dark:bg-white/[0.05] hover:bg-slate-300 dark:hover:bg-white/[0.1] text-xs font-bold text-slate-800 dark:text-white transition"
+                className="w-full sm:w-auto px-8 min-h-[48px] py-3.5 rounded-2xl bg-slate-200 dark:bg-white/[0.08] hover:bg-slate-300 dark:hover:bg-white/[0.15] text-xs sm:text-sm font-black text-slate-800 dark:text-white transition active:scale-95"
               >
-                Close
+                CLOSE
               </button>
             </div>
 
@@ -932,13 +932,13 @@ export default function VaultPage() {
 
       {/* UPLOAD FILE MODAL */}
       {uploadModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md pb-24 sm:pb-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md pb-28 sm:pb-6">
           <div className="relative w-full max-w-lg glass-panel rounded-3xl border border-white/[0.12] p-5 sm:p-8 shadow-2xl space-y-6 z-[105]">
             
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <Upload className="w-5 h-5 text-cyber-cyan" />
-                <h3 className="font-black text-base uppercase tracking-wider text-slate-900 dark:text-white">
+                <h3 className="font-black text-sm sm:text-base uppercase tracking-wider text-slate-900 dark:text-white">
                   UPLOAD DOCUMENT TO VAULT
                 </h3>
               </div>
@@ -969,10 +969,10 @@ export default function VaultPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-4 rounded-2xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-md"
+                  className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-cyber-cyan/15 hover:bg-cyber-cyan/25 border-2 border-dashed border-cyber-cyan/40 text-cyber-cyan font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 transition active:scale-95 shadow-md text-center break-all"
                 >
-                  <Upload className="w-4 h-4" />
-                  <span>{selectedUploadFile ? selectedUploadFile.name : 'Choose File from Device'}</span>
+                  <Upload className="w-5 h-5 shrink-0 text-cyber-cyan" />
+                  <span className="truncate">{selectedUploadFile ? selectedUploadFile.name : 'BROWSE & CHOOSE FILE FROM DEVICE'}</span>
                 </button>
               </div>
 
@@ -1009,11 +1009,11 @@ export default function VaultPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/[0.08]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/[0.08]">
                 <button
                   type="button"
                   onClick={() => setUploadModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-white/[0.05] text-xs font-bold text-slate-700 dark:text-white/70"
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-200 dark:bg-white/[0.05] text-xs font-bold text-slate-700 dark:text-white/70 min-h-[44px]"
                 >
                   Cancel
                 </button>
@@ -1021,7 +1021,7 @@ export default function VaultPage() {
                 <button
                   type="submit"
                   disabled={uploading || !selectedUploadFile}
-                  className="cyber-button-primary px-6 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 disabled:opacity-40"
+                  className="w-full sm:w-auto cyber-button-primary px-6 py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 disabled:opacity-40 min-h-[44px]"
                 >
                   {uploading ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <HardDrive className="w-4 h-4 text-background" />}
                   <span>{uploading ? 'SAVING...' : 'SAVE TO VAULT'}</span>
