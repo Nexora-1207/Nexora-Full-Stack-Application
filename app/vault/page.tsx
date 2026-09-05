@@ -362,6 +362,10 @@ export default function VaultPage() {
     setSelectedUploadFile(file);
     setCustomFileName(file.name);
 
+    // Instant 0-millisecond Blob URL for 100% reliable viewing of files of ANY size
+    const instantBlobUrl = URL.createObjectURL(file);
+    setPreviewDataUrl(instantBlobUrl);
+
     const fname = file.name.toLowerCase();
     if (fname.includes('timetable') || fname.includes('schedule') || fname.includes('routine')) {
       setTargetCategory('TIMETABLE');
@@ -370,19 +374,12 @@ export default function VaultPage() {
     }
 
     if (file.type.startsWith('image/') || file.type === 'application/pdf' || fname.endsWith('.pdf')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Url = event.target?.result as string;
-        setPreviewDataUrl(base64Url);
-        if (file.type === 'application/pdf' || fname.endsWith('.pdf')) {
-          setExtractedContent(`[PDF DOCUMENT: ${file.name}]\nSize: ${formatFileSize(file.size)} • PDF loaded for embedded viewing and download.`);
-        } else {
-          setExtractedContent(`[IMAGE DOCUMENT: ${file.name}]\nUploaded to student vault.`);
-        }
-      };
-      reader.readAsDataURL(file);
+      if (file.type === 'application/pdf' || fname.endsWith('.pdf')) {
+        setExtractedContent(`[PDF DOCUMENT: ${file.name}]\nSize: ${formatFileSize(file.size)} • PDF loaded for embedded viewing and download.`);
+      } else {
+        setExtractedContent(`[IMAGE DOCUMENT: ${file.name}]\nUploaded to student vault.`);
+      }
     } else if (fname.endsWith('.txt') || fname.endsWith('.json') || fname.endsWith('.md')) {
-      setPreviewDataUrl(null);
       const reader = new FileReader();
       reader.onload = (event) => {
         const textContent = event.target?.result as string;
@@ -390,14 +387,18 @@ export default function VaultPage() {
       };
       reader.readAsText(file);
     } else {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Url = event.target?.result as string;
-        setPreviewDataUrl(base64Url);
-        setExtractedContent(`[DOCUMENT FILE: ${file.name}]\nSize: ${formatFileSize(file.size)} • Uploaded to student vault.`);
-      };
-      reader.readAsDataURL(file);
+      setExtractedContent(`[DOCUMENT FILE: ${file.name}]\nSize: ${formatFileSize(file.size)} • Uploaded to student vault.`);
     }
+
+    // Background DataURL conversion for DB / IndexedDB persistent storage
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Url = event.target?.result as string;
+      if (base64Url) {
+        setPreviewDataUrl(base64Url);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // Upload file & save to Supabase database + user local storage
@@ -429,10 +430,10 @@ export default function VaultPage() {
       await saveLargeFileBlob(newDoc.id, newDoc.name, previewDataUrl);
     }
 
-    // Save to Supabase public.vault_items database safely
+    // Save to Supabase public.vault_items database safely & capture returned DB row ID
     if (currentUser) {
       try {
-        await supabase.from('vault_items').insert([{
+        const { data: dbData } = await supabase.from('vault_items').insert([{
           user_id: currentUser.id,
           student_name: studentName,
           name: newDoc.name,
@@ -442,13 +443,20 @@ export default function VaultPage() {
           size: newDoc.size,
           date: newDoc.date,
           content: newDoc.content
-        }]);
+        }]).select().single();
+
+        if (dbData?.id) {
+          newDoc.id = dbData.id;
+          if (previewDataUrl) {
+            await saveLargeFileBlob(dbData.id, newDoc.name, previewDataUrl);
+          }
+        }
       } catch (err) {
         console.error('Supabase Vault Insert Error:', err);
       }
     }
 
-    const updated = [newDoc, ...files];
+    const updated = [newDoc, ...files.filter((f) => f.name.toLowerCase() !== newDoc.name.toLowerCase())];
     setFiles(updated);
 
     // Sanitize localStorage payload to prevent QuotaExceededError while retaining metadata
@@ -563,11 +571,15 @@ export default function VaultPage() {
     toast.info('WhatsApp Export Triggered', `Dispatching ${file.name} to WhatsApp...`);
   };
 
-  const filteredFiles = files.filter((f) => {
-    const matchesCat = activeCategory === 'ALL' || f.category === activeCategory;
-    const matchesQ = f.name.toLowerCase().includes(searchQuery.toLowerCase()) || f.content.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesQ;
-  });
+  const filteredFiles = files
+    .filter((f, idx, self) =>
+      idx === self.findIndex((t) => t.id === f.id || (t.name.toLowerCase() === f.name.toLowerCase() && t.size === f.size))
+    )
+    .filter((f) => {
+      const matchesCat = activeCategory === 'ALL' || f.category === activeCategory;
+      const matchesQ = f.name.toLowerCase().includes(searchQuery.toLowerCase()) || f.content.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCat && matchesQ;
+    });
 
   return (
     <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 pt-2 h-[calc(100vh-100px)] sm:h-[calc(100vh-110px)] overflow-hidden">
