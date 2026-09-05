@@ -926,12 +926,46 @@ export default function VaultPage() {
             {selectedFile.file_type === 'application/pdf' || selectedFile.file_url?.startsWith('data:application/pdf') || selectedFile.name.toLowerCase().endsWith('.pdf') ? (
               <div className="space-y-4">
                 {activeInspectUrl ? (
-                  <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 h-[55vh] shadow-inner">
-                    <iframe 
-                      src={activeInspectUrl} 
-                      title={selectedFile.name}
-                      className="w-full h-full border-none"
-                    />
+                  <div className="space-y-3">
+                    <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 h-[48vh] relative shadow-inner flex flex-col items-center justify-center">
+                      <object 
+                        data={activeInspectUrl} 
+                        type="application/pdf"
+                        className="w-full h-full"
+                      >
+                        <embed src={activeInspectUrl} type="application/pdf" className="w-full h-full" />
+                        <div className="p-6 text-center space-y-3">
+                          <FileText className="w-12 h-12 text-cyber-cyan mx-auto animate-pulse" />
+                          <p className="text-xs text-white/80 font-bold">PDF Document Stream Ready ({selectedFile.size})</p>
+                          <button
+                            onClick={() => window.open(activeInspectUrl, '_blank')}
+                            className="cyber-button-primary px-5 py-2.5 rounded-xl text-xs font-black"
+                          >
+                            TAP TO VIEW PDF FULLSCREEN
+                          </button>
+                        </div>
+                      </object>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => window.open(activeInspectUrl, '_blank')}
+                        className="py-3.5 px-4 rounded-2xl bg-cyber-cyan/20 border border-cyber-cyan/40 hover:bg-cyber-cyan/30 text-cyber-cyan font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-md"
+                      >
+                        <Eye className="w-4 h-4 shrink-0" />
+                        <span>VIEW PDF FULLSCREEN</span>
+                      </button>
+
+                      <a
+                        href={activeInspectUrl}
+                        download={selectedFile.name}
+                        className="py-3.5 px-4 rounded-2xl bg-cyber-cyan text-background hover:brightness-110 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-lg"
+                      >
+                        <Download className="w-4 h-4 shrink-0" />
+                        <span>DOWNLOAD PDF ({selectedFile.size})</span>
+                      </a>
+                    </div>
                   </div>
                 ) : isResolvingBlob ? (
                   <div className="p-8 rounded-2xl bg-slate-900 border border-cyber-cyan/20 text-center space-y-3">
@@ -951,7 +985,7 @@ export default function VaultPage() {
                     <input
                       type="file"
                       id="resync-file-input"
-                      accept="application/pdf,image/*"
+                      accept="application/pdf,image/*,.docx,.doc"
                       className="hidden"
                       onChange={(evt) => {
                         const f = evt.target.files?.[0];
@@ -973,30 +1007,116 @@ export default function VaultPage() {
                     </button>
                   </div>
                 )}
-
-                {activeInspectUrl && (
-                  <a
-                    href={activeInspectUrl}
-                    download={selectedFile.name}
-                    className="w-full py-3.5 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 hover:bg-cyber-cyan/25 text-cyber-cyan font-black text-xs flex items-center justify-center gap-2 transition shadow-md"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>DOWNLOAD PDF FILE ({selectedFile.size})</span>
-                  </a>
-                )}
               </div>
             ) : (activeInspectUrl || selectedFile.file_url) && ((activeInspectUrl || selectedFile.file_url)?.startsWith('data:image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(selectedFile.name)) ? (
+              /* IMAGE DOCUMENT VIEWER */
               <div className="space-y-4">
                 <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] bg-slate-950 flex items-center justify-center max-h-[45vh]">
                   <img src={activeInspectUrl || selectedFile.file_url || ''} alt={selectedFile.name} className="max-h-[45vh] w-auto object-contain" />
                 </div>
-                <div className="p-4 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/[0.08] font-mono text-xs text-slate-800 dark:text-white/80 whitespace-pre-wrap">
-                  {selectedFile.content}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {activeInspectUrl && (
+                    <button
+                      type="button"
+                      onClick={() => window.open(activeInspectUrl, '_blank')}
+                      className="py-3 px-4 rounded-xl bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan font-black text-xs flex items-center justify-center gap-2 transition"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>VIEW FULL IMAGE</span>
+                    </button>
+                  )}
+
+                  {activeInspectUrl && (
+                    <a
+                      href={activeInspectUrl}
+                      download={selectedFile.name}
+                      className="py-3 px-4 rounded-xl bg-cyber-cyan text-background font-black text-xs flex items-center justify-center gap-2 transition shadow-md"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>DOWNLOAD IMAGE ({selectedFile.size})</span>
+                    </a>
+                  )}
                 </div>
+
+                {selectedFile.content && (
+                  <div className="p-4 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/[0.08] font-mono text-xs text-slate-800 dark:text-white/80 whitespace-pre-wrap">
+                    {selectedFile.content}
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="p-4 rounded-2xl bg-slate-100 dark:bg-surface border border-slate-200 dark:border-white/[0.08] font-mono text-xs text-slate-800 dark:text-white/80 whitespace-pre-wrap leading-relaxed">
-                {selectedFile.content}
+              /* DOCX / WORD / EXCEL / OTHER DOCUMENTS VIEWER */
+              <div className="space-y-4">
+                <div className="p-6 rounded-2xl bg-slate-900 border border-cyber-cyan/30 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan mx-auto shadow-lg">
+                    <FileText className="w-8 h-8" />
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/30">
+                      {selectedFile.name.toUpperCase().endsWith('.DOCX') || selectedFile.name.toUpperCase().endsWith('.DOC') ? 'MICROSOFT WORD DOCUMENT' : selectedFile.name.toUpperCase().endsWith('.XLSX') ? 'EXCEL SPREADSHEET' : 'DOCUMENT FILE'}
+                    </span>
+                    <h3 className="text-base font-black text-white">{selectedFile.name}</h3>
+                    <p className="text-xs text-white/60 font-mono">
+                      Size: {selectedFile.size} • Category: {selectedFile.category}
+                    </p>
+                  </div>
+
+                  {selectedFile.content && (
+                    <div className="p-4 rounded-xl bg-slate-950 border border-white/[0.08] font-mono text-xs text-slate-300 text-left whitespace-pre-wrap leading-relaxed max-h-36 overflow-y-auto">
+                      {selectedFile.content}
+                    </div>
+                  )}
+
+                  {activeInspectUrl ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => window.open(activeInspectUrl, '_blank')}
+                        className="py-3.5 px-4 rounded-2xl bg-cyber-cyan/20 border border-cyber-cyan/40 hover:bg-cyber-cyan/30 text-cyber-cyan font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-md"
+                      >
+                        <Eye className="w-4 h-4 shrink-0" />
+                        <span>OPEN DOCUMENT IN APP</span>
+                      </button>
+
+                      <a
+                        href={activeInspectUrl}
+                        download={selectedFile.name}
+                        className="py-3.5 px-4 rounded-2xl bg-cyber-cyan text-background hover:brightness-110 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition active:scale-95 shadow-lg"
+                      >
+                        <Download className="w-4 h-4 shrink-0" />
+                        <span>DOWNLOAD DOCUMENT ({selectedFile.size})</span>
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 pt-2">
+                      <input
+                        type="file"
+                        id="resync-doc-input"
+                        accept=".docx,.doc,.xlsx,.pptx,.txt,.pdf,image/*"
+                        className="hidden"
+                        onChange={(evt) => {
+                          const f = evt.target.files?.[0];
+                          if (f) {
+                            const bUrl = URL.createObjectURL(f);
+                            setActiveInspectUrl(bUrl);
+                            saveLargeFileBlob(selectedFile.id, selectedFile.name, bUrl);
+                          }
+                        }}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('resync-doc-input')?.click()}
+                        className="cyber-button-primary w-full py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-lg"
+                      >
+                        <Upload className="w-4 h-4 text-background" />
+                        <span>SELECT {selectedFile.name.toUpperCase()} FILE FROM DEVICE</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
