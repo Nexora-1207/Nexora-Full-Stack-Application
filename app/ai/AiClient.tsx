@@ -122,51 +122,139 @@ export default function AiClient() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Initial Auth & Threads Load
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setIsGuest(false);
-        loadSavedThreads();
-        setLoading(false);
-      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
-        setIsGuest(true);
-        const count = parseInt(localStorage.getItem('nexoraGuestAiChatCount') || '0', 10);
-        setGuestCount(count);
-        loadSavedThreads();
-        setLoading(false);
-      } else {
-        router.replace('/auth');
-      }
-    });
-  }, [router]);
+  // Authenticated User State
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  const loadSavedThreads = () => {
+  // Sync threads from Supabase database (Authoritative Source of Truth per Email Account)
+  const fetchSavedThreads = async (userId: string) => {
+    const storageKey = `nexus_chat_threads_${userId}`;
+    let fetchedThreads: ChatThread[] = [];
+
     try {
-      const stored = localStorage.getItem('nexus_chat_threads');
-      if (stored) {
-        const parsed: ChatThread[] = JSON.parse(stored);
-        setThreads(parsed);
-        if (parsed.length > 0) {
-          setActiveThreadId(parsed[0].id);
-          setMessages(parsed[0].messages);
-        } else {
-          createNewThread();
-        }
+      // Primary Attempt: Try nexus_chat_threads table
+      const { data: dbData, error: dbErr } = await supabase
+        .from('nexus_chat_threads')
+        .select('*')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false });
+
+      if (!dbErr && dbData !== null && dbData.length > 0) {
+        fetchedThreads = dbData.map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          updatedAt: item.updated_at ? new Date(item.updated_at).toLocaleDateString([], { month: 'short', day: 'numeric' }) : new Date().toLocaleDateString([], { month: 'short', day: 'numeric' }),
+          messages: typeof item.messages === 'string' ? JSON.parse(item.messages) : (item.messages || [])
+        }));
       } else {
-        createNewThread();
+        // Fallback Attempt: Try vault_items table with category 'NEXUS_AI_THREAD'
+        const { data: vaultData, error: vaultErr } = await supabase
+          .from('vault_items')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('category', 'NEXUS_AI_THREAD')
+          .order('created_at', { ascending: false });
+
+        if (!vaultErr && vaultData !== null && vaultData.length > 0) {
+          fetchedThreads = vaultData.map((item: any) => ({
+            id: item.id,
+            title: item.name,
+            updatedAt: item.date || new Date().toLocaleDateString([], { month: 'short', day: 'numeric' }),
+            messages: item.content ? JSON.parse(item.content) : []
+          }));
+        }
+      }
+
+      if (fetchedThreads.length > 0) {
+        setThreads(fetchedThreads);
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(fetchedThreads));
+        } catch (e) {}
+
+        // Update active thread messages if active thread exists
+        setActiveThreadId((prevActive) => {
+          const match = fetchedThreads.find((t) => t.id === prevActive);
+          if (match) {
+            setMessages(match.messages);
+            return prevActive;
+          } else {
+            setMessages(fetchedThreads[0].messages);
+            return fetchedThreads[0].id;
+          }
+        });
+        return fetchedThreads;
       }
     } catch (e) {
-      createNewThread();
+      console.error('Nexus AI Threads Fetch Error:', e);
+    }
+
+    // Fallback to local storage if offline or DB query returned no threads
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        const parsed: ChatThread[] = JSON.parse(stored);
+        if (parsed.length > 0) {
+          setThreads(parsed);
+          setActiveThreadId((prevActive) => {
+            const match = parsed.find((t) => t.id === prevActive);
+            if (match) {
+              setMessages(match.messages);
+              return prevActive;
+            } else {
+              setMessages(parsed[0].messages);
+              return parsed[0].id;
+            }
+          });
+          return parsed;
+        }
+      } catch (e) {}
+    }
+
+    return [];
+  };
+
+  const saveThreadsToStorage = async (updatedThreads: ChatThread[], targetUser?: any) => {
+    setThreads(updatedThreads);
+    const userToUse = targetUser || currentUser;
+    const storageKey = userToUse ? `nexus_chat_threads_${userToUse.id}` : 'nexus_chat_threads_guest';
+    
+    // Update local storage
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(updatedThreads));
+    } catch (e) {}
+
+    // Save active/updated threads to Supabase DB if user is logged in
+    if (userToUse) {
+      for (const thread of updatedThreads) {
+        try {
+          // Primary Attempt: Save to nexus_chat_threads table
+          const { error } = await supabase.from('nexus_chat_threads').upsert({
+            id: thread.id,
+            user_id: userToUse.id,
+            title: thread.title,
+            messages: thread.messages,
+            updated_at: new Date().toISOString()
+          });
+
+          if (error) {
+            // Fallback Attempt: Save to vault_items table with category 'NEXUS_AI_THREAD'
+            await supabase.from('vault_items').upsert({
+              id: thread.id,
+              user_id: userToUse.id,
+              name: thread.title,
+              category: 'NEXUS_AI_THREAD',
+              file_type: 'application/json',
+              size: `${thread.messages.length} msgs`,
+              date: new Date().toISOString().split('T')[0],
+              content: JSON.stringify(thread.messages)
+            });
+          }
+        } catch (e) {}
+      }
     }
   };
 
-  const saveThreadsToStorage = (updatedThreads: ChatThread[]) => {
-    setThreads(updatedThreads);
-    localStorage.setItem('nexus_chat_threads', JSON.stringify(updatedThreads));
-  };
-
-  const createNewThread = () => {
+  const createNewThread = (targetUser?: any) => {
+    const userToUse = targetUser || currentUser;
     const newId = `thread_${Date.now()}`;
     const initialMsg: Message = {
       id: 'm-init',
@@ -182,10 +270,14 @@ export default function AiClient() {
       messages: [initialMsg]
     };
 
-    const updated = [newThread, ...threads];
+    setThreads((prevThreads) => {
+      const updated = [newThread, ...prevThreads.filter((t) => t.id !== newId)];
+      saveThreadsToStorage(updated, userToUse);
+      return updated;
+    });
+
     setActiveThreadId(newId);
     setMessages([initialMsg]);
-    saveThreadsToStorage(updated);
   };
 
   const switchThread = (threadId: string) => {
@@ -196,22 +288,102 @@ export default function AiClient() {
     }
   };
 
-  const deleteThread = (threadId: string, e: React.MouseEvent) => {
+  const deleteThread = async (threadId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const updated = threads.filter((t) => t.id !== threadId);
+    setThreads(updated);
+    
+    const userToUse = currentUser;
+    const storageKey = userToUse ? `nexus_chat_threads_${userToUse.id}` : 'nexus_chat_threads_guest';
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+    } catch (e) {}
+
+    // Purge thread from Supabase Database (Triggers Realtime broadcast to all logged-in devices)
+    if (userToUse) {
+      try {
+        await supabase.from('nexus_chat_threads').delete().eq('id', threadId).eq('user_id', userToUse.id);
+        await supabase.from('vault_items').delete().eq('id', threadId).eq('user_id', userToUse.id);
+      } catch (err) {}
+    }
+
     if (updated.length === 0) {
-      setThreads([]);
-      localStorage.removeItem('nexus_chat_threads');
-      createNewThread();
+      createNewThread(userToUse);
     } else {
-      saveThreadsToStorage(updated);
       if (activeThreadId === threadId) {
         setActiveThreadId(updated[0].id);
         setMessages(updated[0].messages);
       }
     }
-    toast.info('Chat Session Removed', 'Conversation history thread deleted.');
+    toast.info('Chat Session Removed', 'Conversation history thread deleted across your synced devices.');
   };
+
+  // Initial Auth & Supabase Database Realtime Threads Sync
+  useEffect(() => {
+    let realtimeChannel: any = null;
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setIsGuest(false);
+        setCurrentUser(user);
+
+        fetchSavedThreads(user.id).then((loaded) => {
+          if (!loaded || loaded.length === 0) {
+            createNewThread(user);
+          }
+          setLoading(false);
+        });
+
+        // Supabase Realtime channel for instant cross-device sync (PC <-> Mobile)
+        realtimeChannel = supabase
+          .channel(`nexus_ai_realtime_${user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'nexus_chat_threads',
+              filter: `user_id=eq.${user.id}`
+            },
+            () => {
+              fetchSavedThreads(user.id);
+            }
+          )
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'vault_items',
+              filter: `user_id=eq.${user.id}`
+            },
+            () => {
+              fetchSavedThreads(user.id);
+            }
+          )
+          .subscribe();
+
+      } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
+        setIsGuest(true);
+        const count = parseInt(localStorage.getItem('nexoraGuestAiChatCount') || '0', 10);
+        setGuestCount(count);
+        fetchSavedThreads('guest').then((loaded) => {
+          if (!loaded || loaded.length === 0) {
+            createNewThread();
+          }
+          setLoading(false);
+        });
+      } else {
+        router.replace('/auth');
+      }
+    });
+
+    return () => {
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
+    };
+  }, [router]);
 
   useEffect(() => {
     scrollToBottom();
