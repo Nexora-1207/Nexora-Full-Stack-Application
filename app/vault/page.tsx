@@ -146,22 +146,43 @@ export default function VaultPage() {
   // Modals state
   const [selectedFile, setSelectedFile] = useState<VaultFile | null>(null);
   const [activeInspectUrl, setActiveInspectUrl] = useState<string | null>(null);
+  const [isResolvingBlob, setIsResolvingBlob] = useState(false);
 
   // Asynchronously resolve large file Blob URLs from IndexedDB for files of ANY size
   useEffect(() => {
     if (selectedFile) {
       if (selectedFile.file_url) {
         setActiveInspectUrl(selectedFile.file_url);
+        setIsResolvingBlob(false);
       } else {
         setActiveInspectUrl(null);
+        setIsResolvingBlob(true);
+
+        let isMounted = true;
+        const timeoutTimer = setTimeout(() => {
+          if (isMounted) {
+            setIsResolvingBlob(false);
+          }
+        }, 1200); // 1.2s timeout ceiling
+
         getLargeFileBlob(selectedFile.id, selectedFile.name).then((blobDataUrl) => {
-          if (blobDataUrl) {
-            setActiveInspectUrl(blobDataUrl);
+          if (isMounted) {
+            clearTimeout(timeoutTimer);
+            setIsResolvingBlob(false);
+            if (blobDataUrl) {
+              setActiveInspectUrl(blobDataUrl);
+            }
           }
         });
+
+        return () => {
+          isMounted = false;
+          clearTimeout(timeoutTimer);
+        };
       }
     } else {
       setActiveInspectUrl(null);
+      setIsResolvingBlob(false);
     }
   }, [selectedFile]);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -804,10 +825,44 @@ export default function VaultPage() {
                       className="w-full h-full border-none"
                     />
                   </div>
-                ) : (
+                ) : isResolvingBlob ? (
                   <div className="p-8 rounded-2xl bg-slate-900 border border-cyber-cyan/20 text-center space-y-3">
                     <Loader2 className="w-8 h-8 text-cyber-cyan animate-spin mx-auto" />
                     <p className="text-xs font-bold text-white">Loading Interactive Document Viewer ({selectedFile.size})...</p>
+                  </div>
+                ) : (
+                  <div className="p-8 rounded-2xl bg-slate-900 border border-cyber-cyan/30 text-center space-y-4">
+                    <FileText className="w-12 h-12 text-cyber-cyan mx-auto animate-pulse" />
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-black text-white uppercase tracking-wider">LOAD DOCUMENT FILE ({selectedFile.size})</h4>
+                      <p className="text-xs text-white/60 max-w-sm mx-auto font-medium leading-relaxed">
+                        Select <span className="text-cyber-cyan font-bold">{selectedFile.name}</span> from your device to stream the PDF directly into the viewer.
+                      </p>
+                    </div>
+                    
+                    <input
+                      type="file"
+                      id="resync-file-input"
+                      accept="application/pdf,image/*"
+                      className="hidden"
+                      onChange={(evt) => {
+                        const f = evt.target.files?.[0];
+                        if (f) {
+                          const bUrl = URL.createObjectURL(f);
+                          setActiveInspectUrl(bUrl);
+                          saveLargeFileBlob(selectedFile.id, selectedFile.name, bUrl);
+                        }
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('resync-file-input')?.click()}
+                      className="cyber-button-primary px-6 py-3 rounded-xl text-xs font-black inline-flex items-center gap-2 shadow-lg"
+                    >
+                      <Upload className="w-4 h-4 text-background" />
+                      <span>SELECT {selectedFile.name.toUpperCase()} FILE</span>
+                    </button>
                   </div>
                 )}
 
