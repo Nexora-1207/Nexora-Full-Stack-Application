@@ -203,8 +203,75 @@ export default function VaultPage() {
   const [noteContent, setNoteContent] = useState('');
   const [savingNote, setSavingNote] = useState(false);
 
-  // Load files from Supabase database & user local storage merge (Ensures 100% Persistence)
+  const mapToValidCategory = (cat: string): 'TIMETABLE' | 'ACADEMICS' | 'NOTES' | 'OTHERS' => {
+    const uppercase = (cat || '').toUpperCase();
+    if (uppercase === 'TIMETABLE') return 'TIMETABLE';
+    if (uppercase === 'ACADEMICS' || uppercase === 'ACADEMIC') return 'ACADEMICS';
+    if (uppercase === 'NOTES' || uppercase === 'ADMISSIONS') return 'NOTES';
+    return 'OTHERS';
+  };
+
+  // Fetch user-isolated vault items from Supabase database (Authoritative Source of Truth)
+  const fetchVaultFiles = async (userId: string) => {
+    const userVaultStorageKey = `vault_files_${userId}`;
+
+    try {
+      const { data, error } = await supabase
+        .from('vault_items')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (!error && data !== null) {
+        const dbFiles: VaultFile[] = data.map((item) => ({
+          id: item.id,
+          user_id: item.user_id,
+          student_name: item.student_name || 'Nexora Student',
+          name: item.name,
+          category: mapToValidCategory(item.category),
+          file_type: item.file_type || 'text/plain',
+          file_url: item.file_url || '',
+          size: item.size || '12 KB',
+          date: item.date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          content: item.content || 'Vault document.'
+        }));
+
+        setFiles(dbFiles);
+
+        // Update local storage to match database exactly (purges any items deleted on another device)
+        try {
+          const sanitizedLocal = dbFiles.map((f) => ({
+            ...f,
+            file_url: f.file_url && f.file_url.length > 300000 ? '' : f.file_url
+          }));
+          localStorage.setItem(userVaultStorageKey, JSON.stringify(sanitizedLocal));
+        } catch (e) {}
+
+        return dbFiles;
+      }
+    } catch (err) {
+      console.error('Vault Sync Error:', err);
+    }
+
+    // Fallback to local storage only if offline or DB query failed
+    const storedLocal = localStorage.getItem(userVaultStorageKey);
+    if (storedLocal) {
+      try {
+        const localCachedFiles: VaultFile[] = JSON.parse(storedLocal).map((f: any) => ({
+          ...f,
+          category: mapToValidCategory(f.category)
+        }));
+        setFiles(localCachedFiles);
+        return localCachedFiles;
+      } catch (e) {}
+    }
+    return [];
+  };
+
+  // Load files from Supabase database & listen for Realtime cross-device changes
   useEffect(() => {
+    let realtimeChannel: any = null;
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setIsGuest(false);
@@ -222,57 +289,28 @@ export default function VaultPage() {
             }
           });
 
-        // Fetch user-isolated vault items from Supabase database
-        const userVaultStorageKey = `vault_files_${user.id}`;
-        const storedLocal = localStorage.getItem(userVaultStorageKey);
-        let localCachedFiles: VaultFile[] = [];
-        if (storedLocal) {
-          try {
-            localCachedFiles = JSON.parse(storedLocal).map((f: any) => ({
-              ...f,
-              category: mapToValidCategory(f.category)
-            }));
-          } catch (e) {}
-        }
+        // Initial sync from DB
+        fetchVaultFiles(user.id).then(() => {
+          setLoading(false);
+        });
 
-        supabase
-          .from('vault_items')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .then(({ data, error }) => {
-            if (data && data.length > 0) {
-              const dbFiles: VaultFile[] = data.map((item) => ({
-                id: item.id,
-                user_id: item.user_id,
-                student_name: item.student_name || 'Nexora Student',
-                name: item.name,
-                category: mapToValidCategory(item.category),
-                file_type: item.file_type || 'text/plain',
-                file_url: item.file_url || '',
-                size: item.size || '12 KB',
-                date: item.date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-                content: item.content || 'Vault document.'
-              }));
-
-              // Merge local items with DB items to prevent any disappearing on refresh
-              const mergedMap = new Map<string, VaultFile>();
-              dbFiles.forEach((f) => mergedMap.set(f.id, f));
-              localCachedFiles.forEach((f) => {
-                if (!mergedMap.has(f.id)) mergedMap.set(f.id, f);
-              });
-              const finalMerged = Array.from(mergedMap.values());
-
-              setFiles(finalMerged);
-              localStorage.setItem(userVaultStorageKey, JSON.stringify(finalMerged));
-            } else {
-              setFiles(localCachedFiles);
+        // Supabase Realtime channel for instant cross-device sync (Desktop <-> Mobile)
+        realtimeChannel = supabase
+          .channel(`vault_realtime_${user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'vault_items',
+              filter: `user_id=eq.${user.id}`
+            },
+            () => {
+              fetchVaultFiles(user.id);
             }
-            setLoading(false);
-          }, () => {
-            setFiles(localCachedFiles);
-            setLoading(false);
-          });
+          )
+          .subscribe();
+
       } else if (localStorage.getItem('nexoraGuestMode') === 'true') {
         setIsGuest(true);
         setLoading(false);
@@ -280,15 +318,13 @@ export default function VaultPage() {
         router.replace('/auth');
       }
     });
-  }, [router]);
 
-  const mapToValidCategory = (cat: string): 'TIMETABLE' | 'ACADEMICS' | 'NOTES' | 'OTHERS' => {
-    const uppercase = (cat || '').toUpperCase();
-    if (uppercase === 'TIMETABLE') return 'TIMETABLE';
-    if (uppercase === 'ACADEMICS' || uppercase === 'ACADEMIC') return 'ACADEMICS';
-    if (uppercase === 'NOTES' || uppercase === 'ADMISSIONS') return 'NOTES';
-    return 'OTHERS';
-  };
+    return () => {
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
+    };
+  }, [router]);
 
   // Calculate dynamic memory footprint accurately
   const calculateMemoryUsed = (): { totalMB: number; percent: number } => {
@@ -549,16 +585,30 @@ export default function VaultPage() {
   };
 
   const handleDeleteFile = async (id: string) => {
-    if (confirm('Are you sure you want to delete this document from your vault?')) {
+    const targetFile = files.find((f) => f.id === id);
+    if (confirm(`Are you sure you want to delete "${targetFile?.name || 'this document'}" from your vault?`)) {
       const updated = files.filter((f) => f.id !== id);
       setFiles(updated);
-      const storageKey = currentUser?.id ? `vault_files_${currentUser.id}` : 'vault_files';
-      localStorage.setItem(storageKey, JSON.stringify(updated));
 
+      const storageKey = currentUser?.id ? `vault_files_${currentUser.id}` : 'vault_files';
+      try {
+        const sanitizedLocal = updated.map((f) => ({
+          ...f,
+          file_url: f.file_url && f.file_url.length > 300000 ? '' : f.file_url
+        }));
+        localStorage.setItem(storageKey, JSON.stringify(sanitizedLocal));
+      } catch (e) {}
+
+      // Delete from IndexedDB blob cache
+      await deleteLargeFileBlob(id, targetFile?.name);
+
+      // Delete from Supabase Database (Triggers Realtime broadcast to all logged in devices)
       if (currentUser) {
         try {
-          await supabase.from('vault_items').delete().eq('id', id);
-        } catch (e) {}
+          await supabase.from('vault_items').delete().eq('id', id).eq('user_id', currentUser.id);
+        } catch (e) {
+          console.error('Supabase Vault Delete Error:', e);
+        }
       }
 
       if (selectedFile?.id === id) setSelectedFile(null);
